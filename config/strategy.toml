@@ -1,0 +1,8 @@
+[collect]
+output = "./results"
+range = "24h"
+
+[report]
+type = "txt"
+output="./reports"
+

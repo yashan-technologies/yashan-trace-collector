@@ -1,0 +1,11 @@
+git.yasdb.com/go/yaslog v0.0.0-20230531092234-0b27ba7c86fe h1:dbtJeQ8gfmL91W183zXrYHypBUOSP7U9vA5M2msAwxM=
+git.yasdb.com/go/yaslog v0.0.0-20230531092234-0b27ba7c86fe/go.mod h1:7/p80g19gsL3gTZxFnTFcyKbsqCU/pqSs7RDL05a3u8=
+git.yasdb.com/go/yasutil v0.0.0-20230627095802-62c140e0c0cc h1:ubg71vFEeawKuCjmnjp0G93I8y0PmzIChMC9SUBs4dM=
+git.yasdb.com/go/yasutil v0.0.0-20230627095802-62c140e0c0cc/go.mod h1:SMFHKKIPjD5GiEqvO1YgihctvaYif7+FuGCt+/44bM8=
+github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
+github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+github.com/alecthomas/assert/v2 v2.1.0 h1:tbredtNcQnoSd3QBhQWI7QZ3XHOVkw1Moklp2ojoH/0=
+github.com/alecthomas/kong v0.8.0 h1:ryDCzutfIqJPnNn0omnrgHLbAggDQM2VWHikE1xqK7s=
+github.com/alecthomas/kong v0.8.0/go.mod h1:n1iCIO2xS46oE8ZfYCNDqdR0b0wZNrXAIAqro/2132U=
+github.com/alecthomas/repr v0.1.0 h1:ENn2e1+J3k09gyj2shc0dHr/yjaWSHRlrJ4DPMevDqE=
+github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUqJM=
