@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	_PACKAGE_NAME_FORMATTER = "ytc-%d"
-	_REPORT_NAME_FORMATTER  = "report-%d.%s"
-	_DATA_NAME_FORMATTER    = "data-%d.json"
+	_PACKAGE_NAME_FORMATTER = "ytc-%s"
+	_REPORT_NAME_FORMATTER  = "report-%s.%s"
+	_DATA_NAME_FORMATTER    = "data-%s.json"
 
 	_DIR_DATA = "data"
 )
@@ -30,7 +30,7 @@ type BaseResultGenner struct {
 	CollectTypes map[string]struct{}
 	OutputDir    string
 	ReportType   string
-	Timestamp    int64
+	Timestamp    string
 	Genner       Genner
 }
 
