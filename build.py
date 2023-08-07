@@ -22,7 +22,7 @@ def get_parser():
         usage='%(prog)s [-h, --help]',
         formatter_class=argparse.HelpFormatter,
     )
-    subparser = parser.add_subparsers(help="sub commands: ")
+    subparser = parser.add_subparsers()
     set_clean_argument(subparser)
     set_build_argument(subparser)
     set_check_argument(subparser)

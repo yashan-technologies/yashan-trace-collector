@@ -5,4 +5,6 @@ package bashdef
 const (
 	CMD_BASH = "bash"
 	CMD_TAR  = "tar"
+
+	TIME_FORMATTER = "2006-01-02-15-04-05"
 )

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"ytc/defs/bashdef"
 	"ytc/internal/modules/ytc/resultgenner"
 	"ytc/utils/stringutil"
 )
@@ -42,7 +43,7 @@ func (d *DemoResults) GenResult(outputDir, reportType string, types map[string]s
 		CollectTypes: types,
 		OutputDir:    outputDir,
 		ReportType:   reportType,
-		Timestamp:    time.Now().Unix(),
+		Timestamp:    time.Now().Format(bashdef.TIME_FORMATTER),
 		Genner:       d,
 	}
 	for k, v := range d.Results {
