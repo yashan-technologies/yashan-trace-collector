@@ -24,9 +24,12 @@ def build(args):
     if 'force' in targets:
         ret = builder.YTCBuilder().force_build()
     else:
+        if 'clean' in targets:
+            ret = builder.YTCBuilder().clean()
+            if ret != 0:
+                return False
         ret = builder.YTCBuilder().build()
-    if ret != 0:
-        return False
+    return ret == 0
 
 
 def check(args):

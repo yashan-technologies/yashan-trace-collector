@@ -42,7 +42,7 @@ class Checker(reporter.Reporter):
         if not passed:
             self._write_report('Abort building...\n')
         log.logger.info('checking code finished.')
-        log.logger.info('result has been saved to: {}'.format(self._report_file))
+        log.logger.info('check results has been saved to: {}'.format(self._report_file))
         return passed
 
     def _prepare(self) -> bool:
