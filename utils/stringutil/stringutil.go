@@ -1,15 +1,23 @@
 // The stringutil package encapsulates functions related to strings.
 package stringutil
 
+import "regexp"
+
 const (
 	STR_EMPTY       = ""
 	STR_BLANK_SPACE = " "
 	STR_NEWLINE     = "\n"
 	STR_COMMA       = ","
 	STR_DOT         = "."
+	STR_HYPHEN      = "-"
 )
 
 // IsEmpty checks whether a string is empty.
 func IsEmpty(str string) bool {
 	return len(str) == 0
+}
+
+func RemoveExtraSpaces(str string) string {
+	regex := regexp.MustCompile(`\s+`)
+	return regex.ReplaceAllString(str, STR_BLANK_SPACE)
 }

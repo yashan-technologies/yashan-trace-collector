@@ -1,6 +1,10 @@
 [collect]
 output = "./results"
 range = "24h"
+max_duration = "7d"
+min_duration = "1m"
+scrape_interval = 1
+scrape_times = 10
 
 [report]
 type = "txt"

@@ -22,11 +22,17 @@ const (
 	_REPORT_NAME_FORMATTER  = "report-%s.%s"
 	_DATA_NAME_FORMATTER    = "data-%s.json"
 
-	_DIR_DATA = "data"
+	_DIR_DATA   = "data"
+	_DIR_BASE   = "base"
+	_DIR_DIAG   = "diag"
+	_DIR_PERF   = "perf"
+	_DIR_LOG    = "log"
+	_DIR_YASDB  = "yasdb"
+	_DIR_SYSTEM = "system"
 )
 
 type BaseResultGenner struct {
-	NodeDatas    map[string]interface{} // key: nodeid, value: node data
+	Datas        interface{}
 	CollectTypes map[string]struct{}
 	OutputDir    string
 	ReportType   string
@@ -35,10 +41,10 @@ type BaseResultGenner struct {
 }
 
 func (g *BaseResultGenner) GenResult() (string, error) {
-	if err := g.mkdirs(); err != nil {
+	if err := g.Mkdirs(); err != nil {
 		return stringutil.STR_EMPTY, err
 	}
-	if err := g.Genner.GenData(g.NodeDatas, g.genDataPath()); err != nil {
+	if err := g.Genner.GenData(g.Datas, g.genDataPath()); err != nil {
 		log.Module.Warnf("generate data failed: %s", err)
 	}
 	if err := g.writeReport(); err != nil {
@@ -50,6 +56,10 @@ func (g *BaseResultGenner) GenResult() (string, error) {
 		return stringutil.STR_EMPTY, err
 	}
 	return g.genPackageTarPath(), nil
+}
+
+func (g *BaseResultGenner) GetPackageDir() string {
+	return g.genPackageDir()
 }
 
 func (g *BaseResultGenner) genPackageName() string {
@@ -68,16 +78,24 @@ func (g *BaseResultGenner) genPackageTarPath() string {
 	return path.Join(g.OutputDir, g.genPackageTarName())
 }
 
-func (g *BaseResultGenner) genNodeDir(nodeID string) string {
-	return path.Join(g.genPackageDir(), nodeID)
-}
-
 func (g *BaseResultGenner) genDataPath() string {
 	name := fmt.Sprintf(_DATA_NAME_FORMATTER, g.Timestamp)
 	return path.Join(g.genPackageDir(), _DIR_DATA, name)
 }
 
-func (g *BaseResultGenner) mkdirs() error {
+func (g *BaseResultGenner) genBaseDir() string {
+	return path.Join(g.genPackageDir(), _DIR_BASE)
+}
+
+func (g *BaseResultGenner) genDiagDir() string {
+	return path.Join(g.genPackageDir(), _DIR_DIAG)
+}
+
+func (g *BaseResultGenner) genPerfDir() string {
+	return path.Join(g.genPackageDir(), _DIR_DIAG)
+}
+
+func (g *BaseResultGenner) Mkdirs() error {
 	if !fs.IsDirExist(g.OutputDir) {
 		if err := fs.Mkdir(g.OutputDir); err != nil {
 			return err
@@ -90,13 +108,20 @@ func (g *BaseResultGenner) mkdirs() error {
 	if err := fs.Mkdir(path.Dir(g.genDataPath())); err != nil {
 		return err
 	}
-	for nodeID := range g.NodeDatas {
-		nodeDir := g.genNodeDir(nodeID)
-		for collectType := range g.CollectTypes {
-			if err := fs.Mkdir(path.Join(nodeDir, collectType)); err != nil {
-				return err
-			}
-		}
+	if err := fs.Mkdir(g.genBaseDir()); err != nil {
+		return err
+	}
+	if err := fs.Mkdir(g.genDiagDir()); err != nil {
+		return err
+	}
+	if err := fs.Mkdir(g.genPerfDir()); err != nil {
+		return err
+	}
+	if err := fs.Mkdir(path.Join(g.genDiagDir(), _DIR_LOG, _DIR_YASDB)); err != nil {
+		return err
+	}
+	if err := fs.Mkdir(path.Join(g.genDiagDir(), _DIR_LOG, _DIR_SYSTEM)); err != nil {
+		return err
 	}
 	return nil
 }
