@@ -13,7 +13,7 @@ type Genner interface {
 type BaseGenner struct{}
 
 func (g BaseGenner) GenData(data interface{}, path string) error {
-	bytes, err := json.Marshal(data)
+	bytes, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return err
 	}

@@ -26,6 +26,8 @@ const (
 	_LOG_MODULE_CONTROLLER = "controller"
 	_LOG_MODULE_HANDLER    = "handler"
 	_LOG_MODULE_MODULE     = "module"
+	_LOG_MODULE_YASQL      = "yasql"
+	_LOG_MODULE_EXECER     = "execer"
 )
 
 // default option values
@@ -41,6 +43,8 @@ var (
 	Controller yaslog.YasLog
 	Handler    yaslog.YasLog
 	Module     yaslog.YasLog
+	Yasql      yaslog.YasLog
+	Execer     yaslog.YasLog
 	// TODO: more loggers
 )
 
@@ -107,6 +111,8 @@ func InitLogger(servername string, opt *Option) error {
 	Controller = logger.NewModule(_LOG_MODULE_CONTROLLER)
 	Handler = logger.NewModule(_LOG_MODULE_HANDLER)
 	Module = logger.NewModule(_LOG_MODULE_MODULE)
+	Yasql = logger.NewModule(_LOG_MODULE_YASQL)
+	Execer = logger.NewModule(_LOG_MODULE_EXECER)
 	return nil
 }
 
