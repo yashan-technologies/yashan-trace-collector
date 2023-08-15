@@ -40,7 +40,11 @@ def check(args):
 
 
 def test(args):
-    return tester.code_test()
+    t = tester.Tester()
+    log.logger.info('unit test results has been saved to: {}'.format(os.path.join(base.PROJECT_PATH, "unittest")))
+    if not t.test():
+        return False
+    return True
 
 
 def _update_submodules():
