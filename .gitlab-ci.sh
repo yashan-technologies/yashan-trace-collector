@@ -1,6 +1,7 @@
 #!/bin/bash
 USER=$(echo "$CI_COMMIT_AUTHOR" | cut -d ' ' -f 1)
-DIR=/home/gitlab/artifacts/$USER/$(date +%Y-%m-%d-%H-%M-%S)-MR-$CI_MERGE_REQUEST_IID
+ARTIFACTS_DIR=$(date -d "${CI_JOB_STARTED_AT}" +"%Y-%m-%d-%H-%M-%S")-MR-${CI_MERGE_REQUEST_IID}
+ARTIFACTS_PATH=/home/gitlab/artifacts/$USER/${ARTIFACTS_DIR}
 
 check_ret() {
     ret=$1
@@ -13,14 +14,17 @@ check_ret() {
 }
 
 dump() {
-    mkdir -p "$DIR"
+    mkdir -p "$ARTIFACTS_PATH"
     check_ret $? "make dir"
-    cp -fr build code_check.txt "$DIR"
+    cp -fr build code_check.txt  "$ARTIFACTS_PATH"
+    if [ -d "./unittest" ]; then
+        cp -fr ./unittest "$ARTIFACTS_PATH"
+    fi
     check_ret $? "copy artifacts"
 }
 
 show() {
-    echo http://"$CI_RUNNER":8888/"$USER"/
+    echo http://"$CI_RUNNER":8888/"$USER"/"${ARTIFACTS_DIR}"/
 }
 
 case "$1" in
