@@ -87,6 +87,12 @@ yum install -y make.x86_64
 yum install -y centos-release-scl
 yum install -y devtoolset-7-gcc.x86_64
 yum install -y devtoolset-7-gcc-c++.x86_64
+
+# set env
+vim ~/.bashrc
+<insert>
+source /opt/rh/devtoolset-7/enable
+<wq>
 ```
 
 #### Code Checking Tools(Optional)
@@ -131,6 +137,32 @@ pip3 install mypy==0.950
 # example for centos 7
 yum install -y epel-release
 yum install -y ShellCheck-0.3.8-1.el7
+```
+
+#### Unit Test Tools(Optional)
+
+| TOOL                | VERSION |
+| ------------------- | ------- |
+| gotestsum           | v1.10.1 |
+| go-test-html-report | v1.1.0  |
+| junit2html          | 30.1.3  |
+
+##### gotestsum
+
+```bash
+go install gotest.tools/gotestsum@v1.10.1
+```
+
+##### go-test-html-report
+
+```bash
+go install github.com/Thatooine/go-test-html-report@v1.1.0
+```
+
+##### junit2html
+
+```bash
+pip3 install junit2html==30.1.3
 ```
 
 ### Configurations
