@@ -15,21 +15,15 @@ def clean(args):
 def build(args):
     _update_submodules()
     targets = _gen_targets(args)
-    if not 'skip_check' in targets:
-        if not check(args):
-            return False
-    if not 'skip_test' in targets:
-        if not test(args):
-            return False
     if 'force' in targets:
-        ret = builder.YTCBuilder().force_build()
-    else:
-        if 'clean' in targets:
-            ret = builder.YTCBuilder().clean()
-            if ret != 0:
-                return False
-        ret = builder.YTCBuilder().build()
-    return ret == 0
+        return True if builder.YTCBuilder().force_build() == 0 else False
+    if not 'skip_check' in targets and not check(args):
+        return False
+    if not 'skip_test' in targets and not test(args):
+        return False
+    if 'clean' in targets and builder.YTCBuilder().clean() != 0:
+        return False
+    return True if builder.YTCBuilder().build() == 0 else False
 
 
 def check(args):
@@ -41,10 +35,11 @@ def check(args):
 
 def test(args):
     t = tester.Tester()
-    log.logger.info('unit test results has been saved to: {}'.format(os.path.join(base.PROJECT_PATH, "unittest")))
+    result = True
     if not t.test():
-        return False
-    return True
+        result = False
+    log.logger.info('unit test results has been saved to: {}'.format(os.path.join(base.PROJECT_PATH, "unittest")))
+    return result
 
 
 def _update_submodules():

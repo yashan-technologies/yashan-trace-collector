@@ -56,6 +56,7 @@ func IsSysGroupExists(groupname string) bool {
 	return err == nil
 }
 
+// 通过sudo -vn命令判断sudo权限是否具备，预期会报错需要密码，则表示该用户具备sudo权限。
 func CheckSudovn(logger yaslog.YasLog) error {
 	exec := execer.NewExecer(logger)
 	ret, _, err := exec.Exec(bashdef.CMD_BASH, "-c", fmt.Sprintf("%s %s", bashdef.CMD_SUDO, "-vn"))
