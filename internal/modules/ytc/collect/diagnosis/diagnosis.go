@@ -122,7 +122,6 @@ func (d *DiagCollecter) CheckAccess() (noAccess []data.NoAccessRes) {
 			desc = fmt.Sprintf("current user: %s %s", user, err.Error())
 			switch item {
 			case data.DIAG_YASDB_COREDUMP, data.DIAG_HOST_SYSTEMLOG:
-				// tudo sudo -nv 有问题
 				if err := userutil.CheckSudovn(log.Module); err != nil {
 					if err == userutil.ErrSudoNeedPwd {
 						tips = _please_run_with_sudo

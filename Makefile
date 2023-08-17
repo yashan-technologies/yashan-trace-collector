@@ -23,13 +23,14 @@ GO_BUILD_WITH_INFO=$(GO_BUILD) -ldflags "\
 PKG_PERFIX=yashan-trace-collector
 PKG=$(PKG_PERFIX)-$(VERSION)-$(OS)-$(ARCH).tar.gz
 
+BUILD_PATH=./build
+PKG_PATH=$(BUILD_PATH)/$(PKG_PERFIX)
+BIN_PATH=$(PKG_PATH)/bin
+
 # build defines
 BIN_YTCD=$(BUILD_PATH)/ytcd
 BIN_YTCCTL=$(BUILD_PATH)/ytcctl
 BIN_FILES=$(BIN_YTCCTL) $(BIN_YTCD)
-
-BUILD_PATH=./build
-BIN_PATH=$(BUILD_PATH)/bin
 
 DIR_TO_MAKE=$(BIN_PATH)
 FILE_TO_COPY=./config ./scripts
@@ -53,10 +54,9 @@ go_build:
 
 build: go_build
 	@mkdir -p $(DIR_TO_MAKE) 
-	@cp -r $(FILE_TO_COPY) $(BUILD_PATH)
+	@cp -r $(FILE_TO_COPY) $(PKG_PATH)
 	@mv $(BIN_FILES) $(BIN_PATH)
-	@cd $(BUILD_PATH);ln -s ./bin/ytcctl ./ytcctl
-	@tar -cvzf $(PKG) -C $(BUILD_PATH) .
-	@mv $(PKG) $(BUILD_PATH)
+	@cd $(PKG_PATH);ln -s ./bin/ytcctl ./ytcctl
+	@cd $(BUILD_PATH);tar -cvzf $(PKG) $(PKG_PERFIX)/
 
 force: clean build
