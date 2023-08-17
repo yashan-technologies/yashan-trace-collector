@@ -2,6 +2,8 @@ package ytcctlhandler
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"ytc/defs/bashdef"
@@ -14,8 +16,8 @@ import (
 	"git.yasdb.com/go/yasutil/tabler"
 )
 
-func (c *CollecterHandler) Collect() error {
-	noAccessMap, err := c.checkAccess()
+func (c *CollecterHandler) Collect(yasdbValidate error) error {
+	noAccessMap, err := c.checkAccess(yasdbValidate)
 	if err != nil {
 		log.Handler.Errorf(err.Error())
 		return err
@@ -29,16 +31,16 @@ func (c *CollecterHandler) Collect() error {
 		log.Handler.Errorf(err.Error())
 		return err
 	}
-	fmt.Printf("\nStarting collect...\n")
+	fmt.Printf("\nStarting collect...\n\n")
 	return c.collect(moduleItems)
 }
 
-func (c *CollecterHandler) checkAccess() (map[string][]data.NoAccessRes, error) {
+func (c *CollecterHandler) checkAccess(yasdbValidateErr error) (map[string][]data.NoAccessRes, error) {
 	m := make(map[string][]data.NoAccessRes)
 	for _, c := range c.Collecters {
-		no := c.CheckAccess()
-		if len(no) != 0 {
-			m[c.Type()] = c.CheckAccess()
+		noAccessList := c.CheckAccess(yasdbValidateErr)
+		if len(noAccessList) != 0 {
+			m[c.Type()] = noAccessList
 		}
 	}
 	if len(m) == 0 {
@@ -53,79 +55,75 @@ func (c *CollecterHandler) checkAccess() (map[string][]data.NoAccessRes, error) 
 func (c *CollecterHandler) printNoAccessItem(m map[string][]data.NoAccessRes) error {
 	table := tabler.NewTable(
 		"",
-		tabler.NewRowTitle("TYPE", 0),
-		tabler.NewRowTitle("COLLECT_ITEM", 0),
-		tabler.NewRowTitle("DESCRIPTION", 0),
-		tabler.NewRowTitle("TIPS", 0),
+		tabler.NewRowTitle("TYPE", 15),
+		tabler.NewRowTitle("COLLECT_ITEM", 25),
+		tabler.NewRowTitle("DESCRIPTION", 50),
+		tabler.NewRowTitle("TIPS", 50),
+		tabler.NewRowTitle("COLLECTED?", 15),
 	)
-	fmt.Printf("%s", bashdef.WithYellow("Detect some problem and some tips well give to you"))
-	for t, noAccess := range m {
-		for i, no := range noAccess {
+	fmt.Printf("%s\n\n", bashdef.WithYellow("Detect some problem and some tips will give to you"))
+	var modules []string
+	for t := range m {
+		modules = append(modules, t)
+	}
+	sort.Strings(modules)
+	for _, module := range modules {
+		for i, noAccess := range m[module] {
 			if i == 0 {
-				err := table.AddColumn(t, no.ModuleItem, no.Description, no.Tips)
+				err := table.AddColumn(strings.ToUpper(collecttypedef.GetTypeFullName(module)), noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isColltedStr(noAccess.ForceCollect))
 				if err != nil {
 					log.Module.Errorf("add column err: %s", err.Error())
 					return err
 				}
 				continue
 			}
-			if err := table.AddColumn("", no.ModuleItem, no.Description, no.Tips); err != nil {
+			if err := table.AddColumn("", noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isColltedStr(noAccess.ForceCollect)); err != nil {
 				log.Module.Errorf("add column err: %s", err.Error())
 				return err
 			}
 		}
 	}
-	fmt.Println()
 	table.Print()
 	var isConfirm string
 	fmt.Printf("\nAre you want continue collect [y/n] ?\n")
 	fmt.Scanln(&isConfirm)
 	isConfirm = strings.ToLower(isConfirm)
 	if isConfirm != "y" {
-		fmt.Println("Stopping Collect.")
-		return fmt.Errorf("some path permission denied, not continue collect")
+		return fmt.Errorf("some validations failed, not continue collect")
 	}
 	return nil
 }
 
 func (c *CollecterHandler) printCollectItem(typeItem map[string][]string) error {
-	table := tabler.NewTable(
-		"",
-		tabler.NewRowTitle("baseinfo", 0),
-		tabler.NewRowTitle("diagnosis", 0),
-		tabler.NewRowTitle("perfomance", 0),
+	var (
+		itemTitle   []*tabler.RowTitle
+		moduleItems = make([][]string, 0)
+		moduleNames = make([]string, 0)
 	)
-	moduleItems := [3][]string{}
-	if base, ok := typeItem[collecttypedef.TYPE_BASE]; ok {
-		moduleItems[0] = base
+	for module := range typeItem {
+		moduleNames = append(moduleNames, module)
 	}
-	if diag, ok := typeItem[collecttypedef.TYPE_DIAG]; ok {
-		moduleItems[1] = diag
+	sort.Strings(moduleNames)
+	for _, t := range moduleNames {
+		itemTitle = append(itemTitle, tabler.NewRowTitle(strings.ToUpper(collecttypedef.GetTypeFullName(t)), 30))
+		moduleItems = append(moduleItems, typeItem[t])
 	}
-	if perf, ok := typeItem[collecttypedef.TYPE_PREF]; ok {
-		moduleItems[2] = perf
-	}
-	for i := 0; i < len(moduleItems[0]) || i < len(moduleItems[1]) || i < len(moduleItems[2]); i++ {
-		var (
-			baseItem string
-			diagItem string
-			perfItem string
-		)
-		if i < len(moduleItems[0]) {
-			baseItem = moduleItems[0][i]
+	table := tabler.NewTable("", itemTitle...)
+	maxCol := maxCol(moduleItems)
+	for i := 0; i < maxCol; i++ {
+		row := make([]interface{}, len(moduleNames))
+		for j, item := range moduleItems {
+			if i < len(item) {
+				row[j] = item[i]
+				continue
+			}
+			row[j] = " "
 		}
-		if i < len(moduleItems[1]) {
-			diagItem = moduleItems[1][i]
-		}
-
-		if i < len(moduleItems[2]) {
-			perfItem = moduleItems[2][i]
-		}
-		if err := table.AddColumn(baseItem, diagItem, perfItem); err != nil {
-			return nil
+		if err := table.AddColumn(row...); err != nil {
+			return err
 		}
 	}
-	fmt.Printf("%s\n", bashdef.WithBlue("The following modules will be collected"))
+	fmt.Printf("%s\n\n", bashdef.WithBlue("The following modules will be collected"))
 	table.Print()
 	return nil
 }
@@ -144,7 +142,7 @@ func (c *CollecterHandler) getCollectItem(noAccessMap map[string][]data.NoAccess
 }
 
 func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
-	progress := barutil.NewProgress()
+	progress := barutil.NewProgress(barutil.WithWidth(100))
 	if e := c.Start(); e != nil {
 		return e
 	}
@@ -192,6 +190,24 @@ func (c *CollecterHandler) Finsh() error {
 		fmt.Printf("failed to gen result, err: %v\n", err)
 		return err
 	}
-	fmt.Printf("result was saved to %s\n", path)
+	fmt.Printf("The collection has been %s,and the result was saved to %s, thank for your use.\n", bashdef.WithGreen("completed"), bashdef.WithBlue(path))
 	return nil
+}
+
+func isColltedStr(f bool) string {
+	flag := strconv.FormatBool(f)
+	if f {
+		return bashdef.WithGreen(flag)
+	}
+	return bashdef.WithRed(flag)
+}
+
+func maxCol(rows [][]string) int {
+	max := -1
+	for _, row := range rows {
+		if len(row) > max {
+			max = len(row)
+		}
+	}
+	return max
 }

@@ -3,7 +3,6 @@ package yasqlutil
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os/exec"
 	"path"
@@ -49,6 +48,7 @@ const (
 	YAS_USER_LACK_LOGIN_AUTH         = "YAS-02245"
 	YAS_USER_LACK_AUTH               = "YAS-02213"
 	YAS_TABLE_OR_VIEW_DOES_NOT_EXIST = "YAS-02012"
+	YAS_FAILED_CONNECT_SOCKET        = "YAS-00402"
 )
 
 const (
@@ -128,31 +128,7 @@ func getRows(res string, isGetTableNotExistErr bool) ([]string, error) {
 	matchValueErr, _ := regexp.Match(_yasqlErrValue, []byte(res))
 	if matchYasqlErr || matchYasErr || matchUserErr || matchValueErr {
 		log.Yasql.Errorf("Get Rows Match err: %s\n", res)
-		if strings.Contains(res, YAS_NO_DBUSER) {
-			return nil, ErrNoDBUser
-		}
-		if strings.Contains(res, YAS_INVALID_USER_OR_PASSWORD) {
-			return nil, ErrInvalidUserPwd
-		}
-		if strings.Contains(res, YAS_USER_LACK_LOGIN_AUTH) {
-			return nil, ErrLackLoginAuth
-		}
-		if strings.Contains(res, YASQL_CONNECT_ERROR_CODE) {
-			return nil, ErrConnect
-		}
-		if strings.Contains(res, YAS_DB_NOT_OPEN) {
-			return nil, ErrDBNotOpen
-		}
-		if strings.Contains(res, YAS_USER_LACK_AUTH) || strings.Contains(res, YAS_TABLE_OR_VIEW_DOES_NOT_EXIST) && !isGetTableNotExistErr {
-			return nil, ErrDBUserLackPrivileges
-		}
-		if strings.Contains(res, _yasqlErrUser) {
-			return nil, ErrInvalidUserPwdValue
-		}
-		if strings.Contains(res, _yasqlErrValue) {
-			return nil, ErrInvalidUserPwdValue
-		}
-		return nil, errors.New(res)
+		return nil, NewYasErr(res)
 	}
 	return rows, nil
 }

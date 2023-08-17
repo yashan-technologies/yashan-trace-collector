@@ -3,26 +3,47 @@ package barutil
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/vbauerster/mpb/v8"
 )
+
+type ProgressOpt func(p *Progress)
 
 type Progress struct {
 	mpbProgress *mpb.Progress
 	wg          *sync.WaitGroup
 	bars        []*bar
+	width       int
 }
 
-func NewProgress() *Progress {
-	group := new(sync.WaitGroup)
-	return &Progress{
-		mpbProgress: mpb.New(mpb.WithWaitGroup(group)),
-		wg:          group,
+func WithWidth(width int) ProgressOpt {
+	return func(p *Progress) {
+		p.width = width
 	}
 }
 
+func NewProgress(opts ...ProgressOpt) *Progress {
+	group := new(sync.WaitGroup)
+	p := &Progress{
+		wg: group,
+	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	var mpbOpt []mpb.ContainerOption
+	mpbOpt = append(mpbOpt, mpb.WithWaitGroup(group))
+	mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
+	if p.width != 0 {
+		mpbOpt = append(mpbOpt, mpb.WithWidth(p.width))
+	}
+	progress := mpb.New(mpbOpt...)
+	p.mpbProgress = progress
+	return p
+}
+
 func (p *Progress) AddBar(name string, namedWorker map[string]func() error) {
-	bar := newBar(name, p)
+	bar := newBar(name, p, withBarWidth(p.width))
 	p.wg.Add(1)
 	for name, w := range namedWorker {
 		bar.addTask(name, w)

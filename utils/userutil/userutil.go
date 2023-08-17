@@ -24,6 +24,18 @@ var (
 	ErrNotRunSudo  = errors.New("user may not run sudo")
 )
 
+var (
+	CurrentUser string
+)
+
+func init() {
+	user, err := GetCurrentUser()
+	if err != nil {
+		panic(err)
+	}
+	CurrentUser = user
+}
+
 // GetUsernameById returns username by user ID.
 func GetUsernameById(id int) (username string, err error) {
 	u, err := user.LookupId(strconv.FormatInt(int64(id), 10))

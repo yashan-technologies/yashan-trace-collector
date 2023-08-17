@@ -22,6 +22,14 @@ var (
 	ErrKnownType = errors.New("unknow collect type")
 )
 
+var (
+	typeFullName = map[string]string{
+		TYPE_BASE: "baseinfo",
+		TYPE_DIAG: "diagnosis",
+		TYPE_PREF: "performance",
+	}
+)
+
 type CollectParam struct {
 	StartTime     time.Time `json:"startTime"`
 	EndTime       time.Time `json:"endTime"`
@@ -37,3 +45,13 @@ type WorkloadItem map[string]interface{}
 type WorkloadOutput map[int64]WorkloadItem
 
 type WorkloadType string
+
+func GetTypeFullName(s string) string {
+	full, ok := typeFullName[s]
+	if !ok {
+		full = s
+	}
+	return full
+}
+
+
