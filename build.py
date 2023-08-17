@@ -86,4 +86,7 @@ def test(args):
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
-    sys.exit(args.func(args))
+    if hasattr(args, 'func') and args.func is not None:
+        sys.exit(args.func(args))
+    parser.print_usage()
+    sys.exit(0)
