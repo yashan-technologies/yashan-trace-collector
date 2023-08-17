@@ -12,11 +12,9 @@ import (
 	"ytc/defs/confdef"
 	"ytc/defs/errdef"
 	"ytc/defs/timedef"
-	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/data"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
-	"ytc/utils/fileutil"
 	"ytc/utils/userutil"
 
 	"ytc/utils/processutil"
@@ -26,6 +24,8 @@ import (
 	"git.yasdb.com/go/yasutil/execer"
 	"git.yasdb.com/go/yasutil/fs"
 )
+
+type checkFunc func() *data.NoAccessRes
 
 const (
 	CORE_PATTERN_PATH = "/proc/sys/kernel/core_pattern"
@@ -70,12 +70,6 @@ const (
 	_getErrMessage = "get\t[%s]\terror:\t%s"
 )
 
-const (
-	_please_run_with_sudo               = "you can run 'sudo ytcctl collect'"
-	_please_run_with_root               = "you can run 'ytcctl collect' with root"
-	_please_run_with_yasdb_user_or_sudo = "you can run 'ytcctl collect' with yasdb user or root"
-)
-
 var (
 	diag_default_ch_map = map[string]string{
 		data.DIAG_YASDB_ADR:             "数据库ADR日志",
@@ -94,6 +88,7 @@ var _package_dir = ""
 type DiagCollecter struct {
 	*collecttypedef.CollectParam
 	ModuleCollectRes *data.YtcModule
+	yasdbValidateErr error
 	notConnectDB     bool
 }
 
@@ -106,72 +101,16 @@ func NewDiagCollecter(collectParam *collecttypedef.CollectParam) *DiagCollecter 
 	}
 }
 
-func (d *DiagCollecter) CheckAccess() (noAccess []data.NoAccessRes) {
+func (d *DiagCollecter) CheckAccess(yasdbValidate error) (noAccess []data.NoAccessRes) {
+	d.yasdbValidateErr = yasdbValidate
 	noAccess = make([]data.NoAccessRes, 0)
-	itemPath := GetDiagPath(d.CollectParam)
-	for item, path := range itemPath {
-		if err := fileutil.CheckAccess(path); err != nil {
-			var (
-				desc string
-				tips string
-			)
-			user, userErr := userutil.GetCurrentUser()
-			if userErr != nil {
-				log.Module.Errorf("get current user err: %s", userErr.Error())
-			}
-			desc = fmt.Sprintf("current user: %s %s", user, err.Error())
-			switch item {
-			case data.DIAG_YASDB_COREDUMP, data.DIAG_HOST_SYSTEMLOG:
-				if err := userutil.CheckSudovn(log.Module); err != nil {
-					if err == userutil.ErrSudoNeedPwd {
-						tips = _please_run_with_sudo
-					} else {
-						tips = _please_run_with_root
-					}
-				}
-			case data.DIAG_YASDB_ADR, data.DIAG_YASDB_ALERTLOG, data.DIAG_YASDB_RUNLOG:
-				tips = _please_run_with_yasdb_user_or_sudo
-			}
-			noAccess = append(noAccess, data.NoAccessRes{
-				ModuleItem:  item,
-				Description: desc,
-				Tips:        tips,
-			})
+	funcMap := d.CheckFunc()
+	for item, fn := range funcMap {
+		noAccessRes := fn()
+		if noAccessRes != nil {
+			log.Module.Debugf("item [%s] check asscess desc: %s tips %s", item, noAccessRes.Description, noAccessRes.Tips)
+			noAccess = append(noAccess, *noAccessRes)
 		}
-	}
-	if err := d.checkYasdbEnv(); err != nil {
-		d.notConnectDB = true
-		tipsFormat := "defult to %s collect"
-		alert := data.NoAccessRes{
-			ModuleItem:   data.DIAG_YASDB_ALERTLOG,
-			Description:  "alert.log may not be collected",
-			Tips:         fmt.Sprintf(tipsFormat, path.Join(d.YasdbData, "alert", "alert.log")),
-			ForceCollect: true,
-		}
-		run := data.NoAccessRes{
-			ModuleItem:   data.DIAG_YASDB_RUNLOG,
-			Description:  "run.log may not be collected",
-			Tips:         fmt.Sprintf(tipsFormat, path.Join(d.YasdbData, "run", "run.log")),
-			ForceCollect: true,
-		}
-		adr := data.NoAccessRes{
-			ModuleItem:   data.DIAG_YASDB_ADR,
-			Description:  "adr log may not be collected",
-			Tips:         fmt.Sprintf(tipsFormat, path.Join(d.YasdbData, "diag")),
-			ForceCollect: true,
-		}
-		tips := ytccollectcommons.GenYasdbEnvErrTips(err)
-		instanceStatus := data.NoAccessRes{
-			ModuleItem:  data.DIAG_YASDB_INSTANCE_STATUS,
-			Description: err.Error(),
-			Tips:        tips,
-		}
-		databaseStatus := data.NoAccessRes{
-			ModuleItem:  data.DIAG_YASDB_DATABASE_STATUS,
-			Description: err.Error(),
-			Tips:        tips,
-		}
-		noAccess = append(noAccess, alert, run, adr, instanceStatus, databaseStatus)
 	}
 	return
 }
@@ -206,11 +145,11 @@ func (b *DiagCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string
 
 func (b *DiagCollecter) getNotAccessItem(noAccess []data.NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
-	for _, no := range noAccess {
-		if no.ForceCollect {
+	for _, noAccessRes := range noAccess {
+		if noAccessRes.ForceCollect {
 			continue
 		}
-		res[no.ModuleItem] = struct{}{}
+		res[noAccessRes.ModuleItem] = struct{}{}
 	}
 	return
 }

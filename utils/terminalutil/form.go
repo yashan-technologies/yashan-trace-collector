@@ -12,6 +12,9 @@ import (
 var (
 	FormExitNotContinue = 1
 	FormExitContinue    = 2
+
+	Ok     = "Ok"
+	Cancel = "Cancel"
 )
 
 type WithOption func(c *CollectFrom)
@@ -121,28 +124,21 @@ func (f *CollectFrom) Validate() error {
 }
 
 func (f *CollectFrom) ConfrimExit(errMsg string) {
-	ok := tview.NewButton("OK").SetSelectedFunc(func() {
-		f.Stop(FormExitContinue)
-	})
-	cancel := tview.NewButton("Cancel").SetSelectedFunc(func() {
-		f.app.SetRoot(f.form, false)
-	})
-	buttonFlex := tview.NewFlex().
-		SetDirection(tview.FlexColumn).
-		AddItem(ok, 0, 1, false).
-		AddItem(cancel, 0, 1, false)
-	flex := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(tview.NewTextView().SetText(errMsg).SetTextAlign(tview.AlignLeft), 0, 1, false).
-		AddItem(buttonFlex, 0, 1, false)
-	box := tview.NewBox()
-	box.SetRect(0, 0, 50, 10)
-	box.SetBorder(true).SetTitle("Warning")
-	box.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
-		flex.Draw(screen)
-		return x, y, width, height
-	})
-	f.app.SetRoot(flex, true)
+	modal := tview.NewModal().
+		SetBackgroundColor(tcell.ColorRed).
+		SetText(errMsg).
+		AddButtons([]string{Ok, Cancel}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == Ok {
+				f.Stop(FormExitContinue)
+				return
+			}
+			if buttonLabel == Cancel {
+				f.app.SetRoot(f.form, false)
+				return
+			}
+		})
+	f.app.SetRoot(modal, true)
 }
 
 func (f *CollectFrom) Stop(code int) {
@@ -167,26 +163,4 @@ func (f *CollectFrom) Start() {
 		log.Controller.Errorf("start yasdb collect form err :%s", err.Error())
 		panic(err)
 	}
-}
-
-type LeftAlignModal struct {
-	*tview.Modal
-	textView *tview.TextView
-}
-
-func NewLeftAlignModal() *LeftAlignModal {
-	modal := &LeftAlignModal{
-		Modal:    tview.NewModal(),
-		textView: tview.NewTextView().SetTextAlign(tview.AlignLeft),
-	}
-	modal.SetBackgroundColor(tcell.ColorRed)
-	return modal
-}
-
-func (m *LeftAlignModal) Draw(screen tcell.Screen) {
-	m.Modal.Draw(screen)
-
-	x, y, width, height := m.GetRect()
-	m.textView.SetRect(x+1, y+1, width-2, height-4)
-	m.textView.Draw(screen)
 }

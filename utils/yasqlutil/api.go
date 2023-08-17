@@ -3,11 +3,12 @@ package yasqlutil
 import (
 	"errors"
 	"fmt"
-	"git.yasdb.com/go/yasutil/fs"
 	"strconv"
 	"strings"
 	"sync"
 	"ytc/log"
+
+	"git.yasdb.com/go/yasutil/fs"
 )
 
 func GetLocalInstance(user string, password string, yasqlHome string, yasdbData string) *Yasql {
@@ -45,13 +46,7 @@ func GetInstance(user string, password string, ip string, port uint, yasqlHome s
 }
 
 func (tx *Yasql) Error() error {
-	if tx.err == nil {
-		return nil
-	}
-	if IsYasqlError(tx.err) {
-		return tx.err
-	}
-	return NewYasqlError(tx.err.Error())
+	return tx.err
 }
 
 func (tx *Yasql) ResetError() {

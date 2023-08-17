@@ -62,12 +62,16 @@ func (c *CollectCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	log.Controller.Debugf("get collect param: %s", jsonutil.ToJSONString(collectParam))
 	handler, err := ytcctlhandler.NewCollecterHandler(types, collectParam)
 	if err != nil {
 		return err
 	}
-	return handler.Collect()
+	log.Controller.Debugf("from validate res :%s, ", jsonutil.ToJSONString(YasdbValidate))
+	if err := handler.Collect(YasdbValidate); err != nil {
+		log.Controller.Errorf(err.Error())
+		fmt.Printf("Stopping Collect...\n\n")
+	}
+	return nil
 }
 
 func (c *CollectCmd) Quit() {

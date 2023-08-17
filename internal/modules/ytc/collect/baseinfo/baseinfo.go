@@ -13,7 +13,6 @@ import (
 	"ytc/defs/timedef"
 	"ytc/internal/modules/ytc/collect/baseinfo/gopsutil"
 	"ytc/internal/modules/ytc/collect/baseinfo/sar"
-	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/data"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
@@ -32,6 +31,8 @@ import (
 
 	"gopkg.in/ini.v1"
 )
+
+type checkFunc func() *data.NoAccessRes
 
 const (
 	_tips_apt_base_host_load_status = "sudo apt install sysstat"
@@ -85,6 +86,7 @@ var WorkloadTypeToSarArgMap = map[collecttypedef.WorkloadType]string{
 type BaseCollecter struct {
 	*collecttypedef.CollectParam
 	ModuleCollectRes *data.YtcModule
+	yasdbValidateErr error
 	notConnectDB     bool
 }
 
@@ -112,50 +114,16 @@ func NewBaseCollecter(collectParam *collecttypedef.CollectParam) *BaseCollecter 
 	}
 }
 
-func (b *BaseCollecter) CheckAccess() (noAccess []data.NoAccessRes) {
+func (b *BaseCollecter) CheckAccess(yasdbValidate error) (noAccess []data.NoAccessRes) {
+	b.yasdbValidateErr = yasdbValidate
 	noAccess = make([]data.NoAccessRes, 0)
-	if err := b.checkYasdbEnv(); err != nil {
-		b.notConnectDB = true
-		tips := ytccollectcommons.GenYasdbEnvErrTips(err)
-		no := data.NoAccessRes{
-			ModuleItem:   data.BASE_YASDB_PARAMTER,
-			Description:  err.Error(),
-			Tips:         tips,
-			ForceCollect: true,
+	funcMap := b.CheckFunc()
+	for item, fn := range funcMap {
+		noAccessRes := fn()
+		if noAccessRes != nil {
+			log.Module.Debugf("item [%s] check asscess desc: %s tips %s", item, noAccessRes.Description, noAccessRes.Tips)
+			noAccess = append(noAccess, *noAccessRes)
 		}
-		noAccess = append(noAccess, no)
-	}
-	if err := b.CheckSarAccess(); err != nil {
-		os, osErr := osutil.GetOsRelease()
-		if osErr != nil {
-			log.Module.Errorf("get os info err: %s", err.Error())
-		}
-		var tips string
-		if os.Id == osutil.UBUNTU_ID {
-			tips = _tips_apt_base_host_load_status
-		}
-		if os.Id == osutil.CENTOS_ID {
-			tips = _tips_yum_base_host_load_status
-		}
-		if os.Id == osutil.KYLIN_ID {
-			tips = _tips_yum_base_host_load_status
-		}
-		sarItems := b.getLoadStatusItem()
-		for item := range sarItems {
-			no := data.NoAccessRes{
-				ModuleItem:  base_default_ch_map[item],
-				Description: err.Error(),
-				Tips:        tips,
-			}
-			noAccess = append(noAccess, no)
-		}
-	}
-	if err := b.CheckFireWallAssess(); err != nil {
-		noAccess = append(noAccess, data.NoAccessRes{
-			ModuleItem:  data.BASE_HOST_FIREWALLD,
-			Description: err.Error(),
-			Tips:        _tips_base_host_firewalld,
-		})
 	}
 	return
 }
@@ -188,22 +156,13 @@ func (b *BaseCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string
 	return
 }
 
-func (b *BaseCollecter) getLoadStatusItem() map[string]struct{} {
-	return map[string]struct{}{
-		data.BASE_HOST_NETWORK_IO:   {},
-		data.BASE_HOST_CPU_USAGE:    {},
-		data.BASE_HOST_DISK_IO:      {},
-		data.BASE_HOST_MEMORY_USAGE: {},
-	}
-}
-
 func (b *BaseCollecter) getNotAccessItem(noAccess []data.NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
-	for _, no := range noAccess {
-		if no.ForceCollect {
+	for _, noAccessRes := range noAccess {
+		if noAccessRes.ForceCollect {
 			continue
 		}
-		res[no.ModuleItem] = struct{}{}
+		res[noAccessRes.ModuleItem] = struct{}{}
 	}
 	return
 }

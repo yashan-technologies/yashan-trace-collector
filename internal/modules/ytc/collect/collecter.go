@@ -8,7 +8,7 @@ import (
 )
 
 type TypedCollecter interface {
-	CheckAccess() []data.NoAccessRes
+	CheckAccess(yasdbValidate error) []data.NoAccessRes
 	CollectFunc(item []string) map[string]func() error
 	CollectedItem(noAccess []data.NoAccessRes) []string
 	Type() string

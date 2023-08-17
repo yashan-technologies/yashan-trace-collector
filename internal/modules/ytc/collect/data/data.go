@@ -34,6 +34,7 @@ const (
 	DIAG_YASDB_ALERTLOG        = "YashanDB-AlertLog"
 	DIAG_YASDB_COREDUMP        = "YashanDB-Coredump"
 	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
+	DIAG_HOST_DMESG            = "Host-Dmesg"
 )
 
 const (

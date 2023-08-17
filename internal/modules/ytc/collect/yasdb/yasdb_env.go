@@ -15,21 +15,6 @@ type YasdbEnv struct {
 	YasdbPassword string `json:"yasdbPassword"`
 }
 
-func (y *YasdbEnv) Validate(isValidatePassword bool) error {
-	if err := y.ValidYasdbHome(); err != nil {
-		return err
-	}
-	if err := y.ValidYasdbData(); err != nil {
-		return err
-	}
-	if isValidatePassword {
-		if err := y.ValidYasdbUserAndPwd(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (y *YasdbEnv) ValidYasdbHome() error {
 	if stringutil.IsEmpty(y.YasdbHome) {
 		return errdef.NewItemEmpty(constdef.YASDB_HOME)
@@ -58,7 +43,7 @@ func (y *YasdbEnv) ValidYasdbUser() error {
 }
 
 func (y *YasdbEnv) ValidYasdbPassword() error {
-	if stringutil.IsEmpty(y.YasdbData) {
+	if stringutil.IsEmpty(y.YasdbPassword) {
 		return errdef.NewItemEmpty(constdef.YASDB_DATA)
 	}
 	return nil
