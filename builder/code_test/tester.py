@@ -30,9 +30,9 @@ class Tester(object):
     def _run_test(self) -> bool:
         log.logger.info(f'running unittest...')
         ret, _, err = execer.exec('gotestsum --junitfile ./unittest/junit.xml --jsonfile ./unittest/gounit.json\
-                  -- -coverpkg=./... -coverprofile=./unittest/cover.out -timeout=3m ./... > ./unittest/gotestsum.out 2>&1')
+                  -- -coverpkg=./... -coverprofile=./unittest/cover.out -timeout=3m ./... > ./unittest/gotestsum.txt 2>&1')
         if ret != 0:
-            _, out, _ = execer.exec('cat unittest/gotestsum.out | grep -Ei "fail|ERROR|go:"')
+            _, out, _ = execer.exec('cat unittest/gotestsum.txt | grep -Ei "fail|ERROR|go:"')
             log.logger.error(f'go test failed: {out}') if ret == 1 else log.logger.error(f'gotestsum failed: {out}')
             return False
         return True
