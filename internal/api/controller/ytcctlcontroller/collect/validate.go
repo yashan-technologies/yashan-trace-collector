@@ -26,7 +26,7 @@ var (
 
 func (c *CollectCmd) validate() error {
 	strategyConf := confdef.GetStrategyConf()
-	c.fullDefault(strategyConf)
+	c.fillDefault(strategyConf)
 	if err := c.validateType(); err != nil {
 		return err
 	}
@@ -37,6 +37,9 @@ func (c *CollectCmd) validate() error {
 		return err
 	}
 	if err := c.validateOutput(); err != nil {
+		return err
+	}
+	if err := c.validateExtra(); err != nil {
 		return err
 	}
 	return nil
@@ -55,6 +58,24 @@ func (c *CollectCmd) validateType() error {
 			return errdef.NewErrFlagFormat(ytctl_collect, f_type)
 		}
 		resMap[t] = struct{}{}
+	}
+	return nil
+}
+
+func (c *CollectCmd) validateExtra() error {
+	if err := c.validateExtraPath(c.Include); err != nil {
+		return err
+	}
+	// no need to check exclude
+	return nil
+}
+
+func (c *CollectCmd) validateExtraPath(value string) error {
+	paths := c.getExtraPath(value)
+	for _, path := range paths {
+		if _, err := os.Stat(path); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -164,7 +185,7 @@ func (c *CollectCmd) validateOutput() error {
 	}
 }
 
-func (c *CollectCmd) fullDefault(stra confdef.Strategy) {
+func (c *CollectCmd) fillDefault(stra confdef.Strategy) {
 	if stringutil.IsEmpty(c.Output) {
 		c.Output = confdef.GetStrategyConf().Collect.Output
 	}

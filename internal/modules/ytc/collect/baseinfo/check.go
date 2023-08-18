@@ -70,10 +70,10 @@ func (b *BaseCollecter) checkYasdbParameter() (noAccess *data.NoAccessRes) {
 		desc, tips := ytccommons.PathErrDescAndTips(yasql, yasqlErr)
 		if iniErr == nil {
 			noAccess.ForceCollect = true
-			ytccommons.FullDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
+			ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
 			return
 		}
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return
 	}
 	if b.yasdbValidateErr != nil {
@@ -81,10 +81,10 @@ func (b *BaseCollecter) checkYasdbParameter() (noAccess *data.NoAccessRes) {
 		desc, tips := ytccommons.YasErrDescAndtips(b.yasdbValidateErr)
 		if iniErr == nil {
 			noAccess.ForceCollect = true
-			ytccommons.FullDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
+			ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
 			return
 		}
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return
 	}
 	return nil

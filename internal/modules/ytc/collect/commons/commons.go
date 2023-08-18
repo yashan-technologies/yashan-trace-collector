@@ -97,7 +97,7 @@ func PathErrDescAndTips(path string, e error) (desc, tips string) {
 	return
 }
 
-func FullDescTips(no *data.NoAccessRes, desc, tips string) {
+func FillDescTips(no *data.NoAccessRes, desc, tips string) {
 	if no == nil {
 		return
 	}

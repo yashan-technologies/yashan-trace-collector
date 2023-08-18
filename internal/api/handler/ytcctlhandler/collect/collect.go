@@ -72,7 +72,7 @@ func (c *CollecterHandler) printNoAccessItem(m map[string][]data.NoAccessRes) er
 			if i == 0 {
 				err := table.AddColumn(strings.ToUpper(collecttypedef.GetTypeFullName(module)), noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isColltedStr(noAccess.ForceCollect))
 				if err != nil {
-					log.Module.Errorf("add column err: %s", err.Error())
+					log.Handler.Errorf("add column err: %s", err.Error())
 					return err
 				}
 				continue
@@ -150,7 +150,7 @@ func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 	for module, items := range moduleItems {
 		_, ok := collMap[module]
 		if !ok {
-			log.Module.Errorf("collect type: %s not exist", module)
+			log.Handler.Errorf("collect type: %s not exist", module)
 			continue
 		}
 		itemFunc := collMap[module].CollectFunc(items)
@@ -190,7 +190,7 @@ func (c *CollecterHandler) Finsh() error {
 		fmt.Printf("failed to gen result, err: %v\n", err)
 		return err
 	}
-	fmt.Printf("The collection has been %s,and the result was saved to %s, thank for your use.\n", bashdef.WithGreen("completed"), bashdef.WithBlue(path))
+	fmt.Printf("The collection has been %s and the result was saved to %s, thanks for your use.\n", bashdef.WithGreen("completed"), bashdef.WithBlue(path))
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"ytc/defs/collecttypedef"
 	ytccollect "ytc/internal/modules/ytc/collect"
 	"ytc/internal/modules/ytc/collect/data"
+	"ytc/internal/modules/ytc/collect/extra"
 )
 
 type CollecterHandler struct {
@@ -20,6 +21,9 @@ func NewCollecterHandler(types map[string]struct{}, collectParam *collecttypedef
 			return nil, err
 		}
 		typedCollecter = append(typedCollecter, c)
+	}
+	if len(collectParam.Include) != 0 {
+		typedCollecter = append(typedCollecter, extra.NewExtraCollecter(collectParam))
 	}
 	return &CollecterHandler{
 		Collecters:    typedCollecter,
