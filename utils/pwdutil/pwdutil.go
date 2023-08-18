@@ -16,6 +16,11 @@ func PrintLogDesensitize(args string) string {
 		expr: `(yasql)(.+/)(.+@)`,
 		repl: "${1}${2}******@",
 	}
+	// yasql command
+	rmap["yasql local command"] = container{
+		expr: `(yasql)(.+/)(.+)`,
+		repl: "${1}${2}******",
+	}
 	// create user command
 	rmap["create user command"] = container{
 		expr: `(?i)(user)(.+)(identified by )(.+)`,

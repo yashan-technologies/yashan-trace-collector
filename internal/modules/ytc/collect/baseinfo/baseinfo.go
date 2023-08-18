@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
@@ -16,12 +17,13 @@ import (
 	"ytc/internal/modules/ytc/collect/data"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
+	"ytc/utils/execerutil"
 	"ytc/utils/osutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/yasqlutil"
 
 	"git.yasdb.com/go/yaslog"
-	"git.yasdb.com/go/yasutil/execer"
+
 	"git.yasdb.com/go/yasutil/fs"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -90,21 +92,6 @@ type BaseCollecter struct {
 	notConnectDB     bool
 }
 
-// data from linux command 'ps -aux'
-type PsResult struct {
-	User       string
-	Pid        string
-	CpuPercent float64
-	MemPercent float64
-	Vsz        int64
-	Kss        int64
-	Tty        string
-	Stat       string
-	Start      string
-	Time       string
-	Command    string
-}
-
 func NewBaseCollecter(collectParam *collecttypedef.CollectParam) *BaseCollecter {
 	return &BaseCollecter{
 		CollectParam: collectParam,
@@ -128,6 +115,7 @@ func (b *BaseCollecter) CheckAccess(yasdbValidate error) (noAccess []data.NoAcce
 	return
 }
 
+// [Interface Func]
 func (b *BaseCollecter) CollectFunc(items []string) (res map[string]func() error) {
 	res = make(map[string]func() error)
 	itemFuncMap := b.itemFunc()
@@ -142,10 +130,12 @@ func (b *BaseCollecter) CollectFunc(items []string) (res map[string]func() error
 	return
 }
 
+// [Interface Func]
 func (b *BaseCollecter) Type() string {
 	return collecttypedef.TYPE_BASE
 }
 
+// [Interface Func]
 func (b *BaseCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
 	for item := range base_default_ch_map {
@@ -184,10 +174,12 @@ func (b *BaseCollecter) itemFunc() map[string]func() error {
 	}
 }
 
-func (b *BaseCollecter) Start(packageDir string) error {
-	return nil
+// [Interface Func]
+func (b *BaseCollecter) Start(packageDir string) (err error) {
+	return
 }
 
+// [Interface Func]
 func (b *BaseCollecter) Finish() *data.YtcModule {
 	return b.ModuleCollectRes
 }
@@ -198,24 +190,24 @@ func (b *BaseCollecter) fillResult(data *data.YtcItem) {
 	b.ModuleCollectRes.Items = append(b.ModuleCollectRes.Items, data)
 }
 
-func (b *BaseCollecter) yasdbVersion() (e error) {
+func (b *BaseCollecter) yasdbVersion() (err error) {
 	yasdbVersionItem := data.YtcItem{ItemName: data.BASE_YASDB_VERION}
 	defer b.fillResult(&yasdbVersionItem)
 
 	log := log.Module.M(data.BASE_YASDB_VERION)
 	yasdbBinPath := path.Join(b.YasdbHome, "bin", bashdef.CMD_YASDB)
 	if !fs.IsFileExist(yasdbBinPath) {
-		e = &errdef.ErrFileNotFound{Fname: yasdbBinPath}
-		log.Error(e)
-		yasdbVersionItem.Err = e.Error() // TODO: 补充description信息
+		err = &errdef.ErrFileNotFound{Fname: yasdbBinPath}
+		log.Errorf("failed to get yashandb version, err: %s", err.Error())
+		yasdbVersionItem.Err = err.Error() // TODO: 补充description信息
 		return
 	}
-	execer := execer.NewExecer(log)
+	execer := execerutil.NewExecer(log)
 	env := []string{fmt.Sprintf("%s=%s", yasqlutil.LIB_KEY, path.Join(b.YasdbHome, yasqlutil.LIB_PATH))}
 	ret, stdout, stderr := execer.EnvExec(env, yasdbBinPath, "-V")
 	if ret != 0 {
-		e = fmt.Errorf("failed to get yasdb version, err: %s", stderr)
-		log.Error(e)
+		err = fmt.Errorf("failed to get yasdb version, err: %s", stderr)
+		log.Error(err)
 		yasdbVersionItem.Err = stderr
 		return
 	}
@@ -223,25 +215,25 @@ func (b *BaseCollecter) yasdbVersion() (e error) {
 	return
 }
 
-func (b *BaseCollecter) yasdbPrameter() (e error) {
+func (b *BaseCollecter) yasdbPrameter() (err error) {
 	yasdbParameterItem := data.YtcItem{ItemName: data.BASE_YASDB_PARAMTER}
 	defer b.fillResult(&yasdbParameterItem)
 
 	log := log.Module.M(data.BASE_YASDB_PARAMTER)
-	var errs []string // used to collect all errors
+	var errs []string
 	detail := make(map[string]interface{})
 	// collect yasdb ini config
-	if yasdbIni, e := b.getYasdbIni(); e != nil {
-		errs = append(errs, e.Error())
-		log.Error(e)
+	if yasdbIni, err := b.getYasdbIni(); err != nil {
+		errs = append(errs, err.Error())
+		log.Errorf("failed to get yasdb.ini, err: %s", err.Error())
 	} else {
 		detail[_yasdb_ini_key] = yasdbIni
 	}
 	if !b.notConnectDB {
 		// collect parameter from v$parameter
-		if pv, e := b.getYasdbParameter(); e != nil {
-			errs = append(errs, e.Error())
-			log.Error(e)
+		if pv, err := b.getYasdbParameter(); err != nil {
+			errs = append(errs, err.Error())
+			log.Errorf("failed to get yashandb parameter, err: %s", err.Error())
 		} else {
 			detail[_yasdb_parameter_key] = pv
 		}
@@ -251,15 +243,15 @@ func (b *BaseCollecter) yasdbPrameter() (e error) {
 	return
 }
 
-func (b *BaseCollecter) getYasdbIni() (res map[string]string, e error) {
+func (b *BaseCollecter) getYasdbIni() (res map[string]string, err error) {
 	iniConfigPath := path.Join(b.YasdbData, "config", "yasdb.ini")
 	res = make(map[string]string)
 	if !fs.IsFileExist(iniConfigPath) {
-		e = &errdef.ErrFileNotFound{Fname: iniConfigPath}
+		err = &errdef.ErrFileNotFound{Fname: iniConfigPath}
 		return
 	}
-	yasdbConf, e := ini.Load(iniConfigPath)
-	if e != nil {
+	yasdbConf, err := ini.Load(iniConfigPath)
+	if err != nil {
 		return
 	}
 	for _, section := range yasdbConf.Sections() {
@@ -270,93 +262,83 @@ func (b *BaseCollecter) getYasdbIni() (res map[string]string, e error) {
 	return
 }
 
-func (b *BaseCollecter) getYasdbParameter() (pv []*yasdb.VParameter, e error) {
+func (b *BaseCollecter) getYasdbParameter() (pv []*yasdb.VParameter, err error) {
 	// collect parameter from v$parameter
 	tx := yasqlutil.GetLocalInstance(b.YasdbUser, b.YasdbPassword, b.YasdbHome, b.YasdbData)
 	return yasdb.QueryAllParameter(tx)
 }
 
-func (b *BaseCollecter) hostOSInfo() (e error) {
+func (b *BaseCollecter) hostOSInfo() (err error) {
 	hostBaseInfoItem := data.YtcItem{ItemName: data.BASE_HOST_OS_INFO}
 	defer b.fillResult(&hostBaseInfoItem)
 
 	log := log.Module.M(data.BASE_HOST_OS_INFO)
-	hostInfo, e := host.Info()
-	if e != nil {
-		log.Error(e)
-		hostBaseInfoItem.Err = e.Error()
+	hostInfo, err := host.Info()
+	if err != nil {
+		log.Errorf("failed to get host os info, err: %s", err.Error())
+		hostBaseInfoItem.Err = err.Error()
 		return
 	}
 	hostBaseInfoItem.Details = hostInfo
 	return
 }
 
-func (b *BaseCollecter) hostFirewalldStatus() (e error) {
+func (b *BaseCollecter) hostFirewalldStatus() (err error) {
 	hostFirewallStatus := data.YtcItem{ItemName: data.BASE_HOST_FIREWALLD}
 	defer b.fillResult(&hostFirewallStatus)
 
 	log := log.Module.M(data.BASE_HOST_FIREWALLD)
-	execer := execer.NewExecer(log)
-	osRelease, e := osutil.GetOsRelease()
-	if e != nil {
-		log.Error(e)
-		hostFirewallStatus.Err = e.Error()
+	osRelease, err := osutil.GetOsRelease()
+	if err != nil {
+		log.Errorf("failed to get host os release info, err: %s", err.Error())
+		hostFirewallStatus.Err = err.Error()
 		return
 	}
+	execer := execerutil.NewExecer(log)
 	if osRelease.Id == osutil.UBUNTU_ID { // ubuntu
-		ret, stdout, stderr := execer.Exec(bashdef.CMD_BASH, "-c", bashdef.CMD_UFW, "status")
-		if ret != 0 {
-			e = fmt.Errorf("failed to get firewalld status, err: %s", stderr)
-			hostFirewallStatus.Err = e.Error()
-			return
-		}
+		_, stdout, _ := execer.Exec(bashdef.CMD_BASH, "-c", fmt.Sprintf("%s status", bashdef.CMD_UFW))
 		hostFirewallStatus.Details = strings.Contains(stdout, _ubuntu_firewalld_active)
 		return
 	}
 	// other os
-	ret, stdout, stderr := execer.Exec(bashdef.CMD_BASH, "-c", bashdef.CMD_SYSTEMCTL, "is-active", "firewalld")
-	if ret != 0 {
-		e = fmt.Errorf("failed to get firewalld status, err: %s", stderr)
-		hostFirewallStatus.Err = e.Error()
-		return
-	}
+	_, stdout, _ := execer.Exec(bashdef.CMD_BASH, "-c", fmt.Sprintf("%s is-active firewalld", bashdef.CMD_SYSTEMCTL))
 	hostFirewallStatus.Details = strings.Contains(stdout, _firewalld_active) && !strings.Contains(stdout, _firewalld_inactive)
 	return
 }
 
-func (b *BaseCollecter) hostCPUInfo() (e error) {
+func (b *BaseCollecter) hostCPUInfo() (err error) {
 	hostCpuInfo := data.YtcItem{ItemName: data.BASE_HOST_CPU}
 	defer b.fillResult(&hostCpuInfo)
 
 	log := log.Module.M(data.BASE_HOST_CPU)
-	cpuInfo, e := cpu.Info()
-	if e != nil {
-		log.Error(e)
-		hostCpuInfo.Err = e.Error()
+	cpuInfo, err := cpu.Info()
+	if err != nil {
+		log.Errorf("failed to get host cpu info, err: %s", err.Error())
+		hostCpuInfo.Err = err.Error()
 		return
 	}
 	hostCpuInfo.Details = cpuInfo
 	return
 }
 
-func (b *BaseCollecter) hostDiskInfo() (e error) {
+func (b *BaseCollecter) hostDiskInfo() (err error) {
 	hostDiskInfo := data.YtcItem{ItemName: data.BASE_HOST_DISK}
 	defer b.fillResult(&hostDiskInfo)
 
 	log := log.Module.M(data.BASE_HOST_DISK)
-	partitions, e := disk.Partitions(false)
-	if e != nil {
-		log.Error(e)
-		hostDiskInfo.Err = e.Error()
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		log.Errorf("failed to get host disk info, err: %s", err.Error())
+		hostDiskInfo.Err = err.Error()
 		return
 	}
 	var usages []disk.UsageStat
 	for _, partition := range partitions {
 		var usage *disk.UsageStat
-		usage, e = disk.Usage(partition.Mountpoint)
-		if e != nil {
-			log.Error(e)
-			hostDiskInfo.Err = e.Error()
+		usage, err = disk.Usage(partition.Mountpoint)
+		if err != nil {
+			log.Errorf("failed to get disk usage info, err: %s", err.Error())
+			hostDiskInfo.Err = err.Error()
 			return
 		}
 		usages = append(usages, *usage)
@@ -365,108 +347,110 @@ func (b *BaseCollecter) hostDiskInfo() (e error) {
 	return
 }
 
-func (b *BaseCollecter) hostNetworkInfo() (e error) {
+func (b *BaseCollecter) hostNetworkInfo() (err error) {
 	hostNetInfo := data.YtcItem{ItemName: data.BASE_HOST_Network}
 	defer b.fillResult(&hostNetInfo)
 
 	log := log.Module.M(data.BASE_HOST_Network)
-	netInfo, e := net.Interfaces()
-	if e != nil {
-		log.Error(e)
-		hostNetInfo.Err = e.Error()
+	netInfo, err := net.Interfaces()
+	if err != nil {
+		log.Errorf("failed to get host network info, err: %s", err.Error())
+		hostNetInfo.Err = err.Error()
 		return
 	}
 	hostNetInfo.Details = netInfo
 	return
 }
 
-func (b *BaseCollecter) hostMemoryInfo() (e error) {
+func (b *BaseCollecter) hostMemoryInfo() (err error) {
 	hostMemoryInfo := data.YtcItem{ItemName: data.BASE_HOST_Memery}
 	defer b.fillResult(&hostMemoryInfo)
 
 	log := log.Module.M(data.BASE_HOST_Memery)
-	memInfo, e := mem.VirtualMemory()
-	if e != nil {
-		log.Error(e)
-		hostMemoryInfo.Err = e.Error()
+	memInfo, err := mem.VirtualMemory()
+	if err != nil {
+		log.Errorf("failed to get host memory info: %s", err.Error())
+		hostMemoryInfo.Err = err.Error()
 		return
 	}
 	hostMemoryInfo.Details = memInfo
 	return
 }
 
-func (b *BaseCollecter) hostCPUUsage() (e error) {
+func (b *BaseCollecter) hostCPUUsage() (err error) {
 	hostCPUUsage := data.YtcItem{ItemName: data.BASE_HOST_CPU_USAGE}
 	defer b.fillResult(&hostCPUUsage)
 
 	log := log.Module.M(data.BASE_HOST_CPU_USAGE)
-	data, e := b.hostWorkload(log, data.BASE_HOST_CPU_USAGE)
-	if e != nil {
-		hostCPUUsage.Err = e.Error()
+	data, err := b.hostWorkload(log, data.BASE_HOST_CPU_USAGE)
+	if err != nil {
+		log.Error("failed to get host cpu usage info, err: %s", err.Error())
+		hostCPUUsage.Err = err.Error()
 		return
 	}
 	hostCPUUsage.Details = data
 	return
 }
 
-func (b *BaseCollecter) hostNetworkIO() (e error) {
+func (b *BaseCollecter) hostNetworkIO() (err error) {
 	hostNetworkIO := data.YtcItem{ItemName: data.BASE_HOST_NETWORK_IO}
 	defer b.fillResult(&hostNetworkIO)
 
 	log := log.Module.M(data.BASE_HOST_NETWORK_IO)
-	data, e := b.hostWorkload(log, data.BASE_HOST_NETWORK_IO)
-	if e != nil {
-		hostNetworkIO.Err = e.Error()
+	data, err := b.hostWorkload(log, data.BASE_HOST_NETWORK_IO)
+	if err != nil {
+		log.Errorf("failed to get host network IO info, err: %s", err.Error())
+		hostNetworkIO.Err = err.Error()
 		return
 	}
 	hostNetworkIO.Details = data
 	return
 }
 
-func (b *BaseCollecter) hostDiskIO() (e error) {
+func (b *BaseCollecter) hostDiskIO() (err error) {
 	hostDiskIO := data.YtcItem{ItemName: data.BASE_HOST_DISK_IO}
 	defer b.fillResult(&hostDiskIO)
 
 	log := log.Module.M(data.BASE_HOST_DISK_IO)
-	data, e := b.hostWorkload(log, data.BASE_HOST_DISK_IO)
-	if e != nil {
-		hostDiskIO.Err = e.Error()
+	data, err := b.hostWorkload(log, data.BASE_HOST_DISK_IO)
+	if err != nil {
+		log.Error("failed to get host disk IO info, err: %s", err.Error())
+		hostDiskIO.Err = err.Error()
 		return
 	}
 	hostDiskIO.Details = data
 	return
 }
 
-func (b *BaseCollecter) hostMemoryUsage() (e error) {
+func (b *BaseCollecter) hostMemoryUsage() (err error) {
 	hostMemoryUsage := data.YtcItem{ItemName: data.BASE_HOST_MEMORY_USAGE}
 	defer b.fillResult(&hostMemoryUsage)
 
 	log := log.Module.M(data.BASE_HOST_MEMORY_USAGE)
-	data, e := b.hostWorkload(log, data.BASE_HOST_MEMORY_USAGE)
-	if e != nil {
-		hostMemoryUsage.Err = e.Error()
+	data, err := b.hostWorkload(log, data.BASE_HOST_MEMORY_USAGE)
+	if err != nil {
+		log.Errorf("failed to gert host memory usage info, err: %s", err.Error())
+		hostMemoryUsage.Err = err.Error()
 		return
 	}
 	hostMemoryUsage.Details = data
 	return
 }
 
-func (b *BaseCollecter) hostWorkload(log yaslog.YasLog, itemName string) (data interface{}, e error) {
+func (b *BaseCollecter) hostWorkload(log yaslog.YasLog, itemName string) (data interface{}, err error) {
 	details := map[string]interface{}{}
 	hasSar := b.CheckSarAccess() == nil
 	if hasSar { // collect historyworkload
-		historyNetworkWorkload, err := b.hostHistoryWorkload(log, itemName, b.StartTime, b.EndTime)
-		if err != nil {
-			e = fmt.Errorf("failed to collect history %s, err: %s", itemName, err.Error())
+		if historyNetworkWorkload, e := b.hostHistoryWorkload(log, itemName, b.StartTime, b.EndTime); e != nil {
+			err = fmt.Errorf("failed to collect history %s, err: %s", itemName, e.Error())
 			log.Error(err)
 		} else {
 			details[_history_key] = historyNetworkWorkload
 		}
 	}
 	// collect current workload
-	currentNetworkWorkload, err := b.hostCurrentWorkload(log, itemName, hasSar)
-	if err != nil {
-		e = fmt.Errorf("failed to collect current %s, err: %s", itemName, err.Error())
+	if currentNetworkWorkload, e := b.hostCurrentWorkload(log, itemName, hasSar); e != nil {
+		err = fmt.Errorf("failed to collect current %s, err: %s", itemName, e.Error())
 		log.Error(err)
 	} else {
 		details[_current_key] = currentNetworkWorkload
@@ -475,19 +459,19 @@ func (b *BaseCollecter) hostWorkload(log yaslog.YasLog, itemName string) (data i
 	return
 }
 
-func (b *BaseCollecter) hostHistoryWorkload(log yaslog.YasLog, itemName string, start, end time.Time) (interface{}, error) {
+func (b *BaseCollecter) hostHistoryWorkload(log yaslog.YasLog, itemName string, start, end time.Time) (data interface{}, err error) {
 	// get sar args
 	workloadType, ok := ItemNameToWorkloadTypeMap[itemName]
 	if !ok {
-		err := fmt.Errorf("failed to get workload type from item name: %s", itemName)
+		err = fmt.Errorf("failed to get workload type from item name: %s", itemName)
 		log.Error(err)
-		return nil, err
+		return
 	}
 	sarArg, ok := WorkloadTypeToSarArgMap[workloadType]
 	if !ok {
-		err := fmt.Errorf("failed to get SAR arg from workload type: %s", workloadType)
+		err = fmt.Errorf("failed to get SAR arg from workload type: %s", workloadType)
 		log.Error(err)
-		return nil, err
+		return
 	}
 	// collect
 	sar := sar.NewSar(log)
@@ -499,27 +483,27 @@ func (b *BaseCollecter) hostHistoryWorkload(log yaslog.YasLog, itemName string, 
 	sarOutput := make(collecttypedef.WorkloadOutput)
 	args := b.genHistoryWorkloadArgs(start, end, sarDir)
 	for _, arg := range args {
-		output, err := sar.Collect(workloadType, sarArg, arg)
-		if err != nil {
-			log.Error(err)
+		output, e := sar.Collect(workloadType, sarArg, arg)
+		if e != nil {
+			log.Error(e)
 			continue
 		}
 		for timestamp, output := range output {
 			sarOutput[timestamp] = output
 		}
 	}
-	return sarOutput, nil
+	data = sarOutput
+	return
 }
 
 // TODO:这里的时区要需要处理
-func (b *BaseCollecter) genHistoryWorkloadArgs(start, end time.Time, sarDir string) []string {
+func (b *BaseCollecter) genHistoryWorkloadArgs(start, end time.Time, sarDir string) (args []string) {
 	// get data between start and end
 	var dates []time.Time
 	begin := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC)
 	for date := begin; !date.After(end); date = date.AddDate(0, 0, 1) {
 		dates = append(dates, date)
 	}
-	args := []string{} // used to collect history data
 	for i, date := range dates {
 		var startArg, endArg, fileArg string
 		if i == 0 && !date.Equal(start) { // the frist
@@ -534,26 +518,26 @@ func (b *BaseCollecter) genHistoryWorkloadArgs(start, end time.Time, sarDir stri
 		fileArg = fmt.Sprintf("-f %s", path.Join(sarDir, fmt.Sprintf("sa%s", date.Format(timedef.TIME_FORMAT_DAY))))
 		args = append(args, fmt.Sprintf("%s %s %s", fileArg, startArg, endArg))
 	}
-	return args
+	return
 }
 
-func (b *BaseCollecter) hostCurrentWorkload(log yaslog.YasLog, itemName string, hasSar bool) (interface{}, error) {
+func (b *BaseCollecter) hostCurrentWorkload(log yaslog.YasLog, itemName string, hasSar bool) (data interface{}, err error) {
 	// global conf
 	strategyConf := confdef.GetStrategyConf()
 	scrapeInterval, scrapeTimes := strategyConf.Collect.ScrapeInterval, strategyConf.Collect.ScrapeTimes
 	// get sar args
 	workloadType, ok := ItemNameToWorkloadTypeMap[itemName]
 	if !ok {
-		err := fmt.Errorf("failed to get workload type from item name: %s", itemName)
+		err = fmt.Errorf("failed to get workload type from item name: %s", itemName)
 		log.Error(err)
-		return nil, err
+		return
 	}
 	if hasSar { // use sar to collect first
 		sarArg, ok := WorkloadTypeToSarArgMap[workloadType]
 		if !ok {
-			err := fmt.Errorf("failed to get SAR arg from workload type: %s", workloadType)
+			err = fmt.Errorf("failed to get SAR arg from workload type: %s", workloadType)
 			log.Error(err)
-			return nil, err
+			return
 		}
 		sar := sar.NewSar(log)
 		return sar.Collect(workloadType, sarArg, strconv.Itoa(scrapeInterval), strconv.Itoa(scrapeTimes))

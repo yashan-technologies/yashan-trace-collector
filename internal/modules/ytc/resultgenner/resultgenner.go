@@ -9,11 +9,11 @@ import (
 	"ytc/defs/bashdef"
 	"ytc/defs/runtimedef"
 	"ytc/log"
+	"ytc/utils/execerutil"
 	"ytc/utils/fileutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/userutil"
 
-	"git.yasdb.com/go/yasutil/execer"
 	"git.yasdb.com/go/yasutil/fs"
 )
 
@@ -83,18 +83,6 @@ func (g *BaseResultGenner) genDataPath() string {
 	return path.Join(g.genPackageDir(), _DIR_DATA, name)
 }
 
-func (g *BaseResultGenner) genBaseDir() string {
-	return path.Join(g.genPackageDir(), _DIR_BASE)
-}
-
-func (g *BaseResultGenner) genDiagDir() string {
-	return path.Join(g.genPackageDir(), _DIR_DIAG)
-}
-
-func (g *BaseResultGenner) genPerfDir() string {
-	return path.Join(g.genPackageDir(), _DIR_DIAG)
-}
-
 func (g *BaseResultGenner) Mkdirs() error {
 	if !fs.IsDirExist(g.OutputDir) {
 		if err := fs.Mkdir(g.OutputDir); err != nil {
@@ -102,25 +90,12 @@ func (g *BaseResultGenner) Mkdirs() error {
 		}
 		if userutil.IsCurrentUserRoot() {
 			owner := runtimedef.GetExecuteableOwner()
-			_ = os.Chown(g.OutputDir, owner.Uid, owner.Uid)
+			if owner.Uid != 0 || owner.Gid != 0 {
+				_ = os.Chown(g.OutputDir, owner.Uid, owner.Uid)
+			}
 		}
 	}
 	if err := fs.Mkdir(path.Dir(g.genDataPath())); err != nil {
-		return err
-	}
-	if err := fs.Mkdir(g.genBaseDir()); err != nil {
-		return err
-	}
-	if err := fs.Mkdir(g.genDiagDir()); err != nil {
-		return err
-	}
-	if err := fs.Mkdir(g.genPerfDir()); err != nil {
-		return err
-	}
-	if err := fs.Mkdir(path.Join(g.genDiagDir(), _DIR_LOG, _DIR_YASDB)); err != nil {
-		return err
-	}
-	if err := fs.Mkdir(path.Join(g.genDiagDir(), _DIR_LOG, _DIR_SYSTEM)); err != nil {
 		return err
 	}
 	return nil
@@ -138,7 +113,7 @@ func (g *BaseResultGenner) writeReport() error {
 
 func (g *BaseResultGenner) tarResult() error {
 	command := fmt.Sprintf("cd %s;%s czvf %s %s;rm -rf %s", g.OutputDir, bashdef.CMD_TAR, g.genPackageTarName(), g.genPackageName(), g.genPackageName())
-	executer := execer.NewExecer(log.Logger)
+	executer := execerutil.NewExecer(log.Logger)
 	ret, _, stderr := executer.Exec("bash", "-c", command)
 	if ret != 0 {
 		return errors.New(stderr)

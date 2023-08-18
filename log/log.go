@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+
 	"ytc/defs/runtimedef"
 	"ytc/utils/fileutil"
 	"ytc/utils/userutil"
@@ -134,7 +135,7 @@ func prepare(logPath, fname string) error {
 			return err
 		}
 	}
-	if userutil.IsCurrentUserRoot() {
+	if userutil.IsCurrentUserRoot() && (owner.Uid != 0 || owner.Gid != 0) {
 		_ = os.Chown(logPath, owner.Uid, owner.Gid)
 		_ = os.Chown(fname, owner.Uid, owner.Gid)
 	}

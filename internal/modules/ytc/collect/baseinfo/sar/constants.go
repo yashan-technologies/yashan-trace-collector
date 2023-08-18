@@ -51,15 +51,16 @@ type DiskIO struct {
 }
 
 type MemoryUsage struct {
-	KBMemFree int64   `json:"kBMemFree"` // kbmemfree
-	KBAvail   int64   `json:"kbavail"`   // kbavail, centos or lylin
-	KBmemUsed int64   `json:"kbmemused"` // kbmemused
-	MemUsed   float64 `json:"memUsed"`   // %memused
-	KBBuffers int64   `json:"kBBuffers"` // kbbuffers
-	KBCached  int64   `json:"kBCached"`  // kbcached
-	KBCommit  int64   `json:"kBCommit"`  // kbcommit
-	Commit    float64 `json:"commit"`    // %commit
-	KBActive  int64   `json:"kBactive"`  // kbactive
-	KBInact   int64   `json:"kBInact"`   // kbinact
-	KBDirty   int64   `json:"kBDirty"`   // kbdirty
+	KBMemFree   int64   `json:"kBMemFree"`   // kbmemfree
+	KBAvail     int64   `json:"kbavail"`     // kbavail, centos or lylin
+	KBmemUsed   int64   `json:"kbmemused"`   // kbmemused
+	MemUsed     float64 `json:"memUsed"`     // %memused
+	KBBuffers   int64   `json:"kBBuffers"`   // kbbuffers
+	KBCached    int64   `json:"kBCached"`    // kbcached
+	KBCommit    int64   `json:"kBCommit"`    // kbcommit
+	Commit      float64 `json:"commit"`      // %commit
+	KBActive    int64   `json:"kBactive"`    // kbactive
+	KBInact     int64   `json:"kBInact"`     // kbinact
+	KBDirty     int64   `json:"kBDirty"`     // kbdirty
+	RealMemUsed float64 `json:"realMemUsed"` // real mem used percent
 }

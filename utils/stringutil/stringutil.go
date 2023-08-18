@@ -10,6 +10,7 @@ const (
 	STR_COMMA       = ","
 	STR_DOT         = "."
 	STR_HYPHEN      = "-"
+	STR_BAR         = "|"
 )
 
 // IsEmpty checks whether a string is empty.

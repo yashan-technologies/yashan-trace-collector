@@ -6,14 +6,15 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	"ytc/defs/timedef"
+	"ytc/utils/execerutil"
 	"ytc/utils/osutil"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaslog"
-	"git.yasdb.com/go/yasutil/execer"
 )
 
 type Sar struct {
@@ -52,14 +53,13 @@ func (s *Sar) GetSarDir() string {
 
 func (s *Sar) Collect(t collecttypedef.WorkloadType, args ...string) (collecttypedef.WorkloadOutput, error) {
 	res := make(collecttypedef.WorkloadOutput)
-	execer := execer.NewExecer(s.log)
+	execer := execerutil.NewExecer(s.log)
 	realArgs := []string{bashdef.CMD_SAR}
 	realArgs = append(realArgs, args...)
 	cmd := fmt.Sprintf(" %s", strings.Join(realArgs, stringutil.STR_BLANK_SPACE))
 	ret, stdout, stderr := execer.EnvExec(_envs, bashdef.CMD_BASH, "-c", cmd)
 	if ret != 0 {
 		err := errors.New(stderr)
-		s.log.Error(err)
 		return res, err
 	}
 	parseFunc, checkTitleFunc := s.parser.GetParserFunc(t)
@@ -79,7 +79,7 @@ func (s *Sar) Collect(t collecttypedef.WorkloadType, args ...string) (collecttyp
 // devNum is mainNum-subNum
 func (s *Sar) genDevNumToDevNameMap() (map[string]string, error) {
 	m := make(map[string]string)
-	execer := execer.NewExecer(s.log)
+	execer := execerutil.NewExecer(s.log)
 	ret, stdout, stderr := execer.Exec(bashdef.CMD_CAT, "/proc/diskstats")
 	if ret != 0 {
 		err := fmt.Errorf("failed to transfer dev number to dev name, err: %s", stderr)
@@ -148,9 +148,9 @@ func (s *Sar) getDateFromHeadLine(line string) string {
 	return fmt.Sprintf("%s-%s-%s", arr[2], arr[0], arr[1])
 }
 
-// get timestamp from sar time output like '11:52:42 AM' and data like '2023:08:08'
+// getSarTimestamp get timestamp from sar time output like '11:52:42 AM' and data like '2023:08:08'
 func (s *Sar) getSarTimestamp(data string, timeStr string, dayPeriod string) (int64, error) {
-	t, err := time.ParseInLocation(timedef.TIME_FORMAT, fmt.Sprintf("%s %s", data, timeStr), time.UTC)
+	t, err := time.ParseInLocation(timedef.TIME_FORMAT, fmt.Sprintf("%s %s", data, timeStr), time.Local)
 	if err != nil {
 		s.log.Error(err)
 		return 0, err
