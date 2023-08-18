@@ -27,6 +27,7 @@ const (
 	BASE_HOST_DISK_IO      = "Host-DiskIO"
 	BASE_HOST_MEMORY_USAGE = "Host-MemoryUsage"
 
+	// diagnosis info
 	DIAG_YASDB_PROCESS_STATUS  = "YashanDB-ProcessStatus"
 	DIAG_YASDB_INSTANCE_STATUS = "YashanDB-InstanceStatus"
 	DIAG_YASDB_DATABASE_STATUS = "YashanDB-DatabaseStatus"
@@ -37,6 +38,11 @@ const (
 	DIAG_HOST_KERNELLOG        = "Host-KernelLog"
 	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
 	DIAG_HOST_DMESG            = "Host-Dmesg"
+
+	// performance info
+
+	// extra file collect
+	EXTRA_FILE_COLLECT = "Extra-FileCollect"
 )
 
 const (

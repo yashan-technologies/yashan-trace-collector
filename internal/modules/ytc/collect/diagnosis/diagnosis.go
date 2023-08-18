@@ -52,8 +52,9 @@ const (
 	SYSTEM_LOG_MESSAGES = "/var/log/messages"
 	SYSTEM_LOG_SYSLOG   = "/var/log/syslog"
 
-	DIAG_DIR_NAME = "diag"
-	LOG_DIR_NAME  = "log"
+	DIAG_DIR_NAME  = "diag"
+	LOG_DIR_NAME   = "log"
+	EXTRA_DIR_NAME = "extra"
 
 	CORE_DUMP_DIR_NAME = "coredump"
 
@@ -78,7 +79,7 @@ const (
 )
 
 var (
-	diag_default_ch_map = map[string]string{
+	_diagDefaultChMap = map[string]string{
 		data.DIAG_YASDB_ADR:             "数据库ADR日志",
 		data.DIAG_YASDB_RUNLOG:          "数据库run.log日志",
 		data.DIAG_YASDB_ALERTLOG:        "数据库alert.log日志",
@@ -91,7 +92,7 @@ var (
 	}
 )
 
-var _package_dir = ""
+var _packageDir = ""
 
 type logTimeParseFunc func(date time.Time, line string) (time.Time, error)
 
@@ -148,7 +149,7 @@ func (b *DiagCollecter) Type() string {
 // [Interface Func]
 func (b *DiagCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
-	for item := range diag_default_ch_map {
+	for item := range _diagDefaultChMap {
 		if _, ok := noMap[item]; !ok {
 			res = append(res, item)
 		}
@@ -170,21 +171,21 @@ func (b *DiagCollecter) getNotAccessItem(noAccess []data.NoAccessRes) (res map[s
 // [Interface Func]
 func (b *DiagCollecter) Start(packageDir string) (err error) {
 	b.setPackageDir(packageDir)
-	if err = fs.Mkdir(path.Join(_package_dir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)); err != nil {
 		return
 	}
 	return
 }
 
 func (b *DiagCollecter) setPackageDir(packageDir string) {
-	_package_dir = packageDir
-	log.Module.Infof("package dir is %s", _package_dir)
+	_packageDir = packageDir
+	log.Module.Infof("package dir is %s", _packageDir)
 }
 
 // [Interface Func]
@@ -289,7 +290,7 @@ func (b *DiagCollecter) yasdbADRLog() (err error) {
 		return
 	}
 	// package adr to dest
-	destPath := path.Join(_package_dir, DIAG_DIR_NAME)
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME)
 	destFile := fmt.Sprintf("yasdb-diag-%s.tar.gz", time.Now().Format(timedef.TIME_FORMAT_IN_FILE))
 	// 这个函数只会将非空的文件夹下的内容打包出来，如果文件夹是空的，不会在目标压缩包中创建文件夹
 	if err = fs.TarDir(adrPath, path.Join(destPath, destFile)); err != nil {
@@ -341,7 +342,7 @@ func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
 		if createAt.Before(b.StartTime) || createAt.After(b.EndTime) {
 			continue
 		}
-		if err = fs.CopyFile(path.Join(coreDumpPath, file.Name()), path.Join(_package_dir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME, file.Name())); err != nil {
+		if err = fs.CopyFile(path.Join(coreDumpPath, file.Name()), path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME, file.Name())); err != nil {
 			log.Error(err)
 			yasdbCoreDumpItem.Err = err.Error()
 			return
@@ -365,7 +366,7 @@ func (b *DiagCollecter) yasdbRunLog() (err error) {
 			return
 		}
 	}
-	destPath := path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
 	// get run log files
 	runLogFiles, err := b.getLogFiles(log, runLogPath, YASDB_RUN_LOG)
 	if err != nil {
@@ -424,7 +425,7 @@ func (b *DiagCollecter) yasdbAlertLog() (err error) {
 	log := log.Module.M(data.DIAG_YASDB_ALERTLOG)
 	logPath := path.Join(b.YasdbData, LOG_DIR_NAME)
 	alertLogPath, alertLogFile := path.Join(logPath, YASDB_ALERT_LOG), fmt.Sprintf(LOG_FILE_SUFFIX, YASDB_ALERT_LOG)
-	destPath := path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
 	// get alert log
 	timeParseFunc := func(date time.Time, line string) (t time.Time, e error) {
 		fields := strings.Split(line, stringutil.STR_BAR)
@@ -445,7 +446,7 @@ func (b *DiagCollecter) hostKernelLog() (err error) {
 	defer b.fillResult(&hostKernelLogItem)
 
 	log := log.Module.M(data.DIAG_HOST_KERNELLOG)
-	destPath := path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
 	// dmesg.log
 	execer := execerutil.NewExecer(log)
 	dmesgFile := fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_DMESG_LOG)
@@ -474,7 +475,7 @@ func (b *DiagCollecter) hostSystemLog() (err error) {
 	log := log.Module.M(data.DIAG_HOST_SYSTEMLOG)
 	var errs []string
 	detailMap := make(map[string]string)
-	destPath := path.Join(_package_dir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
 	if userutil.IsCurrentUserRoot() {
 		// message.log
 		destMessageLogFile := path.Join(destPath, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG))

@@ -37,6 +37,8 @@ type CollectGlobal struct {
 	End        string `name:"end"    short:"e" help:"The end timestamp of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm', 'yyyy-MM-dd-hh-mm', default value is current datetime."`
 	Output     string `name:"output" short:"o" help:"The output dir of the collection."`
 	ReportType string `name:"report-type" help:"Type of report generated, choose one from (txt)."`
+	Include    string `name:"include" help:"Files or directories that need to be additionally collected, separated by commas."`
+	Exclude    string `name:"exclude" help:"Files or directories that no need to be additionally collected, separated by commas."`
 }
 
 type CollectCmd struct {
@@ -91,6 +93,8 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 		YasdbData:     env.YasdbData,
 		YasdbUser:     env.YasdbUser,
 		YasdbPassword: env.YasdbPassword,
+		Include:       c.getExtraPath(c.Include),
+		Exclude:       c.getExtraPath(c.Exclude),
 	}, nil
 }
 
@@ -155,4 +159,15 @@ func (c *CollectCmd) getTypes() (types map[string]struct{}, err error) {
 		types[f] = struct{}{}
 	}
 	return
+}
+
+func (c *CollectCmd) getExtraPath(value string) []string {
+	if stringutil.IsEmpty(value) {
+		return nil
+	}
+	value = strings.TrimSpace(value)
+	value = strings.TrimPrefix(value, stringutil.STR_COMMA)
+	value = strings.TrimSuffix(value, stringutil.STR_COMMA)
+	fields := strings.Split(value, stringutil.STR_COMMA)
+	return fields
 }

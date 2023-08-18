@@ -55,7 +55,7 @@ const (
 )
 
 var (
-	base_default_ch_map = map[string]string{
+	_baseDefaultChMap = map[string]string{
 		data.BASE_YASDB_VERION:      "数据库版本",
 		data.BASE_YASDB_PARAMTER:    "数据库服务端配置参数",
 		data.BASE_HOST_OS_INFO:      "操作系统信息",
@@ -138,7 +138,7 @@ func (b *BaseCollecter) Type() string {
 // [Interface Func]
 func (b *BaseCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
-	for item := range base_default_ch_map {
+	for item := range _baseDefaultChMap {
 		if _, ok := noMap[item]; !ok {
 			res = append(res, item)
 		}

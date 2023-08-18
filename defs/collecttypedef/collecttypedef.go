@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	TYPE_BASE = "base"
-	TYPE_DIAG = "diag"
-	TYPE_PREF = "pref"
+	TYPE_BASE  = "base"
+	TYPE_DIAG  = "diag"
+	TYPE_PREF  = "pref"
+	TYPE_EXTRA = "extra"
 )
 
 const (
@@ -38,6 +39,8 @@ type CollectParam struct {
 	YasdbData     string    `json:"yasdbData"`
 	YasdbUser     string    `json:"yasdbUser"`
 	YasdbPassword string    `json:"yasdbPassword"`
+	Include       []string  `json:"include"`
+	Exclude       []string  `json:"exclude"`
 }
 
 type WorkloadItem map[string]interface{}

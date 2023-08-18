@@ -4,13 +4,15 @@ package stringutil
 import "regexp"
 
 const (
-	STR_EMPTY       = ""
-	STR_BLANK_SPACE = " "
-	STR_NEWLINE     = "\n"
-	STR_COMMA       = ","
-	STR_DOT         = "."
-	STR_HYPHEN      = "-"
-	STR_BAR         = "|"
+	STR_EMPTY         = ""
+	STR_BLANK_SPACE   = " "
+	STR_NEWLINE       = "\n"
+	STR_COMMA         = ","
+	STR_DOT           = "."
+	STR_HYPHEN        = "-"
+	STR_BAR           = "|"
+	STR_FORWARD_SLASH = "/"
+	STR_UNDER_SCORE   = "_"
 )
 
 // IsEmpty checks whether a string is empty.

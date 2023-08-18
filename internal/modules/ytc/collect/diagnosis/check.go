@@ -177,16 +177,16 @@ func (d *DiagCollecter) checkYasdbInstanceStatus() *data.NoAccessRes {
 		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
 		procs, processErr := processutil.GetYasdbProcess(d.YasdbData)
 		if processErr != nil || len(procs) == 0 {
-			ytccommons.FullDescTips(noAccess, desc, tips)
+			ytccommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
 		tips = fmt.Sprintf(ytccommons.YasdbInstanceStatusTips, d.YasdbData)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
 		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
@@ -199,12 +199,12 @@ func (d *DiagCollecter) checkYasdbDatabaseStatus() *data.NoAccessRes {
 	err := fileutil.CheckAccess(yasql)
 	if err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
 		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
@@ -219,10 +219,10 @@ func (d *DiagCollecter) checkYasdbAdr() *data.NoAccessRes {
 	if err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
 		if dErr := fileutil.CheckAccess(diag); dErr != nil {
-			ytccommons.FullDescTips(noAccess, desc, tips)
+			ytccommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		ytccommons.FullDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
+		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
 		noAccess.ForceCollect = true
 		return noAccess
 	}
@@ -230,23 +230,23 @@ func (d *DiagCollecter) checkYasdbAdr() *data.NoAccessRes {
 		d.notConnectDB = true
 		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(diag); dErr != nil {
-			ytccommons.FullDescTips(noAccess, desc, tips)
+			ytccommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
 		noAccess.ForceCollect = true
-		ytccommons.FullDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
+		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
 		return noAccess
 	}
 	adrPath, err := GetAdrPath(d.CollectParam)
 	if err != nil {
 		d.notConnectDB = true
 		desc, tips := ytccommons.YasErrDescAndtips(err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if err := fileutil.CheckAccess(adrPath); err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(adrPath, err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
@@ -261,10 +261,10 @@ func (d *DiagCollecter) checkYasdbRunLog() *data.NoAccessRes {
 	if err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
 		if dErr := fileutil.CheckAccess(defaultRunLog); dErr != nil {
-			ytccommons.FullDescTips(noAccess, desc, tips)
+			ytccommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		ytccommons.FullDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultRunlogTips, defaultRunLog))
+		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultRunlogTips, defaultRunLog))
 		noAccess.ForceCollect = true
 		return noAccess
 	}
@@ -272,11 +272,11 @@ func (d *DiagCollecter) checkYasdbRunLog() *data.NoAccessRes {
 		d.notConnectDB = true
 		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(defaultRunLog); dErr != nil {
-			ytccommons.FullDescTips(noAccess, desc, tips)
+			ytccommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
 		tips = fmt.Sprintf(ytccommons.DefaultRunlogTips, defaultRunLog)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		noAccess.ForceCollect = true
 		return noAccess
 	}
@@ -284,13 +284,13 @@ func (d *DiagCollecter) checkYasdbRunLog() *data.NoAccessRes {
 	if err != nil {
 		d.notConnectDB = true
 		desc, tips := ytccommons.YasErrDescAndtips(err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	runLog := path.Join(runLogPath, ytccommons.RUN_LOG)
 	if err := fileutil.CheckAccess(runLog); err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(runLog, err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
@@ -303,7 +303,7 @@ func (d *DiagCollecter) checkYasdbAlertLog() *data.NoAccessRes {
 	alertLog := path.Join(alertLogPath, ytccommons.ALERT_LOG)
 	if err := fileutil.CheckAccess(alertLog); err != nil {
 		desc, tips := ytccommons.PathErrDescAndTips(alertLog, err)
-		ytccommons.FullDescTips(noAccess, desc, tips)
+		ytccommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
