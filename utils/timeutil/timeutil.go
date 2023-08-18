@@ -36,6 +36,21 @@ var (
 	ErrDurationInvalid = errors.New("duration invalid")
 )
 
+var monthMap = map[string]time.Month{
+	"Jan": time.January,
+	"Feb": time.February,
+	"Mar": time.March,
+	"Apr": time.April,
+	"May": time.May,
+	"Jun": time.June,
+	"Jul": time.July,
+	"Aug": time.August,
+	"Sep": time.September,
+	"Oct": time.October,
+	"Nov": time.November,
+	"Dec": time.December,
+}
+
 func GetTimeDivBySepa(timeStr, sepa string) (time.Time, error) {
 	dateFields := [6]int{}
 	parts := strings.Split(timeStr, sepa)
@@ -89,4 +104,12 @@ func GetDuration(s string) (d time.Duration, err error) {
 
 func duration(base int64, unit time.Duration) time.Duration {
 	return time.Duration(base * int64(unit))
+}
+
+func GetMonth(str string) (month time.Month, err error) {
+	month, ok := monthMap[str]
+	if !ok {
+		err = fmt.Errorf("invalid month %s", str)
+	}
+	return
 }

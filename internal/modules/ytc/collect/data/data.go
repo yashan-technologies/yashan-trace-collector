@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 	"ytc/defs/collecttypedef"
 
 	"ytc/defs/timedef"
@@ -16,7 +17,7 @@ const (
 	BASE_YASDB_VERION      = "YashanDB-Version"
 	BASE_YASDB_PARAMTER    = "YashanDB-Paramter"
 	BASE_HOST_OS_INFO      = "Host-OSInfo"
-	BASE_HOST_FIREWALLD    = "Host-Firewalld"
+	BASE_HOST_FIREWALLD    = "Host-FirewalldStatus"
 	BASE_HOST_CPU          = "Host-CPU"
 	BASE_HOST_DISK         = "Host-Disk"
 	BASE_HOST_Network      = "Host-Network"
@@ -33,6 +34,7 @@ const (
 	DIAG_YASDB_RUNLOG          = "YashanDB-RunLog"
 	DIAG_YASDB_ALERTLOG        = "YashanDB-AlertLog"
 	DIAG_YASDB_COREDUMP        = "YashanDB-Coredump"
+	DIAG_HOST_KERNELLOG        = "Host-KernelLog"
 	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
 	DIAG_HOST_DMESG            = "Host-Dmesg"
 )

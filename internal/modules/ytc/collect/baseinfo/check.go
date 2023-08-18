@@ -3,16 +3,16 @@ package baseinfo
 import (
 	"fmt"
 	"path"
+
 	"ytc/defs/bashdef"
 	"ytc/defs/errdef"
 	ytccommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/data"
 	"ytc/log"
+	"ytc/utils/execerutil"
 	"ytc/utils/fileutil"
 	"ytc/utils/osutil"
 	"ytc/utils/userutil"
-
-	"git.yasdb.com/go/yasutil/execer"
 )
 
 func (b *BaseCollecter) CheckSarAccess() error {
@@ -21,7 +21,7 @@ func (b *BaseCollecter) CheckSarAccess() error {
 		bashdef.CMD_SAR,
 		"-V",
 	}
-	exe := execer.NewExecer(log.Module)
+	exe := execerutil.NewExecer(log.Module)
 	ret, stdout, stderr := exe.Exec(bashdef.CMD_BASH, cmd...)
 	if ret != 0 || len(stderr) != 0 || len(stdout) == 0 {
 		return errdef.NewErrCmdNotExist(bashdef.CMD_SAR)

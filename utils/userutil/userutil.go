@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"ytc/defs/bashdef"
+	"ytc/utils/execerutil"
 
 	"git.yasdb.com/go/yaslog"
-	"git.yasdb.com/go/yasutil/execer"
 )
 
 const (
@@ -70,7 +70,7 @@ func IsSysGroupExists(groupname string) bool {
 
 // 通过sudo -vn命令判断sudo权限是否具备，预期会报错需要密码，则表示该用户具备sudo权限。
 func CheckSudovn(logger yaslog.YasLog) error {
-	exec := execer.NewExecer(logger)
+	exec := execerutil.NewExecer(logger)
 	ret, _, err := exec.Exec(bashdef.CMD_BASH, "-c", fmt.Sprintf("%s %s", bashdef.CMD_SUDO, "-vn"))
 	if ret == 0 {
 		return nil

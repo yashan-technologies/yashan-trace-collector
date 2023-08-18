@@ -2,6 +2,8 @@ git.yasdb.com/go/yaslog v0.0.0-20230531092234-0b27ba7c86fe h1:dbtJeQ8gfmL91W183z
 git.yasdb.com/go/yaslog v0.0.0-20230531092234-0b27ba7c86fe/go.mod h1:7/p80g19gsL3gTZxFnTFcyKbsqCU/pqSs7RDL05a3u8=
 git.yasdb.com/go/yasutil v0.0.0-20230627095802-62c140e0c0cc h1:ubg71vFEeawKuCjmnjp0G93I8y0PmzIChMC9SUBs4dM=
 git.yasdb.com/go/yasutil v0.0.0-20230627095802-62c140e0c0cc/go.mod h1:SMFHKKIPjD5GiEqvO1YgihctvaYif7+FuGCt+/44bM8=
+git.yasdb.com/go/yasutil v0.0.0-20230818021849-5f75a4471763 h1:YV/5SFLFhU7mnGh8N0KipI+tptpcQgwaK4GLTC0G4SI=
+git.yasdb.com/go/yasutil v0.0.0-20230818021849-5f75a4471763/go.mod h1:SMFHKKIPjD5GiEqvO1YgihctvaYif7+FuGCt+/44bM8=
 github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/VividCortex/ewma v1.2.0 h1:f58SaIzcDXrSy3kWaHNvuJgJ3Nmz59Zji6XoJR/q1ow=
