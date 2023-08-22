@@ -18,9 +18,13 @@ const (
 const _PLACEHOLDER = "--"
 
 // validate interface
-var _ Writer = (table.Writer)(nil)
-var _ Writer = (list.Writer)(nil)
-var _ Writer = (*ErrorWriter)(nil)
+var (
+	_ Writer = (table.Writer)(nil)
+
+	_ Writer = (list.Writer)(nil)
+
+	_ Writer = (*ErrorWriter)(nil)
+)
 
 type ErrorWriter struct {
 	listWriter list.Writer

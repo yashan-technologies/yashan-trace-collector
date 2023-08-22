@@ -2,6 +2,7 @@ package confdef
 
 import (
 	"path"
+
 	"ytc/defs/errdef"
 	"ytc/defs/runtimedef"
 

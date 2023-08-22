@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 

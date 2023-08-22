@@ -3,6 +3,7 @@ package gopsutil
 import (
 	"errors"
 	"time"
+
 	"ytc/defs/collecttypedef"
 
 	"github.com/shirou/gopsutil/cpu"

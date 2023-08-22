@@ -3,6 +3,7 @@ package regexdef_test
 import (
 	"strconv"
 	"testing"
+
 	"ytc/defs/regexdef"
 )
 
@@ -82,7 +83,7 @@ func TestRelative(t *testing.T) {
 			Path:   "/sdfas—_dgs/dfsasd?/",
 			Expect: true,
 		},
-        {
+		{
 			Name:   "绝对路径.",
 			Path:   "/home/yashan/dsasf.1.1.a/build",
 			Expect: true,
