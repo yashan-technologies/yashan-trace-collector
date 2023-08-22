@@ -8,6 +8,7 @@ from builder.utils import log
 
 _REQUIRES: List[str] = [
     'golangci-lint',
+    'goimports-reviser',
     'mypy',
     'yapf',
     'shellcheck',
@@ -65,11 +66,33 @@ class CodeFormatChecker(reporter.Reporter):
 
     def check(self):
         self._write_report('Check code format starting...\n')
+        go_import_format_passed = self._check_go_imports()
         python_format_passed = self._check_python_format()
-        passed = python_format_passed
+        passed = go_import_format_passed and python_format_passed
         if passed:
             self._write_report('Check code format passed.\n')
         return passed
+
+    # goimports-reviser
+    def _check_go_imports(self) -> bool:
+        script = os.path.join(base.PROJECT_PATH, '.resolve-goimports.sh')
+        cmd = f'{script} -q'
+        self._write_report(cmd + '\n')
+        ret, _, err = execer.exec(cmd)
+        if ret != 0:
+            log.logger.error(f'resolve go imports failed: {err}')
+            return False
+        cmd = 'git status'
+        ret, out, err = execer.exec(cmd)
+        if ret != 0:
+            log.logger.error(f'show git status failed: {err}')
+            return False
+        if not 'nothing to commit' in out:
+            self._write_report('Fail to pass go import check.\n')
+            self._write_report(out)
+            return False
+        self._write_report('Succeed to pass go import check.\n')
+        return True
 
     # yapf
     def _check_python_format(self):

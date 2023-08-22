@@ -97,12 +97,13 @@ source /opt/rh/devtoolset-7/enable
 
 #### Code Checking Tools(Optional)
 
-| TOOL          | VERSION |
-| ------------- | ------- |
-| golangci-lint | v1.53.2 |
-| yapf          | 0.32.0  |
-| mypy          | 0.950   |
-| shellcheck    | 0.3.8   |
+| TOOL              | VERSION |
+| ----------------- | ------- |
+| golangci-lint     | v1.53.2 |
+| goimports-reviser | v3.4.1  |
+| yapf              | 0.32.0  |
+| mypy              | 0.950   |
+| shellcheck        | 0.3.8   |
 
 ##### golangci-lint
 
@@ -117,6 +118,12 @@ sh -s -- -b $(go env GOPATH)/bin v1.53.2
 # Available Resource: wget http://192.168.8.236:8888/golang/golangci-lint-1.53.2-linux-amd64.tar.gz
 
 # NOTE: such go install/go get installation aren't guaranteed to work. We recommend using binary installation.
+```
+
+##### goimports-reviser
+
+```bash
+go install -v github.com/incu6us/goimports-reviser/v3@v3.4.1
 ```
 
 ##### yapf
