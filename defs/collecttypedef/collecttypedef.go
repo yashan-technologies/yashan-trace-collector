@@ -31,6 +31,15 @@ var (
 	}
 )
 
+var (
+	CollectTypeChineseName = map[string]string{
+		TYPE_BASE:  "基础信息",
+		TYPE_DIAG:  "诊断信息",
+		TYPE_PREF:  "性能调优信息",
+		TYPE_EXTRA: "额外收集项",
+	}
+)
+
 type CollectParam struct {
 	StartTime     time.Time `json:"startTime"`
 	EndTime       time.Time `json:"endTime"`
@@ -56,5 +65,3 @@ func GetTypeFullName(s string) string {
 	}
 	return full
 }
-
-

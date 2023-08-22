@@ -4,6 +4,7 @@ import (
 	"ytc/defs/collecttypedef"
 
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 )
 
 type CpuUsage struct {
@@ -24,6 +25,7 @@ type DiskIO struct {
 }
 
 type MemoryUsage struct {
+	mem.VirtualMemoryStat
 }
 
 type NetworkIO struct {

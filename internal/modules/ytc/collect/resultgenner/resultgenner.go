@@ -8,12 +8,14 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/runtimedef"
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
 	"ytc/log"
 	"ytc/utils/execerutil"
 	"ytc/utils/fileutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/userutil"
 
+	"git.yasdb.com/go/yaserr"
 	"git.yasdb.com/go/yasutil/fs"
 )
 
@@ -35,7 +37,6 @@ type BaseResultGenner struct {
 	Datas        interface{}
 	CollectTypes map[string]struct{}
 	OutputDir    string
-	ReportType   string
 	Timestamp    string
 	Genner       Genner
 }
@@ -49,7 +50,7 @@ func (g *BaseResultGenner) GenResult() (string, error) {
 	}
 	if err := g.writeReport(); err != nil {
 		log.Module.Errorf("write report failed: %s", err)
-		return stringutil.STR_EMPTY, err
+		log.Module.Errorf("cause: %s", yaserr.Cause(err))
 	}
 	if err := g.tarResult(); err != nil {
 		log.Module.Errorf("tar result failed: %s", err)
@@ -101,20 +102,39 @@ func (g *BaseResultGenner) Mkdirs() error {
 	return nil
 }
 
-func (g *BaseResultGenner) genReportPath() string {
-	name := fmt.Sprintf(_REPORT_NAME_FORMATTER, g.Timestamp, g.ReportType)
+func (g *BaseResultGenner) genReportPath(reportType reporter.ReportType) string {
+	name := fmt.Sprintf(_REPORT_NAME_FORMATTER, g.Timestamp, reportType)
 	return path.Join(g.genPackageDir(), name)
 }
 
 func (g *BaseResultGenner) writeReport() error {
-	content := g.Genner.GenReport()
-	return fileutil.WriteFile(g.genReportPath(), content)
+	content, err := g.Genner.GenReport()
+	if err != nil {
+		err = yaserr.Wrapf(err, "genner generate report")
+		return err
+	}
+	txt := g.genReportPath(reporter.REPORT_TYPE_TXT)
+	if err := fileutil.WriteFile(txt, []byte(content.Txt)); err != nil {
+		err = yaserr.Wrapf(err, "write %s report", reporter.REPORT_TYPE_TXT)
+		return err
+	}
+	markdown := g.genReportPath(reporter.REPORT_TYPE_MD)
+	if err := fileutil.WriteFile(markdown, []byte(content.Markdown)); err != nil {
+		err = yaserr.Wrapf(err, "write %s report", reporter.REPORT_TYPE_MD)
+		return err
+	}
+	html := g.genReportPath(reporter.REPORT_TYPE_HTML)
+	if err := fileutil.WriteFile(html, []byte(content.HTML)); err != nil {
+		err = yaserr.Wrapf(err, "write %s report", reporter.REPORT_TYPE_HTML)
+		return err
+	}
+	return nil
 }
 
 func (g *BaseResultGenner) tarResult() error {
 	command := fmt.Sprintf("cd %s;%s czvf %s %s;rm -rf %s", g.OutputDir, bashdef.CMD_TAR, g.genPackageTarName(), g.genPackageName(), g.genPackageName())
 	executer := execerutil.NewExecer(log.Logger)
-	ret, _, stderr := executer.Exec("bash", "-c", command)
+	ret, _, stderr := executer.Exec(bashdef.CMD_BASH, "-c", command)
 	if ret != 0 {
 		return errors.New(stderr)
 	}

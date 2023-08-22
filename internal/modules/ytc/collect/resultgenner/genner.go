@@ -2,12 +2,14 @@ package resultgenner
 
 import (
 	"encoding/json"
+
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
 	"ytc/utils/fileutil"
 )
 
 type Genner interface {
 	GenData(data interface{}, path string) error
-	GenReport() (content []byte)
+	GenReport() (reporter.ReportContent, error)
 }
 
 type BaseGenner struct{}

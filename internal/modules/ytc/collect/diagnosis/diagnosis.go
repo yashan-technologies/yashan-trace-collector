@@ -16,7 +16,8 @@ import (
 	"ytc/defs/confdef"
 	"ytc/defs/errdef"
 	"ytc/defs/timedef"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 	"ytc/utils/execerutil"
@@ -31,7 +32,7 @@ import (
 	"git.yasdb.com/go/yasutil/fs"
 )
 
-type checkFunc func() *data.NoAccessRes
+type checkFunc func() *ytccollectcommons.NoAccessRes
 
 const (
 	CORE_PATTERN_PATH = "/proc/sys/kernel/core_pattern"
@@ -79,16 +80,16 @@ const (
 )
 
 var (
-	_diagDefaultChMap = map[string]string{
-		data.DIAG_YASDB_ADR:             "数据库ADR日志",
-		data.DIAG_YASDB_RUNLOG:          "数据库run.log日志",
-		data.DIAG_YASDB_ALERTLOG:        "数据库alert.log日志",
-		data.DIAG_YASDB_PROCESS_STATUS:  "数据库进程信息",
-		data.DIAG_YASDB_INSTANCE_STATUS: "数据库实例状态",
-		data.DIAG_YASDB_DATABASE_STATUS: "数据库状态",
-		data.DIAG_HOST_SYSTEMLOG:        "操作系统日志",
-		data.DIAG_HOST_KERNELLOG:        "操作系统内核日志",
-		data.DIAG_YASDB_COREDUMP:        "Core Dump",
+	DiagChineseName = map[string]string{
+		datadef.DIAG_YASDB_ADR:             "数据库ADR日志",
+		datadef.DIAG_YASDB_RUNLOG:          "数据库run.log日志",
+		datadef.DIAG_YASDB_ALERTLOG:        "数据库alert.log日志",
+		datadef.DIAG_YASDB_PROCESS_STATUS:  "数据库进程信息",
+		datadef.DIAG_YASDB_INSTANCE_STATUS: "数据库实例状态",
+		datadef.DIAG_YASDB_DATABASE_STATUS: "数据库状态",
+		datadef.DIAG_HOST_SYSTEMLOG:        "操作系统日志",
+		datadef.DIAG_HOST_KERNELLOG:        "操作系统内核日志",
+		datadef.DIAG_YASDB_COREDUMP:        "Core Dump",
 	}
 )
 
@@ -98,7 +99,7 @@ type logTimeParseFunc func(date time.Time, line string) (time.Time, error)
 
 type DiagCollecter struct {
 	*collecttypedef.CollectParam
-	ModuleCollectRes *data.YtcModule
+	ModuleCollectRes *datadef.YTCModule
 	yasdbValidateErr error
 	notConnectDB     bool
 }
@@ -106,15 +107,15 @@ type DiagCollecter struct {
 func NewDiagCollecter(collectParam *collecttypedef.CollectParam) *DiagCollecter {
 	return &DiagCollecter{
 		CollectParam: collectParam,
-		ModuleCollectRes: &data.YtcModule{
+		ModuleCollectRes: &datadef.YTCModule{
 			Module: collecttypedef.TYPE_DIAG,
 		},
 	}
 }
 
-func (d *DiagCollecter) CheckAccess(yasdbValidate error) (noAccess []data.NoAccessRes) {
+func (d *DiagCollecter) CheckAccess(yasdbValidate error) (noAccess []ytccollectcommons.NoAccessRes) {
 	d.yasdbValidateErr = yasdbValidate
-	noAccess = make([]data.NoAccessRes, 0)
+	noAccess = make([]ytccollectcommons.NoAccessRes, 0)
 	funcMap := d.CheckFunc()
 	for item, fn := range funcMap {
 		noAccessRes := fn()
@@ -147,9 +148,9 @@ func (b *DiagCollecter) Type() string {
 }
 
 // [Interface Func]
-func (b *DiagCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string) {
+func (b *DiagCollecter) CollectedItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
-	for item := range _diagDefaultChMap {
+	for item := range DiagChineseName {
 		if _, ok := noMap[item]; !ok {
 			res = append(res, item)
 		}
@@ -157,7 +158,7 @@ func (b *DiagCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string
 	return
 }
 
-func (b *DiagCollecter) getNotAccessItem(noAccess []data.NoAccessRes) (res map[string]struct{}) {
+func (b *DiagCollecter) getNotAccessItem(noAccess []ytccollectcommons.NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
 	for _, noAccessRes := range noAccess {
 		if noAccessRes.ForceCollect {
@@ -189,37 +190,35 @@ func (b *DiagCollecter) setPackageDir(packageDir string) {
 }
 
 // [Interface Func]
-func (b *DiagCollecter) Finish() *data.YtcModule {
+func (b *DiagCollecter) Finish() *datadef.YTCModule {
 	return b.ModuleCollectRes
 }
 
-func (b *DiagCollecter) fillResult(data *data.YtcItem) {
-	b.ModuleCollectRes.Lock()
-	defer b.ModuleCollectRes.Unlock()
-	b.ModuleCollectRes.Items = append(b.ModuleCollectRes.Items, data)
+func (b *DiagCollecter) fillResult(data *datadef.YTCItem) {
+	b.ModuleCollectRes.Set(data)
 }
 
 func (b *DiagCollecter) yasdbProcessStatus() (err error) {
-	yasdbProcessStatusItem := data.YtcItem{ItemName: data.DIAG_YASDB_PROCESS_STATUS}
+	yasdbProcessStatusItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_PROCESS_STATUS}
 	defer b.fillResult(&yasdbProcessStatusItem)
 
-	log := log.Module.M(data.DIAG_YASDB_PROCESS_STATUS)
+	log := log.Module.M(datadef.DIAG_YASDB_PROCESS_STATUS)
 	processes, err := processutil.GetYasdbProcess(b.YasdbData)
 	if err != nil {
 		log.Error(err)
-		yasdbProcessStatusItem.Err = err.Error()
+		yasdbProcessStatusItem.Error = err.Error()
 		return
 	}
 	if len(processes) == 0 {
 		err = processutil.ErrYasdbProcessNotFound
 		log.Error(err)
-		yasdbProcessStatusItem.Err = err.Error()
+		yasdbProcessStatusItem.Error = err.Error()
 		return
 	}
 	proc := processes[0]
 	if err = proc.FindBaseInfo(); err != nil {
 		log.Error(err)
-		yasdbProcessStatusItem.Err = err.Error()
+		yasdbProcessStatusItem.Error = err.Error()
 		return
 	}
 	yasdbProcessStatusItem.Details = proc
@@ -227,13 +226,13 @@ func (b *DiagCollecter) yasdbProcessStatus() (err error) {
 }
 
 func (b *DiagCollecter) yasdbInstanceStatus() (err error) {
-	yasdbInstanceStatusItem := data.YtcItem{ItemName: data.DIAG_YASDB_INSTANCE_STATUS}
+	yasdbInstanceStatusItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_INSTANCE_STATUS}
 	defer b.fillResult(&yasdbInstanceStatusItem)
 
-	log := log.Module.M(data.DIAG_YASDB_INSTANCE_STATUS)
+	log := log.Module.M(datadef.DIAG_YASDB_INSTANCE_STATUS)
 	if b.notConnectDB {
 		err = fmt.Errorf("connect failed, skip")
-		yasdbInstanceStatusItem.Err = err.Error()
+		yasdbInstanceStatusItem.Error = err.Error()
 		log.Error(err)
 		return
 	}
@@ -241,7 +240,7 @@ func (b *DiagCollecter) yasdbInstanceStatus() (err error) {
 	data, err := yasdb.QueryInstance(tx)
 	if err != nil {
 		log.Error(err)
-		yasdbInstanceStatusItem.Err = err.Error()
+		yasdbInstanceStatusItem.Error = err.Error()
 		return
 	}
 	yasdbInstanceStatusItem.Details = data
@@ -249,13 +248,13 @@ func (b *DiagCollecter) yasdbInstanceStatus() (err error) {
 }
 
 func (b *DiagCollecter) yasdbDatabaseStatus() (err error) {
-	yasdbDatabaseStatusItem := data.YtcItem{ItemName: data.DIAG_YASDB_DATABASE_STATUS}
+	yasdbDatabaseStatusItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_DATABASE_STATUS}
 	defer b.fillResult(&yasdbDatabaseStatusItem)
 
-	log := log.Module.M(data.DIAG_YASDB_DATABASE_STATUS)
+	log := log.Module.M(datadef.DIAG_YASDB_DATABASE_STATUS)
 	if b.notConnectDB {
 		err = fmt.Errorf("connect failed, skip")
-		yasdbDatabaseStatusItem.Err = err.Error()
+		yasdbDatabaseStatusItem.Error = err.Error()
 		log.Error(err)
 		return
 	}
@@ -263,7 +262,7 @@ func (b *DiagCollecter) yasdbDatabaseStatus() (err error) {
 	data, err := yasdb.QueryDatabase(tx)
 	if err != nil {
 		log.Error(err)
-		yasdbDatabaseStatusItem.Err = err.Error()
+		yasdbDatabaseStatusItem.Error = err.Error()
 		return
 	}
 	yasdbDatabaseStatusItem.Details = data
@@ -271,22 +270,22 @@ func (b *DiagCollecter) yasdbDatabaseStatus() (err error) {
 }
 
 func (b *DiagCollecter) yasdbADRLog() (err error) {
-	yasdbADRLogItem := data.YtcItem{ItemName: data.DIAG_YASDB_ADR}
+	yasdbADRLogItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_ADR}
 	defer b.fillResult(&yasdbADRLogItem)
 
-	log := log.Module.M(data.DIAG_YASDB_ADR)
+	log := log.Module.M(datadef.DIAG_YASDB_ADR)
 	adrPath := path.Join(b.YasdbData, DIAG_DIR_NAME) // default adr log path
 	if !b.notConnectDB {
 		if adrPath, err = GetAdrPath(b.CollectParam); err != nil {
 			log.Error(err)
-			yasdbADRLogItem.Err = err.Error()
+			yasdbADRLogItem.Error = err.Error()
 			return
 		}
 	}
 	if !fs.IsDirExist(adrPath) {
 		err = &errdef.ErrFileNotFound{Fname: adrPath}
 		log.Error(err)
-		yasdbADRLogItem.Err = err.Error()
+		yasdbADRLogItem.Error = err.Error()
 		return
 	}
 	// package adr to dest
@@ -295,7 +294,7 @@ func (b *DiagCollecter) yasdbADRLog() (err error) {
 	// 这个函数只会将非空的文件夹下的内容打包出来，如果文件夹是空的，不会在目标压缩包中创建文件夹
 	if err = fs.TarDir(adrPath, path.Join(destPath, destFile)); err != nil {
 		log.Error(err)
-		yasdbADRLogItem.Err = err.Error()
+		yasdbADRLogItem.Error = err.Error()
 		return
 	}
 	yasdbADRLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, destFile))
@@ -303,14 +302,14 @@ func (b *DiagCollecter) yasdbADRLog() (err error) {
 }
 
 func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
-	yasdbCoreDumpItem := data.YtcItem{ItemName: data.DIAG_YASDB_COREDUMP}
+	yasdbCoreDumpItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_COREDUMP}
 	defer b.fillResult(&yasdbCoreDumpItem)
 
-	log := log.Module.M(data.DIAG_YASDB_COREDUMP)
+	log := log.Module.M(datadef.DIAG_YASDB_COREDUMP)
 	coreDumpPath, err := GetCoredumpPath()
 	if err != nil {
 		log.Error(err)
-		yasdbCoreDumpItem.Err = err.Error()
+		yasdbCoreDumpItem.Error = err.Error()
 		return
 	}
 	if !path.IsAbs(coreDumpPath) {
@@ -324,7 +323,7 @@ func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
 	files, err := os.ReadDir(coreDumpPath)
 	if err != nil {
 		log.Error(err)
-		yasdbCoreDumpItem.Err = err.Error()
+		yasdbCoreDumpItem.Error = err.Error()
 		return
 	}
 	for _, file := range files {
@@ -335,7 +334,7 @@ func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
 		if e != nil {
 			err = e
 			log.Error(err)
-			yasdbCoreDumpItem.Err = err.Error()
+			yasdbCoreDumpItem.Error = err.Error()
 			return
 		}
 		createAt := info.ModTime()
@@ -344,7 +343,7 @@ func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
 		}
 		if err = fs.CopyFile(path.Join(coreDumpPath, file.Name()), path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME, file.Name())); err != nil {
 			log.Error(err)
-			yasdbCoreDumpItem.Err = err.Error()
+			yasdbCoreDumpItem.Error = err.Error()
 			return
 		}
 	}
@@ -353,16 +352,16 @@ func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
 }
 
 func (b *DiagCollecter) yasdbRunLog() (err error) {
-	yasdbRunLogItem := data.YtcItem{ItemName: data.DIAG_YASDB_RUNLOG}
+	yasdbRunLogItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_RUNLOG}
 	defer b.fillResult(&yasdbRunLogItem)
 
-	log := log.Module.M(data.DIAG_YASDB_RUNLOG)
+	log := log.Module.M(datadef.DIAG_YASDB_RUNLOG)
 	log.Debug("start to collect yasdb run.log")
 	runLogPath, runLogFile := path.Join(b.YasdbData, LOG_DIR_NAME, YASDB_RUN_LOG), fmt.Sprintf(LOG_FILE_SUFFIX, YASDB_RUN_LOG)
 	if !b.notConnectDB {
 		if runLogPath, err = GetYasdbRunLogPath(b.CollectParam); err != nil {
 			log.Error(err)
-			yasdbRunLogItem.Err = err.Error()
+			yasdbRunLogItem.Error = err.Error()
 			return
 		}
 	}
@@ -371,13 +370,13 @@ func (b *DiagCollecter) yasdbRunLog() (err error) {
 	runLogFiles, err := b.getLogFiles(log, runLogPath, YASDB_RUN_LOG)
 	if err != nil {
 		log.Error(err)
-		yasdbRunLogItem.Err = err.Error()
+		yasdbRunLogItem.Error = err.Error()
 		return
 	}
 	// write run log to dest
 	if err = b.collectYasdbRunLog(log, runLogFiles, path.Join(destPath, runLogFile), b.StartTime, b.EndTime); err != nil {
 		log.Error(err)
-		yasdbRunLogItem.Err = err.Error()
+		yasdbRunLogItem.Error = err.Error()
 		return
 	}
 	yasdbRunLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, runLogFile))
@@ -419,10 +418,10 @@ func (b *DiagCollecter) collectYasdbRunLog(log yaslog.YasLog, srcs []string, des
 }
 
 func (b *DiagCollecter) yasdbAlertLog() (err error) {
-	yasdbAlertLogItem := data.YtcItem{ItemName: data.DIAG_YASDB_ALERTLOG}
+	yasdbAlertLogItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_ALERTLOG}
 	defer b.fillResult(&yasdbAlertLogItem)
 
-	log := log.Module.M(data.DIAG_YASDB_ALERTLOG)
+	log := log.Module.M(datadef.DIAG_YASDB_ALERTLOG)
 	logPath := path.Join(b.YasdbData, LOG_DIR_NAME)
 	alertLogPath, alertLogFile := path.Join(logPath, YASDB_ALERT_LOG), fmt.Sprintf(LOG_FILE_SUFFIX, YASDB_ALERT_LOG)
 	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
@@ -434,7 +433,7 @@ func (b *DiagCollecter) yasdbAlertLog() (err error) {
 	srcFile, destFile := path.Join(alertLogPath, alertLogFile), path.Join(destPath, alertLogFile)
 	if err = b.collectLog(log, srcFile, destFile, time.Now(), timeParseFunc); err != nil {
 		log.Error(err)
-		yasdbAlertLogItem.Err = err.Error()
+		yasdbAlertLogItem.Error = err.Error()
 		return
 	}
 	yasdbAlertLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, alertLogFile))
@@ -442,10 +441,10 @@ func (b *DiagCollecter) yasdbAlertLog() (err error) {
 }
 
 func (b *DiagCollecter) hostKernelLog() (err error) {
-	hostKernelLogItem := data.YtcItem{ItemName: data.DIAG_HOST_KERNELLOG}
+	hostKernelLogItem := datadef.YTCItem{Name: datadef.DIAG_HOST_KERNELLOG}
 	defer b.fillResult(&hostKernelLogItem)
 
-	log := log.Module.M(data.DIAG_HOST_KERNELLOG)
+	log := log.Module.M(datadef.DIAG_HOST_KERNELLOG)
 	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
 	// dmesg.log
 	execer := execerutil.NewExecer(log)
@@ -455,13 +454,13 @@ func (b *DiagCollecter) hostKernelLog() (err error) {
 	if ret != 0 {
 		err = fmt.Errorf("failed to get host dmesg log, err: %s", stderr)
 		log.Error(err)
-		hostKernelLogItem.Err = err.Error()
+		hostKernelLogItem.Error = err.Error()
 		return
 	}
 	// write to dest
 	if err = fileutil.WriteFile(dest, []byte(stdout)); err != nil {
 		log.Error(err)
-		hostKernelLogItem.Err = err.Error()
+		hostKernelLogItem.Error = err.Error()
 		return
 	}
 	hostKernelLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, dmesgFile))
@@ -469,33 +468,45 @@ func (b *DiagCollecter) hostKernelLog() (err error) {
 }
 
 func (b *DiagCollecter) hostSystemLog() (err error) {
-	hostSystemLogItem := data.YtcItem{ItemName: data.DIAG_HOST_SYSTEMLOG}
+	hostSystemLogItem := datadef.YTCItem{
+		Name:     datadef.DIAG_HOST_SYSTEMLOG,
+		Children: make(map[string]datadef.YTCItem),
+	}
 	defer b.fillResult(&hostSystemLogItem)
 
-	log := log.Module.M(data.DIAG_HOST_SYSTEMLOG)
-	var errs []string
-	detailMap := make(map[string]string)
+	log := log.Module.M(datadef.DIAG_HOST_SYSTEMLOG)
 	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
 	if userutil.IsCurrentUserRoot() {
 		// message.log
 		destMessageLogFile := path.Join(destPath, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG))
 		if err = b.collectHostLog(log, SYSTEM_LOG_MESSAGES, destMessageLogFile, SYSTEM_MESSAGES_LOG); err != nil {
 			log.Error(err)
-			errs = append(errs, err.Error())
+			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Error: err.Error()}
 		} else {
-			detailMap[SYSTEM_MESSAGES_LOG] = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
+			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
+			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Details: logPath}
 		}
 		// syslog.log
 		destSysLogFile := path.Join(destPath, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG))
 		if err = b.collectHostLog(log, SYSTEM_LOG_SYSLOG, destSysLogFile, SYSTEM_SYS_LOG); err != nil {
 			log.Error(err)
-			errs = append(errs, err.Error())
+			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Error: err.Error()}
 		} else {
-			detailMap[SYSTEM_SYS_LOG] = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
+			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
+			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Details: logPath}
+		}
+	} else {
+		message := "has no permission to collect system log"
+		description := "没有权限收集系统日志"
+		hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{
+			Error:       message,
+			Description: description,
+		}
+		hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{
+			Error:       message,
+			Description: description,
 		}
 	}
-	hostSystemLogItem.Details = detailMap
-	hostSystemLogItem.Err = strings.Join(errs, stringutil.STR_NEWLINE)
 	return
 }
 
@@ -759,14 +770,14 @@ func (b *DiagCollecter) reverseCollectLog(log yaslog.YasLog, src, dest string, d
 
 func (b *DiagCollecter) itemFunc() map[string]func() error {
 	return map[string]func() error{
-		data.DIAG_YASDB_PROCESS_STATUS:  b.yasdbProcessStatus,
-		data.DIAG_YASDB_INSTANCE_STATUS: b.yasdbInstanceStatus,
-		data.DIAG_YASDB_DATABASE_STATUS: b.yasdbDatabaseStatus,
-		data.DIAG_YASDB_ADR:             b.yasdbADRLog,
-		data.DIAG_YASDB_ALERTLOG:        b.yasdbAlertLog,
-		data.DIAG_YASDB_RUNLOG:          b.yasdbRunLog,
-		data.DIAG_YASDB_COREDUMP:        b.yasdbCoredumpFile,
-		data.DIAG_HOST_SYSTEMLOG:        b.hostSystemLog,
-		data.DIAG_HOST_KERNELLOG:        b.hostKernelLog,
+		datadef.DIAG_YASDB_PROCESS_STATUS:  b.yasdbProcessStatus,
+		datadef.DIAG_YASDB_INSTANCE_STATUS: b.yasdbInstanceStatus,
+		datadef.DIAG_YASDB_DATABASE_STATUS: b.yasdbDatabaseStatus,
+		datadef.DIAG_YASDB_ADR:             b.yasdbADRLog,
+		datadef.DIAG_YASDB_ALERTLOG:        b.yasdbAlertLog,
+		datadef.DIAG_YASDB_RUNLOG:          b.yasdbRunLog,
+		datadef.DIAG_YASDB_COREDUMP:        b.yasdbCoredumpFile,
+		datadef.DIAG_HOST_SYSTEMLOG:        b.hostSystemLog,
+		datadef.DIAG_HOST_KERNELLOG:        b.hostKernelLog,
 	}
 }

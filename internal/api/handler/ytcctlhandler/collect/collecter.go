@@ -9,7 +9,7 @@ import (
 
 type CollecterHandler struct {
 	Collecters    []ytccollect.TypedCollecter
-	CollectResult *data.YtcReport
+	CollectResult *data.YTCReport
 	Types         map[string]struct{}
 }
 
@@ -27,7 +27,7 @@ func NewCollecterHandler(types map[string]struct{}, collectParam *collecttypedef
 	}
 	return &CollecterHandler{
 		Collecters:    typedCollecter,
-		CollectResult: data.NewYtcReport(collectParam),
+		CollectResult: data.NewYTCReport(collectParam),
 		Types:         types,
 	}, nil
 }

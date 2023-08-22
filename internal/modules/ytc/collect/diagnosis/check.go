@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"ytc/defs/collecttypedef"
-	ytccommons "ytc/internal/modules/ytc/collect/commons"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 	"ytc/utils/fileutil"
@@ -79,7 +79,7 @@ func GetYasdbRunLogPath(collectParam *collecttypedef.CollectParam) (string, erro
 }
 
 func GetYasdbAlertLogPath(yasdbData string) string {
-	return path.Join(yasdbData, ytccommons.LOG, ytccommons.ALERT)
+	return path.Join(yasdbData, ytccollectcommons.LOG, ytccollectcommons.ALERT)
 }
 
 func GetSystemLogPath() (string, error) {
@@ -110,38 +110,38 @@ func GetDiagPath(collectParam *collecttypedef.CollectParam) (m map[string]string
 	m = make(map[string]string)
 	p, err := GetAdrPath(collectParam)
 	if err != nil {
-		log.Module.Warnf(_getErrMessage, data.DIAG_YASDB_ADR, err.Error())
+		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_ADR, err.Error())
 	} else {
-		m[data.DIAG_YASDB_ADR] = p
+		m[datadef.DIAG_YASDB_ADR] = p
 	}
 	p, err = GetCoredumpPath()
 	if err != nil {
-		log.Module.Warnf(_getErrMessage, data.DIAG_YASDB_COREDUMP, err.Error())
+		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_COREDUMP, err.Error())
 	} else {
-		m[data.DIAG_YASDB_COREDUMP] = p
+		m[datadef.DIAG_YASDB_COREDUMP] = p
 	}
 	p, err = GetYasdbRunLogPath(collectParam)
 	if err != nil {
-		log.Module.Warnf(_getErrMessage, data.DIAG_YASDB_RUNLOG, err.Error())
+		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_RUNLOG, err.Error())
 	} else {
-		m[data.DIAG_YASDB_RUNLOG] = path.Join(p, ytccommons.RUN_LOG)
+		m[datadef.DIAG_YASDB_RUNLOG] = path.Join(p, ytccollectcommons.RUN_LOG)
 	}
 	p = GetYasdbAlertLogPath(collectParam.YasdbData)
 	if err != nil {
-		log.Module.Warnf(_getErrMessage, data.DIAG_YASDB_ALERTLOG, err.Error())
+		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_ALERTLOG, err.Error())
 	} else {
-		m[data.DIAG_YASDB_ALERTLOG] = path.Join(p, ytccommons.ALERT_LOG)
+		m[datadef.DIAG_YASDB_ALERTLOG] = path.Join(p, ytccollectcommons.ALERT_LOG)
 	}
 	p, err = GetSystemLogPath()
 	if err != nil {
-		log.Module.Warnf(_getErrMessage, data.DIAG_HOST_SYSTEMLOG, err.Error())
+		log.Module.Warnf(_getErrMessage, datadef.DIAG_HOST_SYSTEMLOG, err.Error())
 	} else {
-		m[data.DIAG_HOST_SYSTEMLOG] = p
+		m[datadef.DIAG_HOST_SYSTEMLOG] = p
 	}
 	return
 }
 
-func (d *DiagCollecter) checkYasdbProcess() *data.NoAccessRes {
+func (d *DiagCollecter) checkYasdbProcess() *ytccollectcommons.NoAccessRes {
 	proces, err := processutil.GetYasdbProcess(d.YasdbData)
 	if err != nil || len(proces) == 0 {
 		var (
@@ -150,16 +150,16 @@ func (d *DiagCollecter) checkYasdbProcess() *data.NoAccessRes {
 			force bool
 		)
 		if err != nil {
-			desc = fmt.Sprintf(ytccommons.MatchProcessErrDesc, d.YasdbData, err.Error())
-			tips = ytccommons.MatchProcessErrTips
+			desc = fmt.Sprintf(ytccollectcommons.MatchProcessErrDesc, d.YasdbData, err.Error())
+			tips = ytccollectcommons.MatchProcessErrTips
 			force = true
 		}
 		if len(proces) == 0 {
-			desc = fmt.Sprintf(ytccommons.ProcessNofoundDesc, d.YasdbData)
-			tips = ytccommons.ProcessNofunndTips
+			desc = fmt.Sprintf(ytccollectcommons.ProcessNofoundDesc, d.YasdbData)
+			tips = ytccollectcommons.ProcessNofunndTips
 		}
-		return &data.NoAccessRes{
-			ModuleItem:   data.DIAG_YASDB_PROCESS_STATUS,
+		return &ytccollectcommons.NoAccessRes{
+			ModuleItem:   datadef.DIAG_YASDB_PROCESS_STATUS,
 			Description:  desc,
 			Tips:         tips,
 			ForceCollect: force,
@@ -168,171 +168,171 @@ func (d *DiagCollecter) checkYasdbProcess() *data.NoAccessRes {
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbInstanceStatus() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_INSTANCE_STATUS
-	yasql := path.Join(d.YasdbHome, ytccommons.BIN, ytccommons.YASQL)
+func (d *DiagCollecter) checkYasdbInstanceStatus() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_INSTANCE_STATUS
+	yasql := path.Join(d.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASQL)
 	err := fileutil.CheckAccess(yasql)
 	if err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(yasql, err)
 		procs, processErr := processutil.GetYasdbProcess(d.YasdbData)
 		if processErr != nil || len(procs) == 0 {
-			ytccommons.FillDescTips(noAccess, desc, tips)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		tips = fmt.Sprintf(ytccommons.YasdbInstanceStatusTips, d.YasdbData)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		tips = fmt.Sprintf(ytccollectcommons.YasdbInstanceStatusTips, d.YasdbData)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
-		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbDatabaseStatus() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_DATABASE_STATUS
-	yasql := path.Join(d.YasdbHome, ytccommons.BIN, ytccommons.YASQL)
+func (d *DiagCollecter) checkYasdbDatabaseStatus() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_DATABASE_STATUS
+	yasql := path.Join(d.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASQL)
 	err := fileutil.CheckAccess(yasql)
 	if err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(yasql, err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
-		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbAdr() *data.NoAccessRes {
-	diag := path.Join(d.YasdbData, ytccommons.DIAG)
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_ADR
-	yasql := path.Join(d.YasdbHome, ytccommons.BIN, ytccommons.YASQL)
+func (d *DiagCollecter) checkYasdbAdr() *ytccollectcommons.NoAccessRes {
+	diag := path.Join(d.YasdbData, ytccollectcommons.DIAG)
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_ADR
+	yasql := path.Join(d.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASQL)
 	err := fileutil.CheckAccess(yasql)
 	if err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(yasql, err)
 		if dErr := fileutil.CheckAccess(diag); dErr != nil {
-			ytccommons.FillDescTips(noAccess, desc, tips)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
+		ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DefaultAdrTips, diag))
 		noAccess.ForceCollect = true
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
 		d.notConnectDB = true
-		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(diag); dErr != nil {
-			ytccommons.FillDescTips(noAccess, desc, tips)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
 		noAccess.ForceCollect = true
-		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultAdrTips, diag))
+		ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DefaultAdrTips, diag))
 		return noAccess
 	}
 	adrPath, err := GetAdrPath(d.CollectParam)
 	if err != nil {
 		d.notConnectDB = true
-		desc, tips := ytccommons.YasErrDescAndtips(err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	if err := fileutil.CheckAccess(adrPath); err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(adrPath, err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(adrPath, err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbRunLog() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_RUNLOG
-	yasql := path.Join(d.YasdbHome, ytccommons.BIN, ytccommons.YASQL)
-	defaultRunLog := path.Join(d.YasdbData, ytccommons.LOG, ytccommons.RUN, ytccommons.RUN_LOG)
+func (d *DiagCollecter) checkYasdbRunLog() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_RUNLOG
+	yasql := path.Join(d.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASQL)
+	defaultRunLog := path.Join(d.YasdbData, ytccollectcommons.LOG, ytccollectcommons.RUN, ytccollectcommons.RUN_LOG)
 	err := fileutil.CheckAccess(yasql)
 	if err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(yasql, err)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(yasql, err)
 		if dErr := fileutil.CheckAccess(defaultRunLog); dErr != nil {
-			ytccommons.FillDescTips(noAccess, desc, tips)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultRunlogTips, defaultRunLog))
+		ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DefaultRunlogTips, defaultRunLog))
 		noAccess.ForceCollect = true
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
 		d.notConnectDB = true
-		desc, tips := ytccommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(defaultRunLog); dErr != nil {
-			ytccommons.FillDescTips(noAccess, desc, tips)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		tips = fmt.Sprintf(ytccommons.DefaultRunlogTips, defaultRunLog)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		tips = fmt.Sprintf(ytccollectcommons.DefaultRunlogTips, defaultRunLog)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		noAccess.ForceCollect = true
 		return noAccess
 	}
 	runLogPath, err := GetYasdbRunLogPath(d.CollectParam)
 	if err != nil {
 		d.notConnectDB = true
-		desc, tips := ytccommons.YasErrDescAndtips(err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-	runLog := path.Join(runLogPath, ytccommons.RUN_LOG)
+	runLog := path.Join(runLogPath, ytccollectcommons.RUN_LOG)
 	if err := fileutil.CheckAccess(runLog); err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(runLog, err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(runLog, err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbAlertLog() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_ALERTLOG
+func (d *DiagCollecter) checkYasdbAlertLog() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_ALERTLOG
 	alertLogPath := GetYasdbAlertLogPath(d.YasdbData)
-	alertLog := path.Join(alertLogPath, ytccommons.ALERT_LOG)
+	alertLog := path.Join(alertLogPath, ytccollectcommons.ALERT_LOG)
 	if err := fileutil.CheckAccess(alertLog); err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(alertLog, err)
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(alertLog, err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 	return nil
 }
 
-func (d *DiagCollecter) checkYasdbCoredump() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_YASDB_COREDUMP
+func (d *DiagCollecter) checkYasdbCoredump() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_YASDB_COREDUMP
 	core, err := GetCoredumpPath()
 	if err != nil {
-		noAccess.Description = fmt.Sprintf(ytccommons.CoredumpErrDesc, err.Error())
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.CoredumpErrDesc, err.Error())
 		noAccess.Tips = " "
 		return noAccess
 	}
 	if !path.IsAbs(core) {
-		bin := path.Join(d.YasdbHome, ytccommons.BIN)
+		bin := path.Join(d.YasdbHome, ytccollectcommons.BIN)
 		if err := fileutil.CheckAccess(bin); err != nil {
-			desc, tips := ytccommons.PathErrDescAndTips(core, err)
+			desc, tips := ytccollectcommons.PathErrDescAndTips(core, err)
 			noAccess.Description = desc
 			noAccess.Tips = tips
 			return noAccess
 		}
-		noAccess.Description = fmt.Sprintf(ytccommons.CoredumpRelativeDesc, core)
-		noAccess.Tips = fmt.Sprintf(ytccommons.CoredumpRelativeTips, bin)
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.CoredumpRelativeDesc, core)
+		noAccess.Tips = fmt.Sprintf(ytccollectcommons.CoredumpRelativeTips, bin)
 		noAccess.ForceCollect = true
 		return noAccess
 	}
 	if err := fileutil.CheckAccess(core); err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(core, err)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(core, err)
 		noAccess.Description = desc
 		noAccess.Tips = tips
 		return noAccess
@@ -340,22 +340,22 @@ func (d *DiagCollecter) checkYasdbCoredump() *data.NoAccessRes {
 	return nil
 }
 
-func (d *DiagCollecter) checkSyslog() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_HOST_SYSTEMLOG
+func (d *DiagCollecter) checkSyslog() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_HOST_SYSTEMLOG
 	path, err := GetSystemLogPath()
 	if err != nil {
-		noAccess.Description = fmt.Sprintf(ytccommons.GetSysLogErrDesc, err.Error())
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.GetSysLogErrDesc, err.Error())
 		noAccess.Tips = " "
 		return noAccess
 	}
 	if len(path) == 0 {
-		noAccess.Description = fmt.Sprintf(ytccommons.SysLogUnfoundDesc, SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
-		noAccess.Tips = ytccommons.SysLogUnfoundTips
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.SysLogUnfoundDesc, SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
+		noAccess.Tips = ytccollectcommons.SysLogUnfoundTips
 		return noAccess
 	}
 	if err := fileutil.CheckAccess(path); err != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(path, err)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(path, err)
 		noAccess.Description = desc
 		noAccess.Tips = tips
 		return noAccess
@@ -363,23 +363,23 @@ func (d *DiagCollecter) checkSyslog() *data.NoAccessRes {
 	return nil
 }
 
-func (d *DiagCollecter) checkDmesg() *data.NoAccessRes {
-	noAccess := new(data.NoAccessRes)
-	noAccess.ModuleItem = data.DIAG_HOST_DMESG
+func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
+	noAccess := new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.DIAG_HOST_DMESG
 	release, err := osutil.GetOsRelease()
 	if err != nil {
-		noAccess.Description = fmt.Sprintf(ytccommons.GetOsReleaseErrDesc, err.Error())
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.GetOsReleaseErrDesc, err.Error())
 		noAccess.Tips = " "
 		noAccess.ForceCollect = true
 		return noAccess
 	}
 	if release.Id == osutil.KYLIN_ID {
-		noAccess.Description = ytccommons.DmesgNeedRootDesc
+		noAccess.Description = ytccollectcommons.DmesgNeedRootDesc
 		if sudoErr := userutil.CheckSudovn(log.Module); sudoErr != nil {
-			noAccess.Tips = ytccommons.PLEASE_RUN_WITH_ROOT_TIPS
+			noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_ROOT_TIPS
 			return noAccess
 		}
-		noAccess.Tips = ytccommons.PLEASE_RUN_WITH_SUDO_TIPS
+		noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_SUDO_TIPS
 		return noAccess
 	}
 	return nil
@@ -387,14 +387,14 @@ func (d *DiagCollecter) checkDmesg() *data.NoAccessRes {
 
 func (d *DiagCollecter) CheckFunc() map[string]checkFunc {
 	return map[string]checkFunc{
-		data.DIAG_YASDB_PROCESS_STATUS:  d.checkYasdbProcess,
-		data.DIAG_YASDB_INSTANCE_STATUS: d.checkYasdbInstanceStatus,
-		data.DIAG_YASDB_DATABASE_STATUS: d.checkYasdbDatabaseStatus,
-		data.DIAG_YASDB_ADR:             d.checkYasdbAdr,
-		data.DIAG_YASDB_RUNLOG:          d.checkYasdbRunLog,
-		data.DIAG_YASDB_ALERTLOG:        d.checkYasdbAlertLog,
-		data.DIAG_YASDB_COREDUMP:        d.checkYasdbCoredump,
-		data.DIAG_HOST_SYSTEMLOG:        d.checkSyslog,
-		data.DIAG_HOST_DMESG:            d.checkDmesg,
+		datadef.DIAG_YASDB_PROCESS_STATUS:  d.checkYasdbProcess,
+		datadef.DIAG_YASDB_INSTANCE_STATUS: d.checkYasdbInstanceStatus,
+		datadef.DIAG_YASDB_DATABASE_STATUS: d.checkYasdbDatabaseStatus,
+		datadef.DIAG_YASDB_ADR:             d.checkYasdbAdr,
+		datadef.DIAG_YASDB_RUNLOG:          d.checkYasdbRunLog,
+		datadef.DIAG_YASDB_ALERTLOG:        d.checkYasdbAlertLog,
+		datadef.DIAG_YASDB_COREDUMP:        d.checkYasdbCoredump,
+		datadef.DIAG_HOST_SYSTEMLOG:        d.checkSyslog,
+		datadef.DIAG_HOST_DMESG:            d.checkDmesg,
 	}
 }
