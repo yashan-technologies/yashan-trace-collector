@@ -1,12 +1,12 @@
 [collect]
-output = "./results"
-range = "24h"
 max_duration = "7d"
 min_duration = "1m"
+network_io_discard = "^lo$,^veth.*,^virbr.*,^br.*,^tap.*,^tun.*,^docker.*,^flannel.*"
+output = "./results"
+range = "24h"
 scrape_interval = 1
 scrape_times = 10
 
 [report]
+output = "./reports"
 type = "txt"
-output="./reports"
-

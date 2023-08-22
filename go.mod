@@ -3,12 +3,14 @@ module ytc
 go 1.19
 
 require (
+	git.yasdb.com/go/yaserr v0.1.0
 	git.yasdb.com/go/yaslog v0.0.0-20230531092234-0b27ba7c86fe
 	git.yasdb.com/go/yasutil v0.0.0-20230818021849-5f75a4471763
 	github.com/BurntSushi/toml v1.3.2
 	github.com/alecthomas/kong v0.8.0
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/google/uuid v1.3.0
+	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/rivo/tview v0.0.0-20230621164836-6cc0565babaf
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1

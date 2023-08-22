@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	ytccollect "ytc/internal/modules/ytc/collect"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
 	"ytc/utils/terminalutil/barutil"
 
@@ -35,8 +36,8 @@ func (c *CollecterHandler) Collect(yasdbValidate error) error {
 	return c.collect(moduleItems)
 }
 
-func (c *CollecterHandler) checkAccess(yasdbValidateErr error) (map[string][]data.NoAccessRes, error) {
-	m := make(map[string][]data.NoAccessRes)
+func (c *CollecterHandler) checkAccess(yasdbValidateErr error) (map[string][]ytccollectcommons.NoAccessRes, error) {
+	m := make(map[string][]ytccollectcommons.NoAccessRes)
 	for _, c := range c.Collecters {
 		noAccessList := c.CheckAccess(yasdbValidateErr)
 		if len(noAccessList) != 0 {
@@ -52,7 +53,7 @@ func (c *CollecterHandler) checkAccess(yasdbValidateErr error) (map[string][]dat
 	return m, nil
 }
 
-func (c *CollecterHandler) printNoAccessItem(m map[string][]data.NoAccessRes) error {
+func (c *CollecterHandler) printNoAccessItem(m map[string][]ytccollectcommons.NoAccessRes) error {
 	table := tabler.NewTable(
 		"",
 		tabler.NewRowTitle("TYPE", 15),
@@ -128,13 +129,13 @@ func (c *CollecterHandler) printCollectItem(typeItem map[string][]string) error 
 	return nil
 }
 
-func (c *CollecterHandler) getCollectItem(noAccessMap map[string][]data.NoAccessRes) (typeItem map[string][]string, err error) {
+func (c *CollecterHandler) getCollectItem(noAccessMap map[string][]ytccollectcommons.NoAccessRes) (typeItem map[string][]string, err error) {
 	typeItem = make(map[string][]string)
 	for _, collect := range c.Collecters {
 		t := collect.Type()
 		noAccess, ok := noAccessMap[t]
 		if !ok {
-			noAccess = make([]data.NoAccessRes, 0)
+			noAccess = make([]ytccollectcommons.NoAccessRes, 0)
 		}
 		typeItem[t] = collect.CollectedItem(noAccess)
 	}
@@ -182,9 +183,9 @@ func (c *CollecterHandler) collecterMap() (res map[string]ytccollect.TypedCollec
 func (c *CollecterHandler) Finsh() error {
 	c.CollectResult.CollectEndtime = time.Now()
 	for _, collecter := range c.Collecters {
-		c.CollectResult.ModuleResults[collecter.Type()] = collecter.Finish()
+		c.CollectResult.Modules[collecter.Type()] = collecter.Finish()
 	}
-	path, err := c.CollectResult.GenResult(c.CollectResult.CollectParam.Output, data.TXT_REPORT, c.Types)
+	path, err := c.CollectResult.GenResult(c.CollectResult.CollectParam.Output, c.Types)
 	if err != nil {
 		log.Handler.Error(err)
 		fmt.Printf("failed to gen result, err: %v\n", err)

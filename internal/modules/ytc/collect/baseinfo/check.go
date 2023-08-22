@@ -6,8 +6,8 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/errdef"
-	ytccommons "ytc/internal/modules/ytc/collect/commons"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/execerutil"
 	"ytc/utils/fileutil"
@@ -32,7 +32,7 @@ func (b *BaseCollecter) CheckSarAccess() error {
 func (b *BaseCollecter) CheckFireWallAssess() error {
 	release, err := osutil.GetOsRelease()
 	if err != nil {
-		log.Module.Warnf(ytccommons.GetOsReleaseErrDesc, err)
+		log.Module.Warnf(ytccollectcommons.GetOsReleaseErrDesc, err)
 		return err
 	}
 	if release.Id != osutil.UBUNTU_ID {
@@ -45,59 +45,59 @@ func (b *BaseCollecter) CheckFireWallAssess() error {
 	return nil
 }
 
-func (b *BaseCollecter) checkYasdbVersion() *data.NoAccessRes {
-	yasdb := path.Join(b.YasdbHome, ytccommons.BIN, ytccommons.YASDB)
+func (b *BaseCollecter) checkYasdbVersion() *ytccollectcommons.NoAccessRes {
+	yasdb := path.Join(b.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASDB)
 	err := fileutil.CheckAccess(yasdb)
 	if err == nil {
 		return nil
 	}
-	desc, tips := ytccommons.PathErrDescAndTips(yasdb, err)
-	return &data.NoAccessRes{
-		ModuleItem:  data.BASE_YASDB_VERION,
+	desc, tips := ytccollectcommons.PathErrDescAndTips(yasdb, err)
+	return &ytccollectcommons.NoAccessRes{
+		ModuleItem:  datadef.BASE_YASDB_VERION,
 		Description: desc,
 		Tips:        tips,
 	}
 }
 
-func (b *BaseCollecter) checkYasdbParameter() (noAccess *data.NoAccessRes) {
-	noAccess = new(data.NoAccessRes)
-	noAccess.ModuleItem = data.BASE_YASDB_PARAMTER
-	yasql := path.Join(b.YasdbHome, ytccommons.BIN, ytccommons.YASQL)
-	ini := path.Join(b.YasdbData, ytccommons.CONFIG, ytccommons.YASDB_INI)
+func (b *BaseCollecter) checkYasdbParameter() (noAccess *ytccollectcommons.NoAccessRes) {
+	noAccess = new(ytccollectcommons.NoAccessRes)
+	noAccess.ModuleItem = datadef.BASE_YASDB_PARAMETER
+	yasql := path.Join(b.YasdbHome, ytccollectcommons.BIN, ytccollectcommons.YASQL)
+	ini := path.Join(b.YasdbData, ytccollectcommons.CONFIG, ytccollectcommons.YASDB_INI)
 	iniErr := fileutil.CheckAccess(ini)
 	yasqlErr := fileutil.CheckAccess(yasql)
 	if yasqlErr != nil {
-		desc, tips := ytccommons.PathErrDescAndTips(yasql, yasqlErr)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(yasql, yasqlErr)
 		if iniErr == nil {
 			noAccess.ForceCollect = true
-			ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
+			ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DefaultParameterTips, ini))
 			return
 		}
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return
 	}
 	if b.yasdbValidateErr != nil {
 		b.notConnectDB = true
-		desc, tips := ytccommons.YasErrDescAndtips(b.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndtips(b.yasdbValidateErr)
 		if iniErr == nil {
 			noAccess.ForceCollect = true
-			ytccommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccommons.DefaultParameterTips, ini))
+			ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DefaultParameterTips, ini))
 			return
 		}
-		ytccommons.FillDescTips(noAccess, desc, tips)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return
 	}
 	return nil
 }
 
-func (b *BaseCollecter) checkFireWall() *data.NoAccessRes {
+func (b *BaseCollecter) checkFireWall() *ytccollectcommons.NoAccessRes {
 	if err := b.CheckFireWallAssess(); err != nil {
 		tips := err.Error()
 		if err := userutil.CheckSudovn(log.Module); err != nil {
-			tips = ytccommons.CheckSudoTips(err)
+			tips = ytccollectcommons.CheckSudoTips(err)
 		}
-		return &data.NoAccessRes{
-			ModuleItem:  data.BASE_HOST_FIREWALLD,
+		return &ytccollectcommons.NoAccessRes{
+			ModuleItem:  datadef.BASE_HOST_FIREWALLD,
 			Description: err.Error(),
 			Tips:        tips,
 		}
@@ -105,30 +105,30 @@ func (b *BaseCollecter) checkFireWall() *data.NoAccessRes {
 	return nil
 }
 
-func (b *BaseCollecter) checkNetworkIo() *data.NoAccessRes {
-	return b.checkSarWithItem(data.BASE_HOST_NETWORK_IO)
+func (b *BaseCollecter) checkNetworkIo() *ytccollectcommons.NoAccessRes {
+	return b.checkSarWithItem(datadef.BASE_HOST_NETWORK_IO)
 }
 
-func (b *BaseCollecter) checkDiskIo() *data.NoAccessRes {
-	return b.checkSarWithItem(data.BASE_HOST_DISK_IO)
-
-}
-
-func (b *BaseCollecter) checkMemoryUsage() *data.NoAccessRes {
-	return b.checkSarWithItem(data.BASE_HOST_MEMORY_USAGE)
+func (b *BaseCollecter) checkDiskIo() *ytccollectcommons.NoAccessRes {
+	return b.checkSarWithItem(datadef.BASE_HOST_DISK_IO)
 
 }
 
-func (b *BaseCollecter) checkCpuUsage() *data.NoAccessRes {
-	return b.checkSarWithItem(data.BASE_HOST_CPU_USAGE)
+func (b *BaseCollecter) checkMemoryUsage() *ytccollectcommons.NoAccessRes {
+	return b.checkSarWithItem(datadef.BASE_HOST_MEMORY_USAGE)
 
 }
 
-func (b *BaseCollecter) checkSarWithItem(item string) *data.NoAccessRes {
+func (b *BaseCollecter) checkCpuUsage() *ytccollectcommons.NoAccessRes {
+	return b.checkSarWithItem(datadef.BASE_HOST_CPU_USAGE)
+
+}
+
+func (b *BaseCollecter) checkSarWithItem(item string) *ytccollectcommons.NoAccessRes {
 	if err := b.CheckSarAccess(); err != nil {
 		os, osErr := osutil.GetOsRelease()
 		if osErr != nil {
-			log.Module.Errorf(ytccommons.GetOsReleaseErrDesc, err.Error())
+			log.Module.Errorf(ytccollectcommons.GetOsReleaseErrDesc, err.Error())
 		}
 		var tips string
 		if os.Id == osutil.UBUNTU_ID {
@@ -140,7 +140,7 @@ func (b *BaseCollecter) checkSarWithItem(item string) *data.NoAccessRes {
 		if os.Id == osutil.KYLIN_ID {
 			tips = _tips_yum_base_host_load_status
 		}
-		noAccess := &data.NoAccessRes{
+		noAccess := &ytccollectcommons.NoAccessRes{
 			ModuleItem:  item,
 			Description: err.Error(),
 			Tips:        tips,
@@ -152,12 +152,12 @@ func (b *BaseCollecter) checkSarWithItem(item string) *data.NoAccessRes {
 
 func (b *BaseCollecter) CheckFunc() map[string]checkFunc {
 	return map[string]checkFunc{
-		data.BASE_YASDB_VERION:      b.checkYasdbVersion,
-		data.BASE_YASDB_PARAMTER:    b.checkYasdbParameter,
-		data.BASE_HOST_FIREWALLD:    b.checkFireWall,
-		data.BASE_HOST_NETWORK_IO:   b.checkNetworkIo,
-		data.BASE_HOST_CPU_USAGE:    b.checkCpuUsage,
-		data.BASE_HOST_DISK_IO:      b.checkDiskIo,
-		data.BASE_HOST_MEMORY_USAGE: b.checkMemoryUsage,
+		datadef.BASE_YASDB_VERION:      b.checkYasdbVersion,
+		datadef.BASE_YASDB_PARAMETER:   b.checkYasdbParameter,
+		datadef.BASE_HOST_FIREWALLD:    b.checkFireWall,
+		datadef.BASE_HOST_NETWORK_IO:   b.checkNetworkIo,
+		datadef.BASE_HOST_CPU_USAGE:    b.checkCpuUsage,
+		datadef.BASE_HOST_DISK_IO:      b.checkDiskIo,
+		datadef.BASE_HOST_MEMORY_USAGE: b.checkMemoryUsage,
 	}
 }

@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"ytc/defs/collecttypedef"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/stringutil"
 
@@ -23,20 +24,20 @@ const (
 var _packageDir = ""
 
 var (
-	extraDefaultChMap = map[string]string{
-		data.EXTRA_FILE_COLLECT: "额外文件收集",
+	ExtraChineseName = map[string]string{
+		datadef.EXTRA_FILE_COLLECT: "额外文件收集",
 	}
 )
 
 type ExtraCollecter struct {
 	*collecttypedef.CollectParam
-	ModuleCollectRes *data.YtcModule
+	ModuleCollectRes *datadef.YTCModule
 }
 
 func NewExtraCollecter(collectParam *collecttypedef.CollectParam) *ExtraCollecter {
 	return &ExtraCollecter{
 		CollectParam: collectParam,
-		ModuleCollectRes: &data.YtcModule{
+		ModuleCollectRes: &datadef.YTCModule{
 			Module: collecttypedef.TYPE_EXTRA,
 		},
 	}
@@ -48,8 +49,8 @@ func (b *ExtraCollecter) Type() string {
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) CheckAccess(yasdbValidate error) (noAccess []data.NoAccessRes) {
-	noAccess = make([]data.NoAccessRes, 0)
+func (b *ExtraCollecter) CheckAccess(yasdbValidate error) (noAccess []ytccollectcommons.NoAccessRes) {
+	noAccess = make([]ytccollectcommons.NoAccessRes, 0)
 	funcMap := b.CheckFunc()
 	for item, fn := range funcMap {
 		noAccessRes := fn()
@@ -77,9 +78,9 @@ func (b *ExtraCollecter) CollectFunc(items []string) (res map[string]func() erro
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []string) {
+func (b *ExtraCollecter) CollectedItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
-	for item := range extraDefaultChMap {
+	for item := range ExtraChineseName {
 		if _, ok := noMap[item]; !ok {
 			res = append(res, item)
 		}
@@ -87,7 +88,7 @@ func (b *ExtraCollecter) CollectedItem(noAccess []data.NoAccessRes) (res []strin
 	return
 }
 
-func (b *ExtraCollecter) getNotAccessItem(noAccess []data.NoAccessRes) (res map[string]struct{}) {
+func (b *ExtraCollecter) getNotAccessItem(noAccess []ytccollectcommons.NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
 	for _, noAccessRes := range noAccess {
 		if noAccessRes.ForceCollect {
@@ -106,13 +107,13 @@ func (b *ExtraCollecter) Start(packageDir string) (err error) {
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) Finish() *data.YtcModule {
+func (b *ExtraCollecter) Finish() *datadef.YTCModule {
 	return b.ModuleCollectRes
 }
 
 func (b *ExtraCollecter) itemFunc() map[string]func() error {
 	return map[string]func() error{
-		data.EXTRA_FILE_COLLECT: b.collectExtraFile,
+		datadef.EXTRA_FILE_COLLECT: b.collectExtraFile,
 	}
 }
 
@@ -120,21 +121,19 @@ func (b *ExtraCollecter) setPackageDir(packageDir string) {
 	_packageDir = packageDir
 }
 
-func (b *ExtraCollecter) fillResult(data *data.YtcItem) {
-	b.ModuleCollectRes.Lock()
-	defer b.ModuleCollectRes.Unlock()
-	b.ModuleCollectRes.Items = append(b.ModuleCollectRes.Items, data)
+func (b *ExtraCollecter) fillResult(data *datadef.YTCItem) {
+	b.ModuleCollectRes.Set(data)
 }
 
 func (b *ExtraCollecter) collectExtraFile() (err error) {
-	extraFile := data.YtcItem{ItemName: data.EXTRA_FILE_COLLECT}
+	extraFile := datadef.YTCItem{Name: datadef.EXTRA_FILE_COLLECT}
 	defer b.fillResult(&extraFile)
 
-	log := log.Module.M(data.EXTRA_FILE_COLLECT)
+	log := log.Module.M(datadef.EXTRA_FILE_COLLECT)
 	dirs, files, err := b.filterInclude()
 	if err != nil {
 		log.Error(err)
-		extraFile.Err = err.Error()
+		extraFile.Error = err.Error()
 		return
 	}
 	destPartentDir := path.Join(_packageDir, EXTRA_DIR_NAME)
@@ -143,7 +142,7 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 		dest := path.Join(destPartentDir, b.transferPath(dir))
 		if err = b.copyDir(log, dir, dest, excludeMap); err != nil {
 			log.Error(err)
-			extraFile.Err = err.Error()
+			extraFile.Error = err.Error()
 			return
 		}
 	}
@@ -155,7 +154,7 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 		dest := path.Join(destPartentDir, b.transferPath(file))
 		if err = fs.CopyFile(file, dest); err != nil {
 			log.Error(err)
-			extraFile.Err = err.Error()
+			extraFile.Error = err.Error()
 			return
 		}
 	}

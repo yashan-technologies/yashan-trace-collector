@@ -1,126 +1,112 @@
 package data
 
 import (
-	"strings"
-	"sync"
+	"fmt"
 	"time"
 
 	"ytc/defs/collecttypedef"
-
 	"ytc/defs/timedef"
-	"ytc/internal/modules/ytc/resultgenner"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
+	report "ytc/internal/modules/ytc/collect/data/reporter"
+	"ytc/internal/modules/ytc/collect/resultgenner"
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
+	"ytc/log"
 	"ytc/utils/stringutil"
+
+	"git.yasdb.com/go/yaserr"
 )
 
-const (
-	// base info
-	BASE_YASDB_VERION      = "YashanDB-Version"
-	BASE_YASDB_PARAMTER    = "YashanDB-Paramter"
-	BASE_HOST_OS_INFO      = "Host-OSInfo"
-	BASE_HOST_FIREWALLD    = "Host-FirewalldStatus"
-	BASE_HOST_CPU          = "Host-CPU"
-	BASE_HOST_DISK         = "Host-Disk"
-	BASE_HOST_Network      = "Host-Network"
-	BASE_HOST_Memery       = "Host-Memory"
-	BASE_HOST_NETWORK_IO   = "Host-NetworkIO"
-	BASE_HOST_CPU_USAGE    = "Host-CPUUsage"
-	BASE_HOST_DISK_IO      = "Host-DiskIO"
-	BASE_HOST_MEMORY_USAGE = "Host-MemoryUsage"
+// validate interface
+var _ resultgenner.Genner = (*YTCReport)(nil)
 
-	// diagnosis info
-	DIAG_YASDB_PROCESS_STATUS  = "YashanDB-ProcessStatus"
-	DIAG_YASDB_INSTANCE_STATUS = "YashanDB-InstanceStatus"
-	DIAG_YASDB_DATABASE_STATUS = "YashanDB-DatabaseStatus"
-	DIAG_YASDB_ADR             = "YashanDB-ADR"
-	DIAG_YASDB_RUNLOG          = "YashanDB-RunLog"
-	DIAG_YASDB_ALERTLOG        = "YashanDB-AlertLog"
-	DIAG_YASDB_COREDUMP        = "YashanDB-Coredump"
-	DIAG_HOST_KERNELLOG        = "Host-KernelLog"
-	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
-	DIAG_HOST_DMESG            = "Host-Dmesg"
-
-	// performance info
-
-	// extra file collect
-	EXTRA_FILE_COLLECT = "Extra-FileCollect"
-)
-
-const (
-	TXT_REPORT  = "txt"
-	MD_REPORT   = "md"
-	HTML_REPORY = "html"
-)
-
-type NoAccessRes struct {
-	ModuleItem   string
-	Description  string
-	Tips         string
-	ForceCollect bool // default false
-}
-
-type TimeRange struct {
-	Start time.Time
-	End   time.Time
-}
-
-type YtcItem struct {
-	ItemName    string      `json:"itemName"`    // item name
-	Err         string      `json:"err"`         // 原始报错信息
-	Description string      `json:"description"` // 失败原因描述
-	Details     interface{} `json:"details"`     // 每个收集项包含的数据
-}
-
-type YtcModule struct {
-	sync.Mutex
-	Module string     `json:"module"`
-	Items  []*YtcItem `json:"items"`
-}
-
-type YtcReport struct {
-	sync.Mutex
-	CollectBeginTime time.Time                    `json:"collectBeginTime"`
-	CollectEndtime   time.Time                    `json:"collectEndTime"`
-	CollectParam     *collecttypedef.CollectParam `json:"collectParam"`
-	ModuleResults    map[string]*YtcModule        `json:"moduleResults"`
+type YTCReport struct {
+	CollectBeginTime time.Time                     `json:"collectBeginTime"`
+	CollectEndtime   time.Time                     `json:"collectEndTime"`
+	CollectParam     *collecttypedef.CollectParam  `json:"collectParam"`
+	Modules          map[string]*datadef.YTCModule `json:"modules"`
 	genner           resultgenner.BaseGenner
 }
 
-func NewYtcReport(param *collecttypedef.CollectParam) *YtcReport {
-	return &YtcReport{
-		CollectParam:  param,
-		ModuleResults: make(map[string]*YtcModule),
-		genner:        resultgenner.BaseGenner{},
+func NewYTCReport(param *collecttypedef.CollectParam) *YTCReport {
+	return &YTCReport{
+		CollectParam: param,
+		Modules:      make(map[string]*datadef.YTCModule),
+		genner:       resultgenner.BaseGenner{},
 	}
 }
 
 // [Interface Func]
-func (c *YtcReport) GenData(data interface{}, fname string) error {
-	return c.genner.GenData(data, fname)
+func (r *YTCReport) GenData(data interface{}, fname string) error {
+	return r.genner.GenData(data, fname)
 }
 
 // [Interface Func]
-func (c *YtcReport) GenReport() []byte {
-	var content string
-	content = strings.TrimSuffix(content, stringutil.STR_NEWLINE)
-	return []byte(content)
+func (r *YTCReport) GenReport() (content reporter.ReportContent, err error) {
+	logger := log.Module.M("generate report")
+	moduleNum := 0
+	for _, moduleName := range _moduleOrder {
+		module, ok := r.Modules[moduleName]
+		if !ok {
+			logger.Infof("module: %s unfound, pass", moduleName)
+			continue
+		}
+		moduleNum++
+
+		moduleTitlePrefix := fmt.Sprintf("%d", moduleNum)
+		moduleContent := reporter.GenReportContentByTitle(fmt.Sprintf("%s %s", moduleTitlePrefix, collecttypedef.CollectTypeChineseName[moduleName]), reporter.FONT_SIZE_H1)
+		content.Txt += moduleContent.Txt
+		content.Markdown += moduleContent.Markdown
+		content.HTML += moduleContent.HTML
+
+		itemNum := 0
+		items := module.Items()
+		for _, itemName := range _itemOrder[moduleName] {
+			item, ok := items[itemName]
+			if !ok {
+				logger.Infof("item: %s unfound, pass", itemName)
+				continue
+			}
+			reporter, ok := report.REPORTERS[itemName]
+			if !ok {
+				err = fmt.Errorf("reporter of %s unfound", itemName)
+				err = yaserr.Wrapf(err, "get reporter")
+				return
+			}
+			itemNum++
+
+			itemTitlePrefix := moduleTitlePrefix + stringutil.STR_DOT + fmt.Sprintf("%d", itemNum)
+			itemContent, e := reporter.Report(*item, itemTitlePrefix)
+			if e != nil {
+				err = yaserr.Wrapf(e, "generete report of %s", itemName)
+				return
+			}
+			content.Txt += itemContent.Txt + stringutil.STR_NEWLINE
+			content.Markdown += itemContent.Markdown + stringutil.STR_NEWLINE
+			content.HTML += itemContent.HTML + stringutil.STR_NEWLINE
+		}
+	}
+	content.HTML += reporter.HTML_CSS
+	return
 }
 
-func (c *YtcReport) GenResult(outputDir, reportType string, types map[string]struct{}) (string, error) {
+func (r *YTCReport) GenResult(outputDir string, types map[string]struct{}) (string, error) {
+	for _, m := range r.Modules {
+		m.FillJSONItems()
+	}
 	genner := resultgenner.BaseResultGenner{
-		Datas:        c.ModuleResults,
+		Datas:        r.Modules,
 		CollectTypes: types,
 		OutputDir:    outputDir,
-		ReportType:   reportType,
-		Timestamp:    c.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
-		Genner:       c,
+		Timestamp:    r.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
+		Genner:       r,
 	}
 	return genner.GenResult()
 }
 
-func (c *YtcReport) GetPackageDir() string {
+func (r *YTCReport) GetPackageDir() string {
 	genner := resultgenner.BaseResultGenner{
-		OutputDir: c.CollectParam.Output,
-		Timestamp: c.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
+		OutputDir: r.CollectParam.Output,
+		Timestamp: r.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
 	}
 	return genner.GetPackageDir()
 }

@@ -192,7 +192,4 @@ func (c *CollectCmd) fillDefault(stra confdef.Strategy) {
 	if !path.IsAbs(c.Output) {
 		c.Output = path.Join(runtimedef.GetYTCHome(), c.Output)
 	}
-	if stringutil.IsEmpty(c.ReportType) {
-		c.ReportType = confdef.GetStrategyConf().Report.Type
-	}
 }

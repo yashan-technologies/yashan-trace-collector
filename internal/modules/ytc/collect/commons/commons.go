@@ -3,14 +3,13 @@ package ytccollectcommons
 import (
 	"fmt"
 	"os"
+	"time"
+
 	"ytc/defs/errdef"
-	"ytc/internal/modules/ytc/collect/data"
 	"ytc/log"
 	"ytc/utils/userutil"
 	"ytc/utils/yasqlutil"
 )
-
-type FilePathErrType string
 
 const (
 	NotExist      FilePathErrType = "NotExist"
@@ -74,6 +73,20 @@ const (
 	YASDB_INI = "yasdb.ini"
 )
 
+type FilePathErrType string
+
+type NoAccessRes struct {
+	ModuleItem   string
+	Description  string
+	Tips         string
+	ForceCollect bool // default false
+}
+
+type TimeRange struct {
+	Start time.Time
+	End   time.Time
+}
+
 func PathErrDescAndTips(path string, e error) (desc, tips string) {
 	if os.IsNotExist(e) {
 		desc = fmt.Sprintf(fileNotExistDesc, path)
@@ -97,7 +110,7 @@ func PathErrDescAndTips(path string, e error) (desc, tips string) {
 	return
 }
 
-func FillDescTips(no *data.NoAccessRes, desc, tips string) {
+func FillDescTips(no *NoAccessRes, desc, tips string) {
 	if no == nil {
 		return
 	}

@@ -30,12 +30,12 @@ func collectCpuUasge(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOu
 	res := make(collecttypedef.WorkloadOutput)
 	for i := 0; i < scrapeTimes; i++ {
 		m := make(collecttypedef.WorkloadItem, 0)
-		if cpuInfos, err := cpu.Times(false); err != nil {
+		cpuInfos, err := cpu.Times(false)
+		if err != nil {
 			return res, err
-		} else {
-			for _, cpuInfo := range cpuInfos {
-				m[cpuInfo.CPU] = CpuUsage{cpuInfo}
-			}
+		}
+		for _, cpuInfo := range cpuInfos {
+			m[cpuInfo.CPU] = CpuUsage{cpuInfo}
 		}
 		now := time.Now().Unix()
 		res[now] = m

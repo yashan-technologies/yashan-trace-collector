@@ -3,17 +3,18 @@ package collect
 import (
 	"ytc/defs/collecttypedef"
 	"ytc/internal/modules/ytc/collect/baseinfo"
-	"ytc/internal/modules/ytc/collect/data"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
+	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/diagnosis"
 )
 
 type TypedCollecter interface {
-	CheckAccess(yasdbValidate error) []data.NoAccessRes
+	CheckAccess(yasdbValidate error) []ytccollectcommons.NoAccessRes
 	CollectFunc(item []string) map[string]func() error
-	CollectedItem(noAccess []data.NoAccessRes) []string
+	CollectedItem(noAccess []ytccollectcommons.NoAccessRes) []string
 	Type() string
 	Start(packageDir string) error
-	Finish() *data.YtcModule
+	Finish() *datadef.YTCModule
 }
 
 func NewTypedCollecter(t string, collectParam *collecttypedef.CollectParam) (TypedCollecter, error) {

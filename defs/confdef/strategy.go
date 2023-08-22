@@ -2,9 +2,13 @@ package confdef
 
 import (
 	"path"
+	"regexp"
+	"strings"
 	"time"
+
 	"ytc/defs/errdef"
 	"ytc/defs/runtimedef"
+	"ytc/utils/stringutil"
 	"ytc/utils/timeutil"
 
 	"git.yasdb.com/go/yasutil/fs"
@@ -23,6 +27,7 @@ type Collect struct {
 	ProcessNumberLimit int    `toml:"process_number_limit"`
 	SarDir             string `toml:"sar_dir"`
 	CoreFileKey        string `toml:"core_file_key"`
+	NetworkIODiscard   string `toml:"network_io_discard"`
 }
 
 type Report struct {
@@ -95,4 +100,22 @@ func (c Collect) GetRange() (r time.Duration) {
 		return time.Hour * 24
 	}
 	return
+}
+
+func (c Collect) GetNetworkIODiscard() []string {
+	return strings.Split(c.NetworkIODiscard, stringutil.STR_COMMA)
+}
+
+func IsDiscardNetwork(name string) bool {
+	discards := strings.Split(_strategyConf.Collect.NetworkIODiscard, stringutil.STR_COMMA)
+	for _, discard := range discards {
+		re, err := regexp.Compile(discard)
+		if err != nil {
+			continue
+		}
+		if re.MatchString(name) {
+			return true
+		}
+	}
+	return false
 }
