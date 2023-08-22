@@ -8,7 +8,6 @@ import (
 
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
-
 	"ytc/defs/errdef"
 	"ytc/defs/regexdef"
 	"ytc/defs/runtimedef"

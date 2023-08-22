@@ -8,11 +8,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"ytc/defs/timedef"
 	"ytc/log"
 )
 
 type DataType string
+
 type QueryRangeType int8
 
 const (

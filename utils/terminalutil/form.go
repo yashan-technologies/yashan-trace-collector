@@ -2,6 +2,7 @@ package terminalutil
 
 import (
 	"errors"
+
 	"ytc/defs/errdef"
 	"ytc/log"
 
