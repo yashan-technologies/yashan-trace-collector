@@ -1,10 +1,10 @@
 package baseinfo
 
 import (
-	"net"
-
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
+
+	"github.com/shirou/gopsutil/net"
 )
 
 func (b *BaseCollecter) getHostNetworkInfo() (err error) {
