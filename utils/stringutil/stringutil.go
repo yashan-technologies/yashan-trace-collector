@@ -14,6 +14,7 @@ const (
 	STR_FORWARD_SLASH = "/"
 	STR_UNDER_SCORE   = "_"
 	STR_HASH          = "#"
+	STR_HTML_BR       = "<br>"
 )
 
 // IsEmpty checks whether a string is empty.

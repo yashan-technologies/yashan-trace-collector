@@ -181,7 +181,7 @@ func (c *CollecterHandler) collecterMap() (res map[string]ytccollect.TypedCollec
 }
 
 func (c *CollecterHandler) CollectOK() error {
-	c.CollectResult.CollectEndtime = time.Now()
+	c.CollectResult.CollectEndTime = time.Now()
 	for _, collecter := range c.Collecters {
 		c.CollectResult.Modules[collecter.Type()] = collecter.CollectOK()
 	}

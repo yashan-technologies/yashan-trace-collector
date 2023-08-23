@@ -15,7 +15,7 @@ const (
 	_CSS_CLASS_LIST  = "ytc_list"
 )
 
-const _PLACEHOLDER = "--"
+const PLACEHOLDER = "--"
 
 // validate interface
 var (
@@ -75,10 +75,10 @@ func (rw *ReportWriter) NewListWriter(style ...list.Style) list.Writer {
 func (rw *ReportWriter) NewErrorWriter(err, description string) *ErrorWriter {
 	// trans empty string to placeholder
 	if stringutil.IsEmpty(err) {
-		err = _PLACEHOLDER
+		err = PLACEHOLDER
 	}
 	if stringutil.IsEmpty(description) {
-		description = _PLACEHOLDER
+		description = PLACEHOLDER
 	}
 
 	// append data to listWriter
