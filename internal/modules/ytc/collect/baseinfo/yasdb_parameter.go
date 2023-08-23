@@ -13,7 +13,7 @@ import (
 	ini "gopkg.in/ini.v1"
 )
 
-func (b *BaseCollecter) yasdbParameter() (err error) {
+func (b *BaseCollecter) getYasdbParameter() (err error) {
 	yasdbParameterItem := datadef.YTCItem{
 		Name:     datadef.BASE_YASDB_PARAMETER,
 		Children: make(map[string]datadef.YTCItem),
@@ -31,7 +31,7 @@ func (b *BaseCollecter) yasdbParameter() (err error) {
 
 	// collect parameter from v$parameter
 	if !b.notConnectDB {
-		if pv, err := b.getYasdbParameter(); err != nil {
+		if pv, err := b.getParameter(); err != nil {
 			yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Error: err.Error()}
 			log.Errorf("failed to get yashandb parameter, err: %s", err.Error())
 		} else {
@@ -62,7 +62,7 @@ func (b *BaseCollecter) getYasdbIni() (res map[string]string, err error) {
 	return
 }
 
-func (b *BaseCollecter) getYasdbParameter() (pv []*yasdb.VParameter, err error) {
+func (b *BaseCollecter) getParameter() (pv []*yasdb.VParameter, err error) {
 	// collect parameter from v$parameter
 	tx := yasqlutil.GetLocalInstance(b.YasdbUser, b.YasdbPassword, b.YasdbHome, b.YasdbData)
 	return yasdb.QueryAllParameter(tx)

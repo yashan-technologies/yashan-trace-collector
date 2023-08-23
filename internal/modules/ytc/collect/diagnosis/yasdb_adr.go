@@ -13,7 +13,7 @@ import (
 	"git.yasdb.com/go/yasutil/fs"
 )
 
-func (b *DiagCollecter) yasdbADR() (err error) {
+func (b *DiagCollecter) collectYasdbADR() (err error) {
 	yasdbADRItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_ADR}
 	defer b.fillResult(&yasdbADRItem)
 

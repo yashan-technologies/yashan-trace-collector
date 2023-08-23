@@ -7,7 +7,7 @@ import (
 	"ytc/utils/processutil"
 )
 
-func (b *DiagCollecter) yasdbProcessStatus() (err error) {
+func (b *DiagCollecter) getYasdbProcessStatus() (err error) {
 	yasdbProcessStatusItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_PROCESS_STATUS}
 	defer b.fillResult(&yasdbProcessStatusItem)
 

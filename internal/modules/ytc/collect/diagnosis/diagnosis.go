@@ -95,15 +95,15 @@ func NewDiagCollecter(collectParam *collecttypedef.CollectParam) *DiagCollecter 
 
 func (b *DiagCollecter) itemFunc() map[string]func() error {
 	return map[string]func() error{
-		datadef.DIAG_YASDB_PROCESS_STATUS:  b.yasdbProcessStatus,
-		datadef.DIAG_YASDB_INSTANCE_STATUS: b.yasdbInstanceStatus,
-		datadef.DIAG_YASDB_DATABASE_STATUS: b.yasdbDatabaseStatus,
-		datadef.DIAG_YASDB_ADR:             b.yasdbADR,
-		datadef.DIAG_YASDB_ALERTLOG:        b.yasdbAlertLog,
-		datadef.DIAG_YASDB_RUNLOG:          b.yasdbRunLog,
-		datadef.DIAG_YASDB_COREDUMP:        b.yasdbCoredumpFile,
-		datadef.DIAG_HOST_SYSTEMLOG:        b.hostSystemLog,
-		datadef.DIAG_HOST_KERNELLOG:        b.hostKernelLog,
+		datadef.DIAG_YASDB_PROCESS_STATUS:  b.getYasdbProcessStatus,
+		datadef.DIAG_YASDB_INSTANCE_STATUS: b.getYasdbInstanceStatus,
+		datadef.DIAG_YASDB_DATABASE_STATUS: b.getYasdbDatabaseStatus,
+		datadef.DIAG_YASDB_ADR:             b.collectYasdbADR,
+		datadef.DIAG_YASDB_ALERTLOG:        b.collectYasdbAlertLog,
+		datadef.DIAG_YASDB_RUNLOG:          b.collectYasdbRunLog,
+		datadef.DIAG_YASDB_COREDUMP:        b.yasdbCoreDumpFile,
+		datadef.DIAG_HOST_SYSTEMLOG:        b.collectHostSystemLog,
+		datadef.DIAG_HOST_KERNELLOG:        b.collectHostKernelLog,
 	}
 }
 
@@ -143,7 +143,7 @@ func (b *DiagCollecter) Type() string {
 }
 
 // [Interface Func]
-func (b *DiagCollecter) ToCollectItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
+func (b *DiagCollecter) ItemsToCollect(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
 	for item := range DiagChineseName {
 		if _, ok := noMap[item]; !ok {

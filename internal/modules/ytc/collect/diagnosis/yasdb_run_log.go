@@ -14,7 +14,7 @@ import (
 	"git.yasdb.com/go/yaslog"
 )
 
-func (b *DiagCollecter) yasdbRunLog() (err error) {
+func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 	yasdbRunLogItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_RUNLOG}
 	defer b.fillResult(&yasdbRunLogItem)
 
@@ -37,7 +37,7 @@ func (b *DiagCollecter) yasdbRunLog() (err error) {
 		return
 	}
 	// write run log to dest
-	if err = b.collectYasdbRunLog(log, runLogFiles, path.Join(destPath, runLogFile), b.StartTime, b.EndTime); err != nil {
+	if err = b.collectRunLog(log, runLogFiles, path.Join(destPath, runLogFile), b.StartTime, b.EndTime); err != nil {
 		log.Error(err)
 		yasdbRunLogItem.Error = err.Error()
 		return
@@ -46,7 +46,7 @@ func (b *DiagCollecter) yasdbRunLog() (err error) {
 	return
 }
 
-func (b *DiagCollecter) collectYasdbRunLog(log yaslog.YasLog, srcs []string, dest string, start, end time.Time) (err error) {
+func (b *DiagCollecter) collectRunLog(log yaslog.YasLog, srcs []string, dest string, start, end time.Time) (err error) {
 	timeParseFunc := func(date time.Time, line string) (t time.Time, err error) {
 		fields := strings.Split(line, stringutil.STR_BLANK_SPACE)
 		if len(fields) < 2 {

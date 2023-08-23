@@ -59,7 +59,7 @@ type MemoryUsage struct {
 	KBCached    int64   `json:"kBCached"`    // kbcached
 	KBCommit    int64   `json:"kBCommit"`    // kbcommit
 	Commit      float64 `json:"commit"`      // %commit
-	KBActive    int64   `json:"kBactive"`    // kbactive
+	KBActive    int64   `json:"kBActive"`    // kbactive
 	KBInact     int64   `json:"kBInact"`     // kbinact
 	KBDirty     int64   `json:"kBDirty"`     // kbdirty
 	RealMemUsed float64 `json:"realMemUsed"` // real mem used percent

@@ -13,7 +13,7 @@ import (
 	"ytc/utils/userutil"
 )
 
-func (b *BaseCollecter) hostFirewalldStatus() (err error) {
+func (b *BaseCollecter) getHostFirewalldStatus() (err error) {
 	hostFirewallStatus := datadef.YTCItem{Name: datadef.BASE_HOST_FIREWALLD}
 	defer b.fillResult(&hostFirewallStatus)
 

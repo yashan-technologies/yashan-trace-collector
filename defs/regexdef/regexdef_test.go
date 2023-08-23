@@ -91,7 +91,7 @@ func TestRelative(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			res := regexdef.PATH_REGEX.MatchString(c.Path)
+			res := regexdef.PathRegex.MatchString(c.Path)
 			if res != c.Expect {
 				t.Fatalf("%s expect %s get %s", c.Path, strconv.FormatBool(c.Expect), strconv.FormatBool(res))
 			}

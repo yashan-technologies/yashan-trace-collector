@@ -7,7 +7,7 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
-func (b *BaseCollecter) hostCPUInfo() (err error) {
+func (b *BaseCollecter) getHostCPUInfo() (err error) {
 	hostCpuInfo := datadef.YTCItem{Name: datadef.BASE_HOST_CPU}
 	defer b.fillResult(&hostCpuInfo)
 

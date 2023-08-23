@@ -17,10 +17,10 @@ const (
 )
 
 var (
-	RANGE_REGEX         = regexp.MustCompile(range_format)
-	TIME_REGEX          = regexp.MustCompile(time_format)
-	PATH_REGEX          = regexp.MustCompile(path_format)
-	SPACE_REGEX         = regexp.MustCompile(space_format)
-	YASDB_PROCESS_REGEX = regexp.MustCompile(yasdb_process_format)
-	KEY_VALUE_REGEX     = regexp.MustCompile(key_value_format)
+	RangeRegex        = regexp.MustCompile(range_format)
+	TimeRegex         = regexp.MustCompile(time_format)
+	PathRegex         = regexp.MustCompile(path_format)
+	SpaceRegex        = regexp.MustCompile(space_format)
+	YasdbProcessRegex = regexp.MustCompile(yasdb_process_format)
+	KeyValueRegex     = regexp.MustCompile(key_value_format)
 )

@@ -7,7 +7,7 @@ import (
 	"github.com/shirou/gopsutil/host"
 )
 
-func (b *BaseCollecter) hostOSInfo() (err error) {
+func (b *BaseCollecter) getHostOSInfo() (err error) {
 	hostBaseInfoItem := datadef.YTCItem{Name: datadef.BASE_HOST_OS_INFO}
 	defer b.fillResult(&hostBaseInfoItem)
 

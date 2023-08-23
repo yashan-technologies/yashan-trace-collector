@@ -13,7 +13,7 @@ type DiskUsage struct {
 	disk.UsageStat
 }
 
-func (b *BaseCollecter) hostDiskInfo() (err error) {
+func (b *BaseCollecter) getHostDiskInfo() (err error) {
 	hostDiskInfo := datadef.YTCItem{Name: datadef.BASE_HOST_DISK}
 	defer b.fillResult(&hostDiskInfo)
 

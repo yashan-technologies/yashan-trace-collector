@@ -5,7 +5,7 @@ import (
 	"ytc/log"
 )
 
-func (b *BaseCollecter) hostDiskIO() (err error) {
+func (b *BaseCollecter) getHostDiskIO() (err error) {
 	hostDiskIO := datadef.YTCItem{
 		Name:     datadef.BASE_HOST_DISK_IO,
 		Children: make(map[string]datadef.YTCItem),

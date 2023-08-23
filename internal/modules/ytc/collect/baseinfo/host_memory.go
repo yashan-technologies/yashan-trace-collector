@@ -7,7 +7,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-func (b *BaseCollecter) hostMemoryInfo() (err error) {
+func (b *BaseCollecter) getHostMemoryInfo() (err error) {
 	hostMemoryInfo := datadef.YTCItem{Name: datadef.BASE_HOST_MEMORY}
 	defer b.fillResult(&hostMemoryInfo)
 

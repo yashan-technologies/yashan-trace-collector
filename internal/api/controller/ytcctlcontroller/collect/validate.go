@@ -86,7 +86,7 @@ func (c *CollectCmd) validateRange() error {
 	if stringutil.IsEmpty(c.Range) {
 		return nil
 	}
-	if !regexdef.RANGE_REGEX.MatchString(c.Range) {
+	if !regexdef.RangeRegex.MatchString(c.Range) {
 		return errdef.NewErrFlagFormat(ytctl_collect, f_range)
 	}
 	minDuration, maxDuration, err := strategyConf.Collect.GetMinAndMaxDur()
@@ -109,13 +109,13 @@ func (c *CollectCmd) validateStartAndEnd() error {
 	strategyConf := confdef.GetStrategyConf()
 	var startNotEmpty, endNotEmpty bool
 	if !stringutil.IsEmpty(c.Start) {
-		if !regexdef.TIME_REGEX.MatchString(c.Start) {
+		if !regexdef.TimeRegex.MatchString(c.Start) {
 			return errdef.NewErrFlagFormat(ytctl_collect, f_start)
 		}
 		startNotEmpty = true
 	}
 	if !stringutil.IsEmpty(c.End) {
-		if !regexdef.TIME_REGEX.MatchString(c.End) {
+		if !regexdef.TimeRegex.MatchString(c.End) {
 			return errdef.NewErrFlagFormat(ytctl_collect, f_end)
 		}
 		endNotEmpty = true
@@ -150,7 +150,7 @@ func (c *CollectCmd) validateStartAndEnd() error {
 
 func (c *CollectCmd) validateOutput() error {
 	output := c.Output
-	if !regexdef.PATH_REGEX.Match([]byte(output)) {
+	if !regexdef.PathRegex.Match([]byte(output)) {
 		return ErrPathFormat
 	}
 	if !path.IsAbs(output) {

@@ -15,7 +15,7 @@ import (
 	"git.yasdb.com/go/yasutil/fs"
 )
 
-func (b *BaseCollecter) yasdbVersion() (err error) {
+func (b *BaseCollecter) getYasdbVersion() (err error) {
 	yasdbVersionItem := datadef.YTCItem{Name: datadef.BASE_YASDB_VERION}
 	defer b.fillResult(&yasdbVersionItem)
 

@@ -5,7 +5,7 @@ import (
 	"ytc/log"
 )
 
-func (b *BaseCollecter) hostMemoryUsage() (err error) {
+func (b *BaseCollecter) getHostMemoryUsage() (err error) {
 	hostMemoryUsage := datadef.YTCItem{
 		Name:     datadef.BASE_HOST_MEMORY_USAGE,
 		Children: make(map[string]datadef.YTCItem),

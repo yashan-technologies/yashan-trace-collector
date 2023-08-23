@@ -89,18 +89,18 @@ func NewBaseCollecter(collectParam *collecttypedef.CollectParam) *BaseCollecter 
 
 func (b *BaseCollecter) itemFunc() map[string]func() error {
 	return map[string]func() error{
-		datadef.BASE_YASDB_VERION:      b.yasdbVersion,
-		datadef.BASE_YASDB_PARAMETER:   b.yasdbParameter,
-		datadef.BASE_HOST_OS_INFO:      b.hostOSInfo,
-		datadef.BASE_HOST_FIREWALLD:    b.hostFirewalldStatus,
-		datadef.BASE_HOST_CPU:          b.hostCPUInfo,
-		datadef.BASE_HOST_DISK:         b.hostDiskInfo,
-		datadef.BASE_HOST_NETWORK:      b.hostNetworkInfo,
-		datadef.BASE_HOST_MEMORY:       b.hostMemoryInfo,
-		datadef.BASE_HOST_NETWORK_IO:   b.hostNetworkIO,
-		datadef.BASE_HOST_CPU_USAGE:    b.hostCPUUsage,
-		datadef.BASE_HOST_DISK_IO:      b.hostDiskIO,
-		datadef.BASE_HOST_MEMORY_USAGE: b.hostMemoryUsage,
+		datadef.BASE_YASDB_VERION:      b.getYasdbVersion,
+		datadef.BASE_YASDB_PARAMETER:   b.getYasdbParameter,
+		datadef.BASE_HOST_OS_INFO:      b.getHostOSInfo,
+		datadef.BASE_HOST_FIREWALLD:    b.getHostFirewalldStatus,
+		datadef.BASE_HOST_CPU:          b.getHostCPUInfo,
+		datadef.BASE_HOST_DISK:         b.getHostDiskInfo,
+		datadef.BASE_HOST_NETWORK:      b.getHostNetworkInfo,
+		datadef.BASE_HOST_MEMORY:       b.getHostMemoryInfo,
+		datadef.BASE_HOST_NETWORK_IO:   b.getHostNetworkIO,
+		datadef.BASE_HOST_CPU_USAGE:    b.getHostCPUUsage,
+		datadef.BASE_HOST_DISK_IO:      b.getHostDiskIO,
+		datadef.BASE_HOST_MEMORY_USAGE: b.getHostMemoryUsage,
 	}
 }
 
@@ -140,7 +140,7 @@ func (b *BaseCollecter) Type() string {
 }
 
 // [Interface Func]
-func (b *BaseCollecter) ToCollectItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
+func (b *BaseCollecter) ItemsToCollect(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
 	for item := range BaseInfoChineseName {
 		if _, ok := noMap[item]; !ok {

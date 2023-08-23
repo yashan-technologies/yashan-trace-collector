@@ -7,7 +7,7 @@ import (
 	"ytc/log"
 )
 
-func (b *BaseCollecter) hostNetworkInfo() (err error) {
+func (b *BaseCollecter) getHostNetworkInfo() (err error) {
 	hostNetInfo := datadef.YTCItem{Name: datadef.BASE_HOST_NETWORK}
 	defer b.fillResult(&hostNetInfo)
 

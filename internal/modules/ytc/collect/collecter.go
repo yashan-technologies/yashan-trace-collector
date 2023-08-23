@@ -11,7 +11,7 @@ import (
 type TypedCollecter interface {
 	CheckAccess(yasdbValidate error) []ytccollectcommons.NoAccessRes
 	CollectFunc(item []string) map[string]func() error
-	ToCollectItem(noAccess []ytccollectcommons.NoAccessRes) []string
+	ItemsToCollect(noAccess []ytccollectcommons.NoAccessRes) []string
 	Type() string
 	PreCollect(packageDir string) error
 	CollectOK() *datadef.YTCModule

@@ -137,7 +137,7 @@ func (c *CollecterHandler) getCollectItem(noAccessMap map[string][]ytccollectcom
 		if !ok {
 			noAccess = make([]ytccollectcommons.NoAccessRes, 0)
 		}
-		typeItem[t] = collect.ToCollectItem(noAccess)
+		typeItem[t] = collect.ItemsToCollect(noAccess)
 	}
 	return
 }

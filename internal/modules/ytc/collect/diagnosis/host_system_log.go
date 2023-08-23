@@ -9,7 +9,7 @@ import (
 	"ytc/utils/userutil"
 )
 
-func (b *DiagCollecter) hostSystemLog() (err error) {
+func (b *DiagCollecter) collectHostSystemLog() (err error) {
 	hostSystemLogItem := datadef.YTCItem{
 		Name:     datadef.DIAG_HOST_SYSTEMLOG,
 		Children: make(map[string]datadef.YTCItem),

@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	diskStatPath = "/proc/diskstats"
+	disk_stat_path = "/proc/diskstats"
 )
 
 type Sar struct {
@@ -81,7 +81,7 @@ func (s *Sar) Collect(t collecttypedef.WorkloadType, args ...string) (collecttyp
 func (s *Sar) genDevNumToDevNameMap() (map[string]string, error) {
 	m := make(map[string]string)
 	execer := execerutil.NewExecer(s.log)
-	ret, stdout, stderr := execer.Exec(bashdef.CMD_CAT, diskStatPath)
+	ret, stdout, stderr := execer.Exec(bashdef.CMD_CAT, disk_stat_path)
 	if ret != 0 {
 		err := fmt.Errorf("failed to transfer dev number to dev name, err: %s", stderr)
 		s.log.Error(err)

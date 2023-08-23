@@ -5,7 +5,7 @@ import (
 	"ytc/log"
 )
 
-func (b *BaseCollecter) hostCPUUsage() (err error) {
+func (b *BaseCollecter) getHostCPUUsage() (err error) {
 	hostCPUUsage := datadef.YTCItem{
 		Name:     datadef.BASE_HOST_CPU_USAGE,
 		Children: make(map[string]datadef.YTCItem),

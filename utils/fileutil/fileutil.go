@@ -119,7 +119,7 @@ func GetConfByKey(configPath string, key string) (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		line = regexdef.SPACE_REGEX.ReplaceAllString(line, "")
+		line = regexdef.SpaceRegex.ReplaceAllString(line, "")
 		if strings.HasPrefix(line, "#") {
 			continue
 		}

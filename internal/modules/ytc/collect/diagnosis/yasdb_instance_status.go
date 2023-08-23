@@ -9,7 +9,7 @@ import (
 	"ytc/utils/yasqlutil"
 )
 
-func (b *DiagCollecter) yasdbInstanceStatus() (err error) {
+func (b *DiagCollecter) getYasdbInstanceStatus() (err error) {
 	yasdbInstanceStatusItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_INSTANCE_STATUS}
 	defer b.fillResult(&yasdbInstanceStatusItem)
 

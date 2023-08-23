@@ -14,7 +14,7 @@ import (
 	"git.yasdb.com/go/yasutil/fs"
 )
 
-func (b *DiagCollecter) yasdbCoredumpFile() (err error) {
+func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 	yasdbCoreDumpItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_COREDUMP}
 	defer b.fillResult(&yasdbCoreDumpItem)
 

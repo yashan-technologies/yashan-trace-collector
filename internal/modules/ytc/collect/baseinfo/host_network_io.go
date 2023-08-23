@@ -5,7 +5,7 @@ import (
 	"ytc/log"
 )
 
-func (b *BaseCollecter) hostNetworkIO() (err error) {
+func (b *BaseCollecter) getHostNetworkIO() (err error) {
 	hostNetworkIO := datadef.YTCItem{
 		Name:     datadef.BASE_HOST_NETWORK_IO,
 		Children: make(map[string]datadef.YTCItem),

@@ -11,7 +11,7 @@ import (
 	"ytc/utils/fileutil"
 )
 
-func (b *DiagCollecter) hostKernelLog() (err error) {
+func (b *DiagCollecter) collectHostKernelLog() (err error) {
 	hostKernelLogItem := datadef.YTCItem{Name: datadef.DIAG_HOST_KERNELLOG}
 	defer b.fillResult(&hostKernelLogItem)
 

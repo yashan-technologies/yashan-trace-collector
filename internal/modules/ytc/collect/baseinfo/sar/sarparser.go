@@ -331,7 +331,7 @@ func (b *baseParser) getSarDirFromConfig(configPath string) string {
 			continue
 		}
 		// key=value
-		re := regexdef.KEY_VALUE_REGEX
+		re := regexdef.KeyValueRegex
 		match := re.FindStringSubmatch(line)
 		if len(match) == 3 {
 			key := strings.TrimSpace(match[1])

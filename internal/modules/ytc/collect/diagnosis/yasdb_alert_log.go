@@ -12,7 +12,7 @@ import (
 	"ytc/utils/stringutil"
 )
 
-func (b *DiagCollecter) yasdbAlertLog() (err error) {
+func (b *DiagCollecter) collectYasdbAlertLog() (err error) {
 	yasdbAlertLogItem := datadef.YTCItem{Name: datadef.DIAG_YASDB_ALERTLOG}
 	defer b.fillResult(&yasdbAlertLogItem)
 
