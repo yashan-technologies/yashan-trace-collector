@@ -366,7 +366,7 @@ func (d *DiagCollecter) checkSyslog() *ytccollectcommons.NoAccessRes {
 
 func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
-	noAccess.ModuleItem = datadef.DIAG_HOST_DMESG
+	noAccess.ModuleItem = datadef.DIAG_HOST_KERNELLOG
 	release := runtimedef.GetOSRelease()
 	if release.Id == osutil.KYLIN_ID {
 		noAccess.Description = ytccollectcommons.DMESG_NEED_ROOT_DESC
@@ -390,6 +390,6 @@ func (d *DiagCollecter) CheckFunc() map[string]checkFunc {
 		datadef.DIAG_YASDB_ALERTLOG:        d.checkYasdbAlertLog,
 		datadef.DIAG_YASDB_COREDUMP:        d.checkYasdbCoredump,
 		datadef.DIAG_HOST_SYSTEMLOG:        d.checkSyslog,
-		datadef.DIAG_HOST_DMESG:            d.checkDmesg,
+		datadef.DIAG_HOST_KERNELLOG:        d.checkDmesg,
 	}
 }

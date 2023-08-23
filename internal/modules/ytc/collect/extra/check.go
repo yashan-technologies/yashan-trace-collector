@@ -8,7 +8,7 @@ import (
 
 func (b *ExtraCollecter) checkExtraCollect() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
-	noAccess.ModuleItem = datadef.DIAG_HOST_DMESG
+	noAccess.ModuleItem = datadef.EXTRA_FILE_COLLECT
 	for _, path := range b.Include {
 		if err := fileutil.CheckAccess(path); err != nil {
 			tips, desc := ytccollectcommons.PathErrDescAndTips(path, err)
