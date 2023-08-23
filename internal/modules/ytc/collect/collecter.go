@@ -11,10 +11,10 @@ import (
 type TypedCollecter interface {
 	CheckAccess(yasdbValidate error) []ytccollectcommons.NoAccessRes
 	CollectFunc(item []string) map[string]func() error
-	CollectedItem(noAccess []ytccollectcommons.NoAccessRes) []string
+	ItemsToCollect(noAccess []ytccollectcommons.NoAccessRes) []string
 	Type() string
-	Start(packageDir string) error
-	Finish() *datadef.YTCModule
+	PreCollect(packageDir string) error
+	CollectOK() *datadef.YTCModule
 }
 
 func NewTypedCollecter(t string, collectParam *collecttypedef.CollectParam) (TypedCollecter, error) {

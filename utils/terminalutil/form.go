@@ -6,7 +6,7 @@ import (
 	"ytc/defs/errdef"
 	"ytc/log"
 
-	"github.com/gdamore/tcell/v2"
+	tcell "github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 

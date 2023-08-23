@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vbauerster/mpb/v8"
+	mpb "github.com/vbauerster/mpb/v8"
 )
 
 type ProgressOpt func(p *Progress)

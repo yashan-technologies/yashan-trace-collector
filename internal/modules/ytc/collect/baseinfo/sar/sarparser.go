@@ -3,11 +3,11 @@ package sar
 import (
 	"bufio"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"ytc/defs/collecttypedef"
+	"ytc/defs/regexdef"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaslog"
@@ -137,19 +137,19 @@ func (b *baseParser) ParseCpu(m collecttypedef.WorkloadItem, values []string) co
 	if cpuUsage.User, err = strconv.ParseFloat(values[_base_cpu_user_index], 64); err != nil {
 		b.log.Error(err)
 	}
-	if cpuUsage.Nice, _ = strconv.ParseFloat(values[_base_cpu_nice_index], 64); err != nil {
+	if cpuUsage.Nice, err = strconv.ParseFloat(values[_base_cpu_nice_index], 64); err != nil {
 		b.log.Error(err)
 	}
-	if cpuUsage.System, _ = strconv.ParseFloat(values[_base_cpu_system_index], 64); err != nil {
+	if cpuUsage.System, err = strconv.ParseFloat(values[_base_cpu_system_index], 64); err != nil {
 		b.log.Error(err)
 	}
-	if cpuUsage.IOWait, _ = strconv.ParseFloat(values[_base_cpu_iowait_index], 64); err != nil {
+	if cpuUsage.IOWait, err = strconv.ParseFloat(values[_base_cpu_iowait_index], 64); err != nil {
 		b.log.Error(err)
 	}
-	if cpuUsage.Steal, _ = strconv.ParseFloat(values[_base_cpu_steal_index], 64); err != nil {
+	if cpuUsage.Steal, err = strconv.ParseFloat(values[_base_cpu_steal_index], 64); err != nil {
 		b.log.Error(err)
 	}
-	if cpuUsage.Idle, _ = strconv.ParseFloat(values[_base_cpu_idle_index], 64); err != nil {
+	if cpuUsage.Idle, err = strconv.ParseFloat(values[_base_cpu_idle_index], 64); err != nil {
 		b.log.Error(err)
 	}
 	m[cpuUsage.CPU] = cpuUsage
@@ -326,12 +326,12 @@ func (b *baseParser) getSarDirFromConfig(configPath string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
+		if strings.HasPrefix(line, stringutil.STR_HASH) {
 			// ignore line start with '#'
 			continue
 		}
 		// key=value
-		re := regexp.MustCompile(`^([^=]+)=(.*)$`)
+		re := regexdef.KeyValueRegex
 		match := re.FindStringSubmatch(line)
 		if len(match) == 3 {
 			key := strings.TrimSpace(match[1])

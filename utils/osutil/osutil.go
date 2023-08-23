@@ -19,7 +19,7 @@ const (
 	KYLIN_ID  = "kylin"
 )
 
-type OsRelease struct {
+type OSRelease struct {
 	Name       string `json:"NAME"`        // 操作系统的名称，例如 "Ubuntu"、"CentOS" 等
 	Version    string `json:"VERSION"`     // 操作系统的版本号，可能包括次版本号和修订版本号
 	Id         string `json:"ID"`          // 操作系统的唯一标识符，通常是小写字母，例如 "ubuntu"、"centos" 等
@@ -27,7 +27,7 @@ type OsRelease struct {
 	VersionId  string `json:"VERSION_ID"`  // 操作系统版本的标识符，通常是数值
 }
 
-func GetOsRelease() (*OsRelease, error) {
+func GetOSRelease() (*OSRelease, error) {
 	m := make(map[string]string)
 	file, err := os.Open(OS_RELEASE_PATH)
 	if err != nil {
@@ -36,7 +36,7 @@ func GetOsRelease() (*OsRelease, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		line = regexdef.SPACE_REGEX.ReplaceAllString(line, "")
+		line = regexdef.SpaceRegex.ReplaceAllString(line, "")
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -50,7 +50,7 @@ func GetOsRelease() (*OsRelease, error) {
 	if err != nil {
 		return nil, err
 	}
-	osRelease := new(OsRelease)
+	osRelease := new(OSRelease)
 	if err := json.Unmarshal(bytes, osRelease); err != nil {
 		return nil, err
 	}

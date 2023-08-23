@@ -12,13 +12,15 @@ const (
 
 	yasdb_process_format = `^[/\w._-]*yasdb[\0](?i)(open|nomount|mount)[\0]-D[\0][/\w._-]+[\0]`
 
-	space_format = `\s+`
+	space_format     = `\s+`
+	key_value_format = `^([^=]+)=(.*)$`
 )
 
 var (
-	RANGE_REGEX         = regexp.MustCompile(range_format)
-	TIME_REGEX          = regexp.MustCompile(time_format)
-	PATH_REGEX          = regexp.MustCompile(path_format)
-	SPACE_REGEX         = regexp.MustCompile(space_format)
-	YASDB_PROCESS_REGEX = regexp.MustCompile(yasdb_process_format)
+	RangeRegex        = regexp.MustCompile(range_format)
+	TimeRegex         = regexp.MustCompile(time_format)
+	PathRegex         = regexp.MustCompile(path_format)
+	SpaceRegex        = regexp.MustCompile(space_format)
+	YasdbProcessRegex = regexp.MustCompile(yasdb_process_format)
+	KeyValueRegex     = regexp.MustCompile(key_value_format)
 )

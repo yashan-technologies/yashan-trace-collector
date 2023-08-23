@@ -7,5 +7,8 @@ func InitRuntime() error {
 	if err := initExecuteable(); err != nil {
 		return err
 	}
+	if err := initOSRelease(); err != nil {
+		return err
+	}
 	return nil
 }
