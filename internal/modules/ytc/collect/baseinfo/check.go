@@ -16,6 +16,14 @@ import (
 	"ytc/utils/userutil"
 )
 
+var (
+	_os_sar_install_tips = map[string]string{
+		osutil.CENTOS_ID: _tips_yum_base_host_load_status,
+		osutil.UBUNTU_ID: _tips_apt_base_host_load_status,
+		osutil.KYLIN_ID:  _tips_yum_base_host_load_status,
+	}
+)
+
 func (b *BaseCollecter) CheckSarAccess() error {
 	cmd := []string{
 		"-c",
@@ -124,20 +132,11 @@ func (b *BaseCollecter) checkCpuUsage() *ytccollectcommons.NoAccessRes {
 func (b *BaseCollecter) checkSarWithItem(item string) *ytccollectcommons.NoAccessRes {
 	if err := b.CheckSarAccess(); err != nil {
 		os := runtimedef.GetOSRelease()
-		var tips string
-		if os.Id == osutil.UBUNTU_ID {
-			tips = _tips_apt_base_host_load_status
-		}
-		if os.Id == osutil.CENTOS_ID {
-			tips = _tips_yum_base_host_load_status
-		}
-		if os.Id == osutil.KYLIN_ID {
-			tips = _tips_yum_base_host_load_status
-		}
 		noAccess := &ytccollectcommons.NoAccessRes{
-			ModuleItem:  item,
-			Description: err.Error(),
-			Tips:        tips,
+			ModuleItem:   item,
+			Description:  err.Error(),
+			Tips:         fmt.Sprintf(_tips_sar_not_exist, _os_sar_install_tips[os.Id]),
+			ForceCollect: true,
 		}
 		return noAccess
 	}
