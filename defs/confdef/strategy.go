@@ -28,6 +28,7 @@ type Collect struct {
 	SarDir             string `toml:"sar_dir"`
 	CoreFileKey        string `toml:"core_file_key"`
 	NetworkIODiscard   string `toml:"network_io_discard"`
+	AWRTimeout         string `toml:"awr_timeout"`
 }
 
 type Report struct {
@@ -118,4 +119,14 @@ func IsDiscardNetwork(name string) bool {
 		}
 	}
 	return false
+}
+
+func (c Collect) GetAWRTimeout() (t time.Duration) {
+	var err error
+	t, err = timeutil.GetDuration(c.AWRTimeout)
+	if err != nil {
+		t = time.Minute * 24
+		return
+	}
+	return
 }

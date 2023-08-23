@@ -11,7 +11,7 @@ var (
 		collecttypedef.TYPE_BASE,
 		collecttypedef.TYPE_DIAG,
 		collecttypedef.TYPE_EXTRA,
-		collecttypedef.TYPE_PREF,
+		collecttypedef.TYPE_PERF,
 	}
 )
 
@@ -45,7 +45,10 @@ var (
 	}
 
 	// TODO: add items to perf item order
-	_perfItemOrder = []string{}
+	_perfItemOrder = []string{
+		datadef.PERF_YASDB_AWR,
+		datadef.PERF_YASDB_SLOW_SQL,
+	}
 
 	_extraItemOrder = []string{
 		datadef.EXTRA_FILE_COLLECT,
@@ -55,6 +58,6 @@ var (
 		collecttypedef.TYPE_BASE:  _baseItemOrder,
 		collecttypedef.TYPE_DIAG:  _diagItemOrder,
 		collecttypedef.TYPE_EXTRA: _extraItemOrder,
-		collecttypedef.TYPE_PREF:  _perfItemOrder,
+		collecttypedef.TYPE_PERF:  _perfItemOrder,
 	}
 )

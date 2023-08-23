@@ -28,6 +28,8 @@ const (
 	DIAG_HOST_DMESG            = "Host-Dmesg"
 
 	// performance info
+	PERF_YASDB_AWR      = "YashanDB-AWR"
+	PERF_YASDB_SLOW_SQL = "YashanDB-SlowSQL"
 
 	// extra file collect
 	EXTRA_FILE_COLLECT = "Extra-FileCollect"

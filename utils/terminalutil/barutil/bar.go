@@ -131,7 +131,7 @@ func (b *bar) genMsg(name string, err error) []string {
 	if err == nil {
 		msg = fmt.Sprintf("%s has been %s", name, bashdef.WithGreen("completed"))
 	} else {
-		msg = fmt.Sprintf("%s has been %s err: %s", name, bashdef.WithRed("failed"), name)
+		msg = fmt.Sprintf("%s has been %s err: %s", name, bashdef.WithRed("failed"), err.Error())
 	}
 	lines := b.splitMsg(msg)
 	return lines

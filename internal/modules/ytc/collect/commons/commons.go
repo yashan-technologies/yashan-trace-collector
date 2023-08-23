@@ -12,11 +12,6 @@ import (
 )
 
 const (
-	NotExist      FilePathErrType = "NotExist"
-	NotPermission FilePathErrType = "NotPermission"
-)
-
-const (
 	fileNotExistDesc            = "%s not exist"
 	fileNotPermissionDesc       = "current user: %s stat: %s permission denied"
 	fileNotExistTips            = "you can check if %s exists"
@@ -30,50 +25,74 @@ const (
 	yasOtherTips                = "you can refer to the official documentation, view the error message, and then check the database"
 	connectFailedTips           = "you can check process of yashandb"
 	loginErr                    = "login yasdb failed: %s"
+)
 
+const (
 	PLEASE_RUN_WITH_SUDO_TIPS = "you can run 'sudo ytcctl collect'"
 	PLEASE_RUN_WITH_ROOT_TIPS = "you can run 'ytcctl collect' with root"
 )
 
 // base
 const (
-	YasdbInstanceStatusTips = "matched yasdb process with :%s ,default collect from process cmdline"
-	GetOsReleaseErrDesc     = "get os release err: %s"
-	DefaultParameterTips    = "default to collect parameter from %s"
+	YASDB_INSTANCE_STATUS_TIPS = "matched yasdb process with :%s ,default collect from process cmdline"
+	GET_OSRELEASE_ERR_DESC     = "get os release err: %s"
+	DEFAULT_PARAMETER_TIPS     = "default to collect parameter from %s"
 )
 
 // diag
 const (
-	DefaultAdrTips       = "default collect adr from: %s"
-	MatchProcessErrDesc  = "match yasdb process with: %s err: %s"
-	MatchProcessErrTips  = "you can try again later"
-	ProcessNofoundDesc   = "process no found,match yasdb process with: %s"
-	ProcessNofunndTips   = "you can check yasdb status"
-	DefaultRunlogTips    = "default collect run.log from: %s"
-	CoredumpErrDesc      = "get coredump path err: %s"
-	CoredumpRelativeDesc = "current core pattern: %s is relative path"
-	CoredumpRelativeTips = "default to: %s collect core file"
-	GetSysLogErrDesc     = "get system err: %s"
-	SysLogUnfoundDesc    = "both of %s and %s are not exist"
-	SysLogUnfoundTips    = "do not collect system log"
-	DmesgNeedRootDesc    = "command dmesg need root"
+	DEFAULT_ADR_TIPS       = "default collect adr from: %s"
+	MATCH_PROCESS_ERR_DESC = "match yasdb process with: %s err: %s"
+	MATCH_PROCESS_ERR_TIPS = "you can try again later"
+	PROCESS_NO_FOUND_DESC  = "process no found,match yasdb process with: %s"
+	PROCESS_NO_FUNND_TIPS  = "you can check yasdb status"
+	DEFAULT_RUNLOG_TIPS    = "default collect run.log from: %s"
+	COREDUMP_ERR_DESC      = "get coredump path err: %s"
+	COREDUMP_RELATIVE_DESC = "current core pattern: %s is relative path"
+	COREDUMP_RELATIVE_TIPS = "default to: %s collect core file"
+	GET_SYSLOG_ERR_DESC    = "get system err: %s"
+	SYSLOG_UN_FOUND_DESC   = "both of %s and %s are not exist"
+	SYSLOG_UN_FOUND_TIPS   = "do not collect system log"
+	DMESG_NEED_ROOT_DESC   = "command dmesg need root"
 )
 
+// performance
 const (
-	BIN       = "bin"
-	YASQL     = "yasql"
-	YASDB     = "yasdb"
-	LOG       = "log"
-	RUN       = "run"
+	USER_NOT_SYS_DESC = "the current yashandb user: %s is not 'SYS'"
+	USER_NOT_SYS_TIPS = "you can change yashandb user to 'SYS'"
+
+	DEFAULT_SLOWSQL_TIPS = "default collect slow.log from %s"
+	AWR_TIMEOUT_DESC     = "it may take a long time to generate an AWR report."
+	AWR_TIMEOUT_TIPS     = "we have defined the timeout period: %s for collecting AWR report, you can modify strategy.toml 'awr_timeout' to customize the timeout period"
+
+	NO_SATISFIED_SNAP_DESC = "no satisfied snapshot id"
+	NO_SATISFIED_TIPS      = "you can increase the collection interval appropriately"
+)
+
+// yasdb home
+const (
+	BIN   = "bin"
+	YASQL = "yasql"
+	YASDB = "yasdb"
+)
+
+// yasdb path
+const (
+	RUN    = "run"
+	LOG    = "log"
+	CONFIG = "config"
+	SLOW   = "slow"
+	DIAG   = "diag"
+	ALERT  = "alert"
+)
+
+// yasdb node file
+const (
 	RUN_LOG   = "run.log"
-	ALERT     = "alert"
 	ALERT_LOG = "alert.log"
-	CONFIG    = "config"
-	DIAG      = "diag"
+	SLOW_LOG  = "slow.log"
 	YASDB_INI = "yasdb.ini"
 )
-
-type FilePathErrType string
 
 type NoAccessRes struct {
 	ModuleItem   string
@@ -155,6 +174,17 @@ func YasErrDescAndtips(err error) (desc string, tips string) {
 		tips = itemEmptyTips
 	default:
 		tips = " "
+	}
+	return
+}
+
+func NotAccessItem2Set(noAccess []NoAccessRes) (res map[string]struct{}) {
+	res = make(map[string]struct{})
+	for _, noAccessRes := range noAccess {
+		if noAccessRes.ForceCollect {
+			continue
+		}
+		res[noAccessRes.ModuleItem] = struct{}{}
 	}
 	return
 }

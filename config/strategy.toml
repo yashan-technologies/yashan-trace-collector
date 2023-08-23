@@ -6,6 +6,7 @@ output = "./results"
 range = "24h"
 scrape_interval = 1
 scrape_times = 10
+awr_timeout = "10m"
 
 [report]
 output = "./reports"

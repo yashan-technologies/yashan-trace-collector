@@ -6,6 +6,7 @@ import (
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/diagnosis"
+	"ytc/internal/modules/ytc/collect/performance"
 )
 
 type TypedCollecter interface {
@@ -23,7 +24,8 @@ func NewTypedCollecter(t string, collectParam *collecttypedef.CollectParam) (Typ
 		return baseinfo.NewBaseCollecter(collectParam), nil
 	case collecttypedef.TYPE_DIAG:
 		return diagnosis.NewDiagCollecter(collectParam), nil
-	case collecttypedef.TYPE_PREF:
+	case collecttypedef.TYPE_PERF:
+		return performance.NewPerfCollecter(collectParam), nil
 	}
 	return nil, collecttypedef.ErrKnownType
 }
