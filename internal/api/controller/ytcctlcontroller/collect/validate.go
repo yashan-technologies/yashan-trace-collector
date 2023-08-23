@@ -49,7 +49,7 @@ func (c *CollectCmd) validateType() error {
 	tMap := map[string]struct{}{
 		collecttypedef.TYPE_BASE: {},
 		collecttypedef.TYPE_DIAG: {},
-		collecttypedef.TYPE_PREF: {},
+		collecttypedef.TYPE_PERF: {},
 	}
 	types := strings.Split(c.Type, stringutil.STR_COMMA)
 	for _, t := range types {

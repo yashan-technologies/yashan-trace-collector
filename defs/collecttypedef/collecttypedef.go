@@ -8,7 +8,7 @@ import (
 const (
 	TYPE_BASE  = "base"
 	TYPE_DIAG  = "diag"
-	TYPE_PREF  = "pref"
+	TYPE_PERF  = "perf"
 	TYPE_EXTRA = "extra"
 )
 
@@ -27,7 +27,7 @@ var (
 	typeFullName = map[string]string{
 		TYPE_BASE: "baseinfo",
 		TYPE_DIAG: "diagnosis",
-		TYPE_PREF: "performance",
+		TYPE_PERF: "performance",
 	}
 )
 
@@ -35,7 +35,7 @@ var (
 	CollectTypeChineseName = map[string]string{
 		TYPE_BASE:  "基础信息",
 		TYPE_DIAG:  "诊断信息",
-		TYPE_PREF:  "性能调优信息",
+		TYPE_PERF:  "性能调优信息",
 		TYPE_EXTRA: "额外收集项",
 	}
 )

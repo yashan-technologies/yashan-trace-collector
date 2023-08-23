@@ -23,7 +23,7 @@ const (
 
 	base_yasdb_process_format       = `.*yasdb (?i:(nomount|mount|open))`
 	yasdb_internal_data_not_collect = "yasdb internal data will not be collected"
-	tips                            = "Ok will be start collect, Cancel will be continue fill data"
+	tips                            = "Ok will be start collect, Cancel well be continue fill this form"
 )
 
 var (
@@ -98,7 +98,7 @@ func saveFunc(c *terminalutil.CollectFrom) {
 		log.Controller.Errorf("validate yasdb err :%s", err.Error())
 		YasdbValidate = err
 		desc, _ := ytccollectcommons.YasErrDescAndtips(err)
-		desc = strings.Join([]string{desc, yasdb_internal_data_not_collect, tips}, ",")
+		desc = strings.Join([]string{desc, yasdb_internal_data_not_collect, tips}, ", ")
 		c.ConfrimExit(desc)
 		return
 	}

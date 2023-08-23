@@ -6,6 +6,7 @@ import (
 	"ytc/internal/modules/ytc/collect/data/reporter/commons"
 	"ytc/internal/modules/ytc/collect/data/reporter/diagreporter"
 	"ytc/internal/modules/ytc/collect/data/reporter/extrareporter"
+	"ytc/internal/modules/ytc/collect/data/reporter/performancereporter"
 )
 
 var REPORTERS = map[string]commons.Reporter{
@@ -35,6 +36,8 @@ var REPORTERS = map[string]commons.Reporter{
 	datadef.DIAG_HOST_KERNELLOG:        diagreporter.NewHostKernelLogReporter(),
 
 	// PERF
+	datadef.PERF_YASDB_AWR:      performancereporter.NewAWRReporter(),
+	datadef.PERF_YASDB_SLOW_SQL: performancereporter.NewSlowSqlReporter(),
 
 	// EXTR
 	datadef.EXTRA_FILE_COLLECT: extrareporter.NewExtraFileReporter(),
