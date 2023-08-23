@@ -320,13 +320,15 @@ func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
 	noAccess.ModuleItem = datadef.DIAG_HOST_KERNELLOG
 	release := runtimedef.GetOSRelease()
 	if release.Id == osutil.KYLIN_ID {
-		noAccess.Description = ytccollectcommons.DMESG_NEED_ROOT_DESC
-		if sudoErr := userutil.CheckSudovn(log.Module); sudoErr != nil {
-			noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_ROOT_TIPS
+		if !userutil.IsCurrentUserRoot() {
+			noAccess.Description = ytccollectcommons.DMESG_NEED_ROOT_DESC
+			if sudoErr := userutil.CheckSudovn(log.Module); sudoErr != nil {
+				noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_ROOT_TIPS
+				return noAccess
+			}
+			noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_SUDO_TIPS
 			return noAccess
 		}
-		noAccess.Tips = ytccollectcommons.PLEASE_RUN_WITH_SUDO_TIPS
-		return noAccess
 	}
 	return nil
 }
