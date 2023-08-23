@@ -6,6 +6,7 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/errdef"
+	"ytc/defs/runtimedef"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
@@ -22,19 +23,15 @@ func (b *BaseCollecter) CheckSarAccess() error {
 		"-V",
 	}
 	exe := execerutil.NewExecer(log.Module)
-	ret, stdout, stderr := exe.Exec(bashdef.CMD_BASH, cmd...)
-	if ret != 0 || len(stderr) != 0 || len(stdout) == 0 {
+	ret, _, _ := exe.Exec(bashdef.CMD_BASH, cmd...)
+	if ret != 0 {
 		return errdef.NewErrCmdNotExist(bashdef.CMD_SAR)
 	}
 	return nil
 }
 
-func (b *BaseCollecter) CheckFireWallAssess() error {
-	release, err := osutil.GetOsRelease()
-	if err != nil {
-		log.Module.Warnf(ytccollectcommons.GetOsReleaseErrDesc, err)
-		return err
-	}
+func (b *BaseCollecter) CheckFireWallAccess() error {
+	release := runtimedef.GetOSRelease()
 	if release.Id != osutil.UBUNTU_ID {
 		return nil
 	}
@@ -91,7 +88,7 @@ func (b *BaseCollecter) checkYasdbParameter() (noAccess *ytccollectcommons.NoAcc
 }
 
 func (b *BaseCollecter) checkFireWall() *ytccollectcommons.NoAccessRes {
-	if err := b.CheckFireWallAssess(); err != nil {
+	if err := b.CheckFireWallAccess(); err != nil {
 		tips := err.Error()
 		if err := userutil.CheckSudovn(log.Module); err != nil {
 			tips = ytccollectcommons.CheckSudoTips(err)
@@ -126,10 +123,7 @@ func (b *BaseCollecter) checkCpuUsage() *ytccollectcommons.NoAccessRes {
 
 func (b *BaseCollecter) checkSarWithItem(item string) *ytccollectcommons.NoAccessRes {
 	if err := b.CheckSarAccess(); err != nil {
-		os, osErr := osutil.GetOsRelease()
-		if osErr != nil {
-			log.Module.Errorf(ytccollectcommons.GetOsReleaseErrDesc, err.Error())
-		}
+		os := runtimedef.GetOSRelease()
 		var tips string
 		if os.Id == osutil.UBUNTU_ID {
 			tips = _tips_apt_base_host_load_status

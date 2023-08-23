@@ -26,8 +26,6 @@ const (
 	YasdbProcessReg = ".*yasdb (?i:(nomount|mount|open)) -D %s"
 )
 
-var ErrYasdbProcessNotFound = errors.New("yasdb process not found")
-
 type Process struct {
 	Pid             int     `json:"pid"`
 	Name            string  `json:"name"`

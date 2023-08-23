@@ -13,7 +13,7 @@ import (
 )
 
 var _typeToFuncMap = map[collecttypedef.WorkloadType]collectWorkloadFunc{
-	collecttypedef.WT_CPU:     collectCpuUasge,
+	collecttypedef.WT_CPU:     collectCPUUasge,
 	collecttypedef.WT_DISK:    collectDiskIO,
 	collecttypedef.WT_MEMORY:  collectMemoryUsage,
 	collecttypedef.WT_NETWORK: collectNetworkIO,
@@ -27,7 +27,7 @@ func Collect(t collecttypedef.WorkloadType, scrapeInterval, scrapeTimes int) (co
 	return collectFunc(scrapeInterval, scrapeTimes)
 }
 
-func collectCpuUasge(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOutput, error) {
+func collectCPUUasge(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOutput, error) {
 	res := make(collecttypedef.WorkloadOutput)
 	for i := 0; i < scrapeTimes; i++ {
 		m := make(collecttypedef.WorkloadItem, 0)
@@ -47,8 +47,10 @@ func collectCpuUasge(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOu
 
 func collectNetworkIO(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOutput, error) {
 	res := make(collecttypedef.WorkloadOutput)
-	datas := make(map[int64]map[string]net.IOCountersStat) // time -> iface -> value
-	timeArray := []int64{}                                 // used to get value from res map
+	// time -> iface -> value
+	datas := make(map[int64]map[string]net.IOCountersStat)
+	// used to get value from res map
+	timeArray := []int64{}
 	// get data first
 	for i := 0; i < scrapeTimes+1; i++ {
 		m := make(map[string]net.IOCountersStat, 0)
@@ -74,8 +76,8 @@ func collectNetworkIO(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadO
 					Iface:   iface,
 					Rxpck:   float64((newIO.PacketsRecv - oldIO.PacketsRecv) / uint64(scrapeInterval)),
 					Txpck:   float64((newIO.PacketsSent - oldIO.PacketsSent) / uint64(scrapeInterval)),
-					RxkB:    float64((newIO.BytesRecv - oldIO.BytesRecv) / uint64(scrapeInterval) / 1024), // Byte to KByte
-					TxkB:    float64((newIO.BytesSent - oldIO.BytesSent) / uint64(scrapeInterval) / 1024), // Byte to KByte
+					RxkB:    float64((newIO.BytesRecv - oldIO.BytesRecv) / uint64(scrapeInterval) / 1024),
+					TxkB:    float64((newIO.BytesSent - oldIO.BytesSent) / uint64(scrapeInterval) / 1024),
 					Errin:   float64((newIO.Errin - oldIO.Errin) / uint64(scrapeInterval)),
 					Errout:  float64((newIO.Errout - oldIO.Errout) / uint64(scrapeInterval)),
 					Dropin:  float64((newIO.Dropin - oldIO.Dropin) / uint64(scrapeInterval)),
@@ -93,8 +95,8 @@ func collectNetworkIO(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadO
 
 func collectDiskIO(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOutput, error) {
 	res := make(collecttypedef.WorkloadOutput)
-	datas := make(map[int64]map[string]disk.IOCountersStat) // time -> dev -> value
-	timeArray := []int64{}                                  // used to get value from res map
+	datas := make(map[int64]map[string]disk.IOCountersStat)
+	timeArray := []int64{}
 	// get data
 	for i := 0; i < scrapeTimes+1; i++ {
 		m := make(map[string]disk.IOCountersStat, 0)
@@ -102,7 +104,8 @@ func collectDiskIO(scrapeInterval, scrapeTimes int) (collecttypedef.WorkloadOutp
 		if err != nil {
 			return res, err
 		}
-		diskNames := []string{} // collect disk names
+		// collect disk names
+		diskNames := []string{}
 		for _, partition := range partitions {
 			diskNames = append(diskNames, partition.Device)
 		}

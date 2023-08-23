@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"ytc/defs/collecttypedef"
+	"ytc/defs/runtimedef"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/yasdb"
@@ -366,13 +367,7 @@ func (d *DiagCollecter) checkSyslog() *ytccollectcommons.NoAccessRes {
 func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
 	noAccess.ModuleItem = datadef.DIAG_HOST_DMESG
-	release, err := osutil.GetOsRelease()
-	if err != nil {
-		noAccess.Description = fmt.Sprintf(ytccollectcommons.GetOsReleaseErrDesc, err.Error())
-		noAccess.Tips = " "
-		noAccess.ForceCollect = true
-		return noAccess
-	}
+	release := runtimedef.GetOSRelease()
 	if release.Id == osutil.KYLIN_ID {
 		noAccess.Description = ytccollectcommons.DmesgNeedRootDesc
 		if sudoErr := userutil.CheckSudovn(log.Module); sudoErr != nil {

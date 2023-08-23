@@ -71,14 +71,14 @@ func (c *CollecterHandler) printNoAccessItem(m map[string][]ytccollectcommons.No
 	for _, module := range modules {
 		for i, noAccess := range m[module] {
 			if i == 0 {
-				err := table.AddColumn(strings.ToUpper(collecttypedef.GetTypeFullName(module)), noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isColltedStr(noAccess.ForceCollect))
+				err := table.AddColumn(strings.ToUpper(collecttypedef.GetTypeFullName(module)), noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isCollectedStr(noAccess.ForceCollect))
 				if err != nil {
 					log.Handler.Errorf("add column err: %s", err.Error())
 					return err
 				}
 				continue
 			}
-			if err := table.AddColumn("", noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isColltedStr(noAccess.ForceCollect)); err != nil {
+			if err := table.AddColumn("", noAccess.ModuleItem, noAccess.Description, noAccess.Tips, isCollectedStr(noAccess.ForceCollect)); err != nil {
 				log.Module.Errorf("add column err: %s", err.Error())
 				return err
 			}
@@ -137,14 +137,14 @@ func (c *CollecterHandler) getCollectItem(noAccessMap map[string][]ytccollectcom
 		if !ok {
 			noAccess = make([]ytccollectcommons.NoAccessRes, 0)
 		}
-		typeItem[t] = collect.CollectedItem(noAccess)
+		typeItem[t] = collect.ToCollectItem(noAccess)
 	}
 	return
 }
 
 func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 	progress := barutil.NewProgress(barutil.WithWidth(100))
-	if e := c.Start(); e != nil {
+	if e := c.PreCollect(); e != nil {
 		return e
 	}
 	collMap := c.collecterMap()
@@ -158,14 +158,14 @@ func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 		progress.AddBar(module, itemFunc)
 	}
 	progress.Start()
-	return c.Finsh()
+	return c.CollectOK()
 }
 
-func (c *CollecterHandler) Start() error {
+func (c *CollecterHandler) PreCollect() error {
 	c.CollectResult.CollectBeginTime = time.Now()
 	packageDir := c.CollectResult.GetPackageDir()
 	for _, collecter := range c.Collecters {
-		if err := collecter.Start(packageDir); err != nil {
+		if err := collecter.PreCollect(packageDir); err != nil {
 			return err
 		}
 	}
@@ -180,22 +180,23 @@ func (c *CollecterHandler) collecterMap() (res map[string]ytccollect.TypedCollec
 	return
 }
 
-func (c *CollecterHandler) Finsh() error {
+func (c *CollecterHandler) CollectOK() error {
 	c.CollectResult.CollectEndtime = time.Now()
 	for _, collecter := range c.Collecters {
-		c.CollectResult.Modules[collecter.Type()] = collecter.Finish()
+		c.CollectResult.Modules[collecter.Type()] = collecter.CollectOK()
 	}
 	path, err := c.CollectResult.GenResult(c.CollectResult.CollectParam.Output, c.Types)
 	if err != nil {
+		err = fmt.Errorf("failed to gen result, err: %v", err)
 		log.Handler.Error(err)
-		fmt.Printf("failed to gen result, err: %v\n", err)
+		fmt.Println(err.Error())
 		return err
 	}
 	fmt.Printf("The collection has been %s and the result was saved to %s, thanks for your use.\n", bashdef.WithGreen("completed"), bashdef.WithBlue(path))
 	return nil
 }
 
-func isColltedStr(f bool) string {
+func isCollectedStr(f bool) string {
 	flag := strconv.FormatBool(f)
 	if f {
 		return bashdef.WithGreen(flag)

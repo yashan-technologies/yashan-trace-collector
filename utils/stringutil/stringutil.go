@@ -13,6 +13,7 @@ const (
 	STR_BAR           = "|"
 	STR_FORWARD_SLASH = "/"
 	STR_UNDER_SCORE   = "_"
+	STR_HASH          = "#"
 )
 
 // IsEmpty checks whether a string is empty.

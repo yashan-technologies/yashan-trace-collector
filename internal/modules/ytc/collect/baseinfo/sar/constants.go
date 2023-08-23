@@ -52,8 +52,8 @@ type DiskIO struct {
 
 type MemoryUsage struct {
 	KBMemFree   int64   `json:"kBMemFree"`   // kbmemfree
-	KBAvail     int64   `json:"kbavail"`     // kbavail, centos or lylin
-	KBmemUsed   int64   `json:"kbmemused"`   // kbmemused
+	KBAvail     int64   `json:"kBAvail"`     // kbavail, centos or lylin
+	KBmemUsed   int64   `json:"kBMemUsed"`   // kbmemused
 	MemUsed     float64 `json:"memUsed"`     // %memused
 	KBBuffers   int64   `json:"kBBuffers"`   // kbbuffers
 	KBCached    int64   `json:"kBCached"`    // kbcached

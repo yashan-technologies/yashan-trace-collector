@@ -3,14 +3,13 @@
 package main
 
 import (
-	"errors"
-
 	"ytc/commons/flags"
 	"ytc/defs/compiledef"
 	"ytc/defs/confdef"
 	"ytc/defs/runtimedef"
 	"ytc/log"
 
+	"git.yasdb.com/go/yaserr"
 	"github.com/alecthomas/kong"
 )
 
@@ -27,7 +26,7 @@ func main() {
 		ctx.FatalIfErrorf(err)
 	}
 	if err := ctx.Run(); err != nil {
-		ctx.FatalIfErrorf(errors.Unwrap(err))
+		ctx.FatalIfErrorf(yaserr.Unwrap(err))
 	}
 }
 

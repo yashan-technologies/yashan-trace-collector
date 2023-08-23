@@ -195,19 +195,19 @@ func (k *KylinParser) ParseMemory(m collecttypedef.WorkloadItem, values []string
 	if memoryUsage.KBMemFree, err = strconv.ParseInt(values[_kylin_memory_kbmemfree_index], 10, 64); err != nil {
 		k.base.log.Error(err)
 	}
-	if memoryUsage.KBAvail, _ = strconv.ParseInt(values[_kylin_memory_kbavail_index], 10, 64); err != nil {
+	if memoryUsage.KBAvail, err = strconv.ParseInt(values[_kylin_memory_kbavail_index], 10, 64); err != nil {
 		k.base.log.Error(err)
 	}
-	if memoryUsage.KBmemUsed, _ = strconv.ParseInt(values[_kylin_memory_kbmemused_index], 10, 64); err != nil {
+	if memoryUsage.KBmemUsed, err = strconv.ParseInt(values[_kylin_memory_kbmemused_index], 10, 64); err != nil {
 		k.base.log.Error(err)
 	}
-	if memoryUsage.MemUsed, _ = strconv.ParseFloat(values[_kylin_memory_memused_index], 64); err != nil {
+	if memoryUsage.MemUsed, err = strconv.ParseFloat(values[_kylin_memory_memused_index], 64); err != nil {
 		k.base.log.Error(err)
 	}
-	if memoryUsage.KBBuffers, _ = strconv.ParseInt(values[_kylin_memory_kbbuffers_index], 10, 64); err != nil {
+	if memoryUsage.KBBuffers, err = strconv.ParseInt(values[_kylin_memory_kbbuffers_index], 10, 64); err != nil {
 		k.base.log.Error(err)
 	}
-	if memoryUsage.KBCached, _ = strconv.ParseInt(values[_kylin_memory_kbcached_index], 10, 64); err != nil {
+	if memoryUsage.KBCached, err = strconv.ParseInt(values[_kylin_memory_kbcached_index], 10, 64); err != nil {
 		k.base.log.Error(err)
 	}
 	if memoryUsage.KBCommit, err = strconv.ParseInt(values[_kylin_memory_kbcommit_index], 10, 64); err != nil {

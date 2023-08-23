@@ -34,7 +34,7 @@ var (
 type CollectGlobal struct {
 	Type    string `name:"type"   short:"t" default:"base,diag" help:"The type of collection, choose many of (base|diag|perf) and split with ','."`
 	Range   string `name:"range"  short:"r" help:"The time range of the collection, such as ''1M', '1d', '1h', '1m'. If <range> is given, <start> and <end> will be discard."`
-	Start   string `name:"start"  short:"s" help:"The start datatime of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm'"`
+	Start   string `name:"start"  short:"s" help:"The start datetime of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm'"`
 	End     string `name:"end"    short:"e" help:"The end timestamp of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm',, default value is current datetime."`
 	Output  string `name:"output" short:"o" help:"The output dir of the collection."`
 	Include string `name:"include" help:"Files or directories that need to be additionally collected, separated by commas."`

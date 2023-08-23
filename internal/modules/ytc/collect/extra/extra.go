@@ -78,7 +78,7 @@ func (b *ExtraCollecter) CollectFunc(items []string) (res map[string]func() erro
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) CollectedItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
+func (b *ExtraCollecter) ToCollectItem(noAccess []ytccollectcommons.NoAccessRes) (res []string) {
 	noMap := b.getNotAccessItem(noAccess)
 	for item := range ExtraChineseName {
 		if _, ok := noMap[item]; !ok {
@@ -100,14 +100,14 @@ func (b *ExtraCollecter) getNotAccessItem(noAccess []ytccollectcommons.NoAccessR
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) Start(packageDir string) (err error) {
+func (b *ExtraCollecter) PreCollect(packageDir string) (err error) {
 	b.setPackageDir(packageDir)
 	err = fs.Mkdir(path.Join(packageDir, EXTRA_DIR_NAME))
 	return
 }
 
 // [Interface Func]
-func (b *ExtraCollecter) Finish() *datadef.YTCModule {
+func (b *ExtraCollecter) CollectOK() *datadef.YTCModule {
 	return b.ModuleCollectRes
 }
 

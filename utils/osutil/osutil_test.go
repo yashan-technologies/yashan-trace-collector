@@ -8,7 +8,7 @@ import (
 )
 
 func TestOsRelease(t *testing.T) {
-	release, err := osutil.GetOsRelease()
+	release, err := osutil.GetOSRelease()
 	if err != nil {
 		t.Fatal(err)
 	}

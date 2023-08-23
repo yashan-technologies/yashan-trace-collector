@@ -23,7 +23,7 @@ const (
 
 	base_yasdb_process_format       = `.*yasdb (?i:(nomount|mount|open))`
 	yasdb_internal_data_not_collect = "yasdb internal data will not be collected"
-	tips                            = "Ok will be start collect, Cancel well be continue full data"
+	tips                            = "Ok will be start collect, Cancel will be continue fill data"
 )
 
 var (

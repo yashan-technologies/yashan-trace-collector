@@ -9,12 +9,17 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
+	"ytc/defs/runtimedef"
 	"ytc/defs/timedef"
 	"ytc/utils/execerutil"
 	"ytc/utils/osutil"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaslog"
+)
+
+const (
+	diskStatPath = "/proc/diskstats"
 )
 
 type Sar struct {
@@ -30,11 +35,7 @@ func NewSar(yaslog yaslog.YasLog) *Sar {
 }
 
 func getParser(yaslog yaslog.YasLog) SarParser {
-	os, err := osutil.GetOsRelease()
-	if err != nil {
-		yaslog.Error(err)
-		return NewBaseParser(yaslog)
-	}
+	os := runtimedef.GetOSRelease()
 	switch os.Id {
 	case osutil.KYLIN_ID:
 		return NewKylinParser(yaslog)
@@ -80,7 +81,7 @@ func (s *Sar) Collect(t collecttypedef.WorkloadType, args ...string) (collecttyp
 func (s *Sar) genDevNumToDevNameMap() (map[string]string, error) {
 	m := make(map[string]string)
 	execer := execerutil.NewExecer(s.log)
-	ret, stdout, stderr := execer.Exec(bashdef.CMD_CAT, "/proc/diskstats")
+	ret, stdout, stderr := execer.Exec(bashdef.CMD_CAT, diskStatPath)
 	if ret != 0 {
 		err := fmt.Errorf("failed to transfer dev number to dev name, err: %s", stderr)
 		s.log.Error(err)
