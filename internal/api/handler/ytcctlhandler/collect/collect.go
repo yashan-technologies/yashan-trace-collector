@@ -71,7 +71,7 @@ func (c *CollecterHandler) printNoAccessItem(m map[string][]ytccollectcommons.No
 		tabler.NewRowTitle("TIPS", 50),
 		tabler.NewRowTitle("COLLECTED?", 15),
 	)
-	fmt.Printf("%s\n\n", bashdef.WithYellow("Detect some problem and some tips will give to you"))
+	fmt.Printf("%s\n\n", bashdef.WithYellow("There are some tips for you"))
 	var modules []string
 	for t := range m {
 		modules = append(modules, t)

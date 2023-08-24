@@ -17,7 +17,6 @@ import (
 	"ytc/utils/timeutil"
 )
 
-
 type CollectGlobal struct {
 	Type    string `name:"type"   short:"t" default:"base,diag" help:"The type of collection, choose many of (base|diag|perf) and split with ','."`
 	Range   string `name:"range"  short:"r" help:"The time range of the collection, such as '1M', '1d', '1h', '1m'. If <range> is given, <start> and <end> will be discard."`

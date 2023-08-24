@@ -272,13 +272,13 @@ func (d *DiagCollecter) checkYasdbCoredump() *ytccollectcommons.NoAccessRes {
 func (d *DiagCollecter) checkSyslog() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
 	noAccess.ModuleItem = datadef.DIAG_HOST_SYSTEMLOG
-	messageErr := fileutil.CheckAccess(SYSTEM_MESSAGES_LOG)
+	messageErr := fileutil.CheckAccess(SYSTEM_LOG_MESSAGES)
 	syslogErr := fileutil.CheckAccess(SYSTEM_LOG_SYSLOG)
 	if messageErr == nil {
 		return nil
 	}
 	if !os.IsNotExist(messageErr) {
-		desc, tips := ytccollectcommons.PathErrDescAndTips(SYSTEM_MESSAGES_LOG, messageErr)
+		desc, tips := ytccollectcommons.PathErrDescAndTips(SYSTEM_LOG_MESSAGES, messageErr)
 		noAccess.Description = desc
 		noAccess.Tips = tips
 		return noAccess

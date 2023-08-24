@@ -29,6 +29,9 @@ const (
 	hour_dur                 = time.Hour
 	day_dur                  = hour_dur * 24
 	month_dur                = day_dur * 30
+	year_dur                 = month_dur * 12
+
+	NOON = time.Hour * 12
 )
 
 var (

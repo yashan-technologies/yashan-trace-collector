@@ -15,7 +15,7 @@ func TestWrite(t *testing.T) {
 		}
 		if err := os.MkdirAll(path, 0775); err != nil {
 			t.Log(err)
-            return
+			return
 		}
 	}
 

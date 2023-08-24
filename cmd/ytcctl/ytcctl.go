@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+
 	"ytc/commons/flags"
 	"ytc/defs/compiledef"
 	"ytc/defs/confdef"
