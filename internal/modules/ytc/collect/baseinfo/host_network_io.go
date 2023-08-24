@@ -17,6 +17,7 @@ func (b *BaseCollecter) getHostNetworkIO() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host network IO info, err: %s", err.Error())
 		hostNetworkIO.Error = err.Error()
+		hostNetworkIO.Description = datadef.GenHostWorkloadDesc(err)
 		return
 	}
 	hostNetworkIO.Children[KEY_HISTORY] = datadef.YTCItem{

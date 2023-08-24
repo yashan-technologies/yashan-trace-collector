@@ -16,6 +16,7 @@ func (b *BaseCollecter) getHostCPUInfo() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host cpu info, err: %s", err.Error())
 		hostCpuInfo.Error = err.Error()
+		hostCpuInfo.Description = datadef.GenDefaultDesc()
 		return
 	}
 	hostCpuInfo.Details = cpuInfo

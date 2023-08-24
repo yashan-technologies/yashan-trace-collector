@@ -51,6 +51,7 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 	if err != nil {
 		log.Errorf("failed to get coredump file path, err: %v", err)
 		yasdbCoreDumpItem.Error = err.Error()
+		yasdbCoreDumpItem.Description = datadef.GenGetCoreDumpPathDesc()
 		return
 	}
 	if coreDumpType == CORE_DIRECT {
@@ -59,18 +60,20 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 		}
 		coreDumpPath = path.Dir(coreDumpPath)
 	}
-	log.Infof("core dump file path is: %s", coreDumpPath)
+	log.Infof("coredump file path is: %s", coreDumpPath)
 	re, err := b.getCoreDumpRegexp(originCoreDumpPath, coreDumpType)
 	if err != nil {
 		log.Errorf("failed to get coredump file name regexp, err: %v", err)
 		yasdbCoreDumpItem.Error = err.Error()
+		yasdbCoreDumpItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	log.Infof("core dump file regexp is: %s", re.String())
+	log.Infof("coredump file regexp is: %s", re.String())
 	files, err := os.ReadDir(coreDumpPath)
 	if err != nil {
 		log.Errorf("failed to open dir: %s, err: %v", coreDumpPath, err)
 		yasdbCoreDumpItem.Error = err.Error()
+		yasdbCoreDumpItem.Description = datadef.GenReadCoreDumpPathDesc(coreDumpPath)
 		return
 	}
 	for _, file := range files {
@@ -97,6 +100,7 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 		if err = fs.CopyFile(src, dest); err != nil {
 			log.Errorf("failed to copy file %s to %s", src, dest, err)
 			yasdbCoreDumpItem.Error = err.Error()
+			yasdbCoreDumpItem.Description = datadef.GenDefaultDesc()
 			return
 		}
 	}
@@ -119,7 +123,7 @@ func (d *DiagCollecter) getCoreDumpRegexp(coreDumpPath string, coreDumpType stri
 func (d *DiagCollecter) getCoreDumpRealPath(originCoreDumpPath string, coreDumpType string) string {
 	coreDumpPath := confdef.GetStrategyConf().Collect.CoreDumpPath
 	if !stringutil.IsEmpty(coreDumpPath) {
-		log.Module.Infof("core dump path in config is: %s", coreDumpPath)
+		log.Module.Infof("coredump path in config is: %s", coreDumpPath)
 		return coreDumpPath
 	}
 	coreDumpPath = originCoreDumpPath

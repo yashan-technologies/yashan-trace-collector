@@ -16,6 +16,7 @@ func (b *BaseCollecter) getHostMemoryInfo() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host memory info: %s", err.Error())
 		hostMemoryInfo.Error = err.Error()
+		hostMemoryInfo.Description = datadef.GenDefaultDesc()
 		return
 	}
 	hostMemoryInfo.Details = memInfo

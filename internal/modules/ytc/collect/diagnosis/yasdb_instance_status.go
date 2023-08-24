@@ -17,6 +17,7 @@ func (b *DiagCollecter) getYasdbInstanceStatus() (err error) {
 	if b.notConnectDB {
 		err = fmt.Errorf("connect failed, skip")
 		yasdbInstanceStatusItem.Error = err.Error()
+		yasdbInstanceStatusItem.Description = datadef.GenSkipCollectDatabaseInfoDesc()
 		log.Error(err)
 		return
 	}
@@ -25,6 +26,7 @@ func (b *DiagCollecter) getYasdbInstanceStatus() (err error) {
 	if err != nil {
 		log.Error(err)
 		yasdbInstanceStatusItem.Error = err.Error()
+		yasdbInstanceStatusItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	yasdbInstanceStatusItem.Details = data

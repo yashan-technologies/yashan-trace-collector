@@ -17,6 +17,7 @@ func (b *BaseCollecter) getHostDiskIO() (err error) {
 	if err != nil {
 		log.Error("failed to get host disk IO info, err: %s", err.Error())
 		hostDiskIO.Error = err.Error()
+		hostDiskIO.Description = datadef.GenHostWorkloadDesc(err)
 		return
 	}
 	hostDiskIO.Children[KEY_HISTORY] = datadef.YTCItem{

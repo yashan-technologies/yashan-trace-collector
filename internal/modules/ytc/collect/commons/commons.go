@@ -44,7 +44,7 @@ const (
 	DEFAULT_ADR_TIPS       = "default collect adr from: %s"
 	MATCH_PROCESS_ERR_DESC = "match yasdb process with: %s err: %s"
 	MATCH_PROCESS_ERR_TIPS = "you can try again later"
-	PROCESS_NO_FOUND_DESC  = "process no found,match yasdb process with: %s"
+	PROCESS_NO_FOUND_DESC  = "process no found, match yasdb process with: %s"
 	PROCESS_NO_FUNND_TIPS  = "you can check yasdb status"
 	DEFAULT_RUNLOG_TIPS    = "default collect run.log from: %s"
 	COREDUMP_ERR_DESC      = "get coredump path err: %s"

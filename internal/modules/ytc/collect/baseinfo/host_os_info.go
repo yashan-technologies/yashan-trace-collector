@@ -16,6 +16,7 @@ func (b *BaseCollecter) getHostOSInfo() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host os info, err: %s", err.Error())
 		hostBaseInfoItem.Error = err.Error()
+		hostBaseInfoItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	hostBaseInfoItem.Details = hostInfo

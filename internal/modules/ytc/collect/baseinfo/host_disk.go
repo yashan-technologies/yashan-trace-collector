@@ -22,6 +22,7 @@ func (b *BaseCollecter) getHostDiskInfo() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host disk info, err: %s", err.Error())
 		hostDiskInfo.Error = err.Error()
+		hostDiskInfo.Description = datadef.GenDefaultDesc()
 		return
 	}
 	var usages []DiskUsage
@@ -31,6 +32,7 @@ func (b *BaseCollecter) getHostDiskInfo() (err error) {
 		if err != nil {
 			log.Errorf("failed to get disk usage info, err: %s", err.Error())
 			hostDiskInfo.Error = err.Error()
+			hostDiskInfo.Description = datadef.GenDefaultDesc()
 			return
 		}
 		usage := DiskUsage{

@@ -25,20 +25,18 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 	if err != nil {
 		log.Error(err)
 		extraFile.Error = err.Error()
+		extraFile.Description = datadef.GenDefaultDesc()
 		return
 	}
 	destPartentDir := path.Join(_packageDir, EXTRA_DIR_NAME)
 	excludeMap := b.genExcludeMap()
 	for dir, realPath := range dirs {
 		dest := path.Join(destPartentDir, dir)
-<<<<<<< Updated upstream
 		if err = b.copyDir(log, realPath, dest, excludeMap); err != nil {
 			log.Error(err)
-=======
-		if err = b.copyDir(log, realPath, dest, excludeMap); err != nil && b.isFileNameTooLongErr(err) {
 			log.Errorf("failed to copy dir %s to %s, err: %v", realPath, dest, err)
->>>>>>> Stashed changes
 			extraFile.Error = err.Error()
+			extraFile.Error = datadef.GenDefaultDesc()
 			return
 		}
 	}
@@ -48,14 +46,10 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 			continue
 		}
 		dest := path.Join(destPartentDir, file)
-<<<<<<< Updated upstream
 		if err = fs.CopyFile(realPath, dest); err != nil {
-			log.Error(err)
-=======
-		if err = fs.CopyFile(realPath, dest); err != nil && b.isFileNameTooLongErr(err) {
 			log.Errorf("failed to copy file %s to %s, err: %v", realPath, dest, err)
->>>>>>> Stashed changes
 			extraFile.Error = err.Error()
+			extraFile.Error = datadef.GenDefaultDesc()
 			return
 		}
 	}
@@ -192,11 +186,4 @@ func (b *ExtraCollecter) copyDir(log yaslog.YasLog, src, dest string, excludeMap
 func (b *ExtraCollecter) transferPath(path string) (res string) {
 	res = strings.ReplaceAll(path, stringutil.STR_FORWARD_SLASH, stringutil.STR_UNDER_SCORE)
 	return
-}
-
-func (b *ExtraCollecter) isFileNameTooLongErr(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), "file name too long")
 }
