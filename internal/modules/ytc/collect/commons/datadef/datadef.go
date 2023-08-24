@@ -25,7 +25,6 @@ const (
 	DIAG_YASDB_COREDUMP        = "YashanDB-Coredump"
 	DIAG_HOST_KERNELLOG        = "Host-KernelLog"
 	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
-	DIAG_HOST_DMESG            = "Host-Dmesg"
 
 	// performance info
 	PERF_YASDB_AWR      = "YashanDB-AWR"

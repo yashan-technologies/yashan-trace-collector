@@ -37,8 +37,8 @@ type CollectGlobal struct {
 	Start   string `name:"start"  short:"s" help:"The start datetime of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm'"`
 	End     string `name:"end"    short:"e" help:"The end timestamp of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm',, default value is current datetime."`
 	Output  string `name:"output" short:"o" help:"The output dir of the collection."`
-	Include string `name:"include" help:"Files or directories that need to be additionally collected, separated by commas."`
-	Exclude string `name:"exclude" help:"Files or directories that no need to be additionally collected, separated by commas."`
+	Include string `name:"include" help:"Files or directories that need to be additionally collected, it is absolute path and split with ',', such as '/tmp' or '/tmp,/root,/example.txt'."`
+	Exclude string `name:"exclude" help:"Files or directories that no need to be additionally collected, it is absolute path and split with ',', such as '/tmp' or '/tmp,/root,/example.txt'."`
 }
 
 type CollectCmd struct {
