@@ -26,13 +26,15 @@ PKG=$(PKG_PERFIX)-$(VERSION)-$(OS)-$(ARCH).tar.gz
 BUILD_PATH=./build
 PKG_PATH=$(BUILD_PATH)/$(PKG_PERFIX)
 BIN_PATH=$(PKG_PATH)/bin
+LOG_PATH=$(PKG_PATH)/log
+RESULTS_PATH=$(PKG_PATH)/results
 
 # build defines
 BIN_YTCD=$(BUILD_PATH)/ytcd
 BIN_YTCCTL=$(BUILD_PATH)/ytcctl
 BIN_FILES=$(BIN_YTCCTL) $(BIN_YTCD)
 
-DIR_TO_MAKE=$(BIN_PATH)
+DIR_TO_MAKE=$(BIN_PATH) $(LOG_PATH) $(RESULTS_PATH)
 FILE_TO_COPY=./config ./scripts
 
 # functions
@@ -56,6 +58,7 @@ build: go_build
 	@mkdir -p $(DIR_TO_MAKE) 
 	@cp -r $(FILE_TO_COPY) $(PKG_PATH)
 	@mv $(BIN_FILES) $(BIN_PATH)
+	@> $(LOG_PATH)/ytcctl.log
 	@cd $(PKG_PATH);ln -s ./bin/ytcctl ./ytcctl
 	@cd $(BUILD_PATH);tar -cvzf $(PKG) $(PKG_PERFIX)/
 
