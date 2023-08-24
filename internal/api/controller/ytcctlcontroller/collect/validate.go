@@ -139,16 +139,32 @@ func (c *CollectCmd) validateRange() error {
 
 func (c *CollectCmd) validateStartAndEnd() error {
 	strategyConf := confdef.GetStrategyConf()
-	var startNotEmpty, endNotEmpty bool
+	var (
+		startNotEmpty, endNotEmpty bool
+		start, end                 time.Time
+		err                        error
+	)
 	if !stringutil.IsEmpty(c.Start) {
 		if !regexdef.TimeRegex.MatchString(c.Start) {
 			return errdef.NewErrFlagFormat(ytctl_collect, f_start)
+		}
+		start, err = timeutil.GetTimeDivBySepa(c.Start, stringutil.STR_HYPHEN)
+		if err != nil {
+			return err
+		}
+		now := time.Now()
+		if start.After(now) {
+			return errdef.ErrStartShouldLessCurr
 		}
 		startNotEmpty = true
 	}
 	if !stringutil.IsEmpty(c.End) {
 		if !regexdef.TimeRegex.MatchString(c.End) {
 			return errdef.NewErrFlagFormat(ytctl_collect, f_end)
+		}
+		end, err = timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
+		if err != nil {
+			return err
 		}
 		endNotEmpty = true
 	}
@@ -158,20 +174,8 @@ func (c *CollectCmd) validateStartAndEnd() error {
 			log.Controller.Errorf("get duration err: %s", err.Error())
 			return err
 		}
-		start, err := timeutil.GetTimeDivBySepa(c.Start, stringutil.STR_HYPHEN)
-		if err != nil {
-			return err
-		}
-		end, err := timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
-		if err != nil {
-			return err
-		}
 		if end.Before(start) {
 			return errdef.ErrEndLessStart
-		}
-		now := time.Now()
-		if start.After(now) {
-			return errdef.ErrStartShouldLessCurr
 		}
 		r := end.Sub(start)
 		if r > maxDuration {
