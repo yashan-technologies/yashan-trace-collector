@@ -13,7 +13,7 @@ type SarParseFunc func(m collecttypedef.WorkloadItem, values []string) collectty
 
 type SarCheckTitleFunc func(line string) bool
 
-type CpuUsage struct {
+type CPUUsage struct {
 	CPU    string  `json:"cpu"`    // cpu name, it will be 'all'
 	User   float64 `json:"user"`   // percentage of CPU time spent in user space
 	Nice   float64 `json:"nice"`   // percentage of CPU time spent on low priority tasks (niceness)

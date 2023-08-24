@@ -3,6 +3,7 @@ package baseinforeporter
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"ytc/internal/modules/ytc/collect/baseinfo"
@@ -139,8 +140,14 @@ func (r YashanDBParameterReporter) genYasdbIniContent(yasdbIni datadef.YTCItem, 
 		}
 		tw := commons.ReporterWriter.NewTableWriter()
 		tw.AppendHeader(table.Row{"参数名称", "参数值"})
-		for key, val := range ymap {
-			tw.AppendRow(table.Row{key, val})
+
+		var keys []string
+		for key := range ymap {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			tw.AppendRow(table.Row{key, ymap[key]})
 			tw.AppendSeparator()
 		}
 		yasdbIniContent = reporter.GenReportContentByWriterAndTitle(tw, title, fontSize)
@@ -160,6 +167,9 @@ func (r YashanDBParameterReporter) genVParameterContent(parameter datadef.YTCIte
 			err = yaserr.Wrapf(e, "parse v$parameter")
 			return
 		}
+		sort.Slice(parameters, func(i, j int) bool {
+			return parameters[i].Name < parameters[j].Name
+		})
 		tw := commons.ReporterWriter.NewTableWriter()
 		tw.AppendHeader(table.Row{"参数名称", "参数值"})
 		for _, p := range parameters {

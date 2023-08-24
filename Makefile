@@ -35,7 +35,7 @@ BIN_YTCCTL=$(BUILD_PATH)/ytcctl
 BIN_FILES=$(BIN_YTCCTL) $(BIN_YTCD)
 
 DIR_TO_MAKE=$(BIN_PATH) $(LOG_PATH) $(RESULTS_PATH)
-FILE_TO_COPY=./config ./scripts
+FILE_TO_COPY=./config ./scripts ./static
 
 # functions
 clean:

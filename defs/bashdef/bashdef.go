@@ -17,6 +17,7 @@ const (
 	CMD_UFW           = "ufw"
 	CMD_DMESG         = "dmesg"
 	CMD_COMMAND       = "command"
+	CMD_CP            = "cp"
 )
 
 const (

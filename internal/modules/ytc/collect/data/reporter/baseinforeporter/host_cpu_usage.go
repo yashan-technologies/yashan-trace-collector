@@ -14,10 +14,33 @@ import (
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/data/reporter/commons"
 	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter/htmldef"
+	"ytc/utils/numutil"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaserr"
 	"github.com/jedib0t/go-pretty/v6/table"
+)
+
+const (
+	_graph_name_cpu_usage = "CPU使用率"
+
+	_graph_history_cpu_usage = "history_cpu_usage"
+	_graph_current_cpu_usage = "current_cpu_usage"
+)
+
+const (
+	// keys
+	_key_time  = "time"
+	_key_usage = "usage"
+
+	// lables
+	_label_usage = "使用率"
+)
+
+var (
+	_yKeysCPU   = []string{_key_usage}
+	_yLabelsCPU = []string{_label_usage}
 )
 
 // validate interface
@@ -27,7 +50,7 @@ type HostCPUUsageReporter struct{}
 
 type sarCPUUsage struct {
 	timestamp int64
-	sar.CpuUsage
+	sar.CPUUsage
 }
 
 type gopsutilCPUUsage struct {
@@ -68,16 +91,17 @@ func (r HostCPUUsageReporter) Report(item datadef.YTCItem, titlePrefix string) (
 	content.Txt = strings.Join([]string{txt, historyItemContent.Txt, currentItemContent.Txt}, stringutil.STR_NEWLINE)
 	content.Markdown = strings.Join([]string{markdown, historyItemContent.Markdown, currentItemContent.Markdown}, stringutil.STR_NEWLINE)
 	content.HTML = strings.Join([]string{html, historyItemContent.HTML, currentItemContent.HTML}, stringutil.STR_NEWLINE)
+	content.Graph = strings.Join([]string{historyItemContent.Graph, currentItemContent.Graph}, stringutil.STR_NEWLINE)
 	return
 }
 
-func (r HostCPUUsageReporter) parseSarItem(item datadef.YTCItem) (output map[int64]map[string]sar.CpuUsage, err error) {
+func (r HostCPUUsageReporter) parseSarItem(item datadef.YTCItem) (output map[int64]map[string]sar.CPUUsage, err error) {
 	data, err := json.Marshal(item.Details)
 	if err != nil {
 		err = yaserr.Wrapf(err, "marshal sar cpu usage")
 		return
 	}
-	output = make(map[int64]map[string]sar.CpuUsage)
+	output = make(map[int64]map[string]sar.CPUUsage)
 	if err = json.Unmarshal(data, &output); err != nil {
 		err = yaserr.Wrapf(err, "unmarshal sar cpu usage")
 		return
@@ -85,7 +109,7 @@ func (r HostCPUUsageReporter) parseSarItem(item datadef.YTCItem) (output map[int
 	return
 }
 
-func (r HostCPUUsageReporter) parseSarHistoryItem(historyItem datadef.YTCItem) (output map[int64]map[string]sar.CpuUsage, err error) {
+func (r HostCPUUsageReporter) parseSarHistoryItem(historyItem datadef.YTCItem) (output map[int64]map[string]sar.CPUUsage, err error) {
 	output, err = r.parseSarItem(historyItem)
 	if err != nil {
 		err = yaserr.Wrapf(err, "history sar item")
@@ -93,7 +117,7 @@ func (r HostCPUUsageReporter) parseSarHistoryItem(historyItem datadef.YTCItem) (
 	return
 }
 
-func (r HostCPUUsageReporter) parseSarCurrentItem(currentItem datadef.YTCItem) (output map[int64]map[string]sar.CpuUsage, err error) {
+func (r HostCPUUsageReporter) parseSarCurrentItem(currentItem datadef.YTCItem) (output map[int64]map[string]sar.CPUUsage, err error) {
 	output, err = r.parseSarItem(currentItem)
 	if err != nil {
 		err = yaserr.Wrapf(err, "current sar item")
@@ -123,13 +147,13 @@ func (r HostCPUUsageReporter) parseGopsutilCurrentItem(currentItem datadef.YTCIt
 	return
 }
 
-func (r HostCPUUsageReporter) genSarReportContent(sarData map[int64]map[string]sar.CpuUsage) (content reporter.ReportContent) {
+func (r HostCPUUsageReporter) genSarReportContent(sarData map[int64]map[string]sar.CPUUsage, graphName string) (content reporter.ReportContent) {
 	tmp := make(map[string][]sarCPUUsage)
 	for time, val := range sarData {
 		for k, v := range val {
 			cpuUsage := sarCPUUsage{
 				timestamp: time,
-				CpuUsage:  v,
+				CPUUsage:  v,
 			}
 			tmp[k] = append(tmp[k], cpuUsage)
 		}
@@ -152,6 +176,7 @@ func (r HostCPUUsageReporter) genSarReportContent(sarData map[int64]map[string]s
 		"CPU处于空闲状态的时间(idle)",
 	})
 	for _, key := range keys {
+		var rows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
@@ -166,17 +191,23 @@ func (r HostCPUUsageReporter) genSarReportContent(sarData map[int64]map[string]s
 				fmt.Sprintf("%.2f%%", p.Steal),
 				fmt.Sprintf("%.2f%%", p.Idle),
 			})
+			row := make(map[string]interface{})
+			row[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			row[_key_usage] = numutil.TruncateFloat64(100-p.Idle, 2)
+			rows = append(rows, row)
 		}
 		c := reporter.GenReportContentByWriter(tw)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+		content.HTML += reporter.GenHTMLTitle(_graph_name_cpu_usage, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph = htmldef.GenGraphData(graphName, rows, _key_time, _yKeysCPU, _yLabelsCPU)
 		tw.ResetRows()
 	}
 	return
 }
 
-func (r HostCPUUsageReporter) genGopsutilReportContent(gopsutilData map[int64]map[string]gopsutil.CpuUsage) (content reporter.ReportContent) {
+func (r HostCPUUsageReporter) genGopsutilReportContent(gopsutilData map[int64]map[string]gopsutil.CpuUsage, graphName string) (content reporter.ReportContent) {
 	tmp := make(map[string][]gopsutilCPUUsage)
 	for time, val := range gopsutilData {
 		for k, v := range val {
@@ -208,6 +239,7 @@ func (r HostCPUUsageReporter) genGopsutilReportContent(gopsutilData map[int64]ma
 		"运行虚拟机所花费的CPU时间",
 	})
 	for _, key := range keys {
+		var rows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
@@ -226,11 +258,17 @@ func (r HostCPUUsageReporter) genGopsutilReportContent(gopsutilData map[int64]ma
 				fmt.Sprintf("%.2f%%", p.Softirq),
 				fmt.Sprintf("%.2f%%", p.Guest),
 			})
+			row := make(map[string]interface{})
+			row[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			row[_key_usage] = numutil.TruncateFloat64(100-p.Idle, 2)
+			rows = append(rows, row)
 		}
 		c := reporter.GenReportContentByWriter(tw)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+		content.HTML += reporter.GenHTMLTitle(_graph_name_cpu_usage, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph = htmldef.GenGraphData(graphName, rows, _key_time, _yKeysCPU, _yLabelsCPU)
 		tw.ResetRows()
 	}
 	return
@@ -249,10 +287,11 @@ func (r HostCPUUsageReporter) genHistoryContent(historyItem datadef.YTCItem, tit
 			err = yaserr.Wrapf(e, "parse history cpu usage")
 			return
 		}
-		c := r.genSarReportContent(history)
+		c := r.genSarReportContent(history, _graph_history_cpu_usage)
 		historyItemContent.Txt += c.Txt
 		historyItemContent.Markdown += c.Markdown
 		historyItemContent.HTML += c.HTML
+		historyItemContent.Graph += c.Graph
 	}
 	return
 }
@@ -271,20 +310,22 @@ func (r HostCPUUsageReporter) genCurrentContent(currentItem datadef.YTCItem, tit
 				err = yaserr.Wrapf(e, "parse sar current cpu usage")
 				return
 			}
-			c := r.genSarReportContent(current)
+			c := r.genSarReportContent(current, _graph_current_cpu_usage)
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		} else {
 			current, e := r.parseGopsutilCurrentItem(currentItem)
 			if e != nil {
 				err = yaserr.Wrapf(e, "parse gopsutil current cpu usage")
 				return
 			}
-			c := r.genGopsutilReportContent(current)
+			c := r.genGopsutilReportContent(current, _graph_current_cpu_usage)
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		}
 	}
 	return

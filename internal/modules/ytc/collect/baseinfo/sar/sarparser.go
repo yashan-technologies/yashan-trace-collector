@@ -131,7 +131,7 @@ func (b *baseParser) ParseCpu(m collecttypedef.WorkloadItem, values []string) co
 		b.log.Warnf("not enough data, skip line: %s", strings.Join(values, stringutil.STR_BLANK_SPACE))
 		return m
 	}
-	cpuUsage := CpuUsage{}
+	cpuUsage := CPUUsage{}
 	var err error
 	cpuUsage.CPU = values[_base_cpu_cpu_index]
 	if cpuUsage.User, err = strconv.ParseFloat(values[_base_cpu_user_index], 64); err != nil {

@@ -14,11 +14,33 @@ import (
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/data/reporter/commons"
 	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter/htmldef"
+	"ytc/utils/numutil"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaserr"
 	"git.yasdb.com/go/yasutil/size"
 	"github.com/jedib0t/go-pretty/v6/table"
+)
+
+const (
+	_graph_name_memory_usage = "内存使用率"
+
+	_graph_history_memory_usage = "history_memory_usage"
+	_graph_current_memory_usage = "current_memory_usage"
+)
+
+const (
+	// keys
+	_key_real_usage = "real_usage"
+
+	// labels
+	_label_real_usage = "真实使用率"
+)
+
+var (
+	_yKeysMemory   = []string{_key_usage, _key_real_usage}
+	_yLabelsMemory = []string{_label_usage, _label_real_usage}
 )
 
 // validate interface
@@ -69,6 +91,7 @@ func (r HostMemoryUsageReporter) Report(item datadef.YTCItem, titlePrefix string
 	content.Txt = strings.Join([]string{txt, historyItemContent.Txt, currentItemContent.Txt}, stringutil.STR_NEWLINE)
 	content.Markdown = strings.Join([]string{markdown, historyItemContent.Markdown, currentItemContent.Markdown}, stringutil.STR_NEWLINE)
 	content.HTML = strings.Join([]string{html, historyItemContent.HTML, currentItemContent.HTML}, stringutil.STR_NEWLINE)
+	content.Graph = strings.Join([]string{historyItemContent.Graph, currentItemContent.Graph}, stringutil.STR_NEWLINE)
 	return
 }
 
@@ -124,7 +147,7 @@ func (r HostMemoryUsageReporter) parseGopsutilCurrentItem(currentItem datadef.YT
 	return
 }
 
-func (r HostMemoryUsageReporter) genSarReportContent(sarData map[int64]map[string]sar.MemoryUsage) (content reporter.ReportContent) {
+func (r HostMemoryUsageReporter) genSarReportContent(sarData map[int64]map[string]sar.MemoryUsage, graphName string) (content reporter.ReportContent) {
 	tmp := make(map[string][]sarMemoryUsage)
 	for time, val := range sarData {
 		for k, v := range val {
@@ -160,15 +183,16 @@ func (r HostMemoryUsageReporter) genSarReportContent(sarData map[int64]map[strin
 		"真实内存使用率",
 	})
 	for _, key := range keys {
+		var rows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
 		})
 		for _, p := range pointers {
-			total := p.KBMemFree + p.KBmemUsed - p.KBBuffers - p.KBCached
+			totalKB := float64(p.KBmemUsed) / p.MemUsed * 100
 			tw.AppendRow(table.Row{
 				time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT),
-				size.GenHumanReadableSize(float64(total*1024), 2),
+				size.GenHumanReadableSize(totalKB*1024, 2),
 				size.GenHumanReadableSize(float64(p.KBMemFree*1024), 2),
 				size.GenHumanReadableSize(float64(p.KBmemUsed*1024), 2),
 				fmt.Sprintf("%.2f%%", p.MemUsed),
@@ -182,17 +206,24 @@ func (r HostMemoryUsageReporter) genSarReportContent(sarData map[int64]map[strin
 				size.GenHumanReadableSize(float64(p.KBDirty*1024), 2),
 				fmt.Sprintf("%.2f%%", p.RealMemUsed),
 			})
+			row := make(map[string]interface{})
+			row[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			row[_key_usage] = numutil.TruncateFloat64(p.MemUsed, 2)
+			row[_key_real_usage] = numutil.TruncateFloat64(p.RealMemUsed, 2)
+			rows = append(rows, row)
 		}
 		c := reporter.GenReportContentByWriter(tw)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+		content.HTML += reporter.GenHTMLTitle(_graph_name_memory_usage, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph = htmldef.GenGraphData(graphName, rows, _key_time, _yKeysMemory, _yLabelsMemory)
 		tw.ResetRows()
 	}
 	return
 }
 
-func (r HostMemoryUsageReporter) genGopsutilReportContent(gopsutilData map[int64]map[string]gopsutil.MemoryUsage) (content reporter.ReportContent) {
+func (r HostMemoryUsageReporter) genGopsutilReportContent(gopsutilData map[int64]map[string]gopsutil.MemoryUsage, graphName string) (content reporter.ReportContent) {
 	tmp := make(map[string][]gopsutilMemoryUsage)
 	for time, val := range gopsutilData {
 		for k, v := range val {
@@ -225,6 +256,7 @@ func (r HostMemoryUsageReporter) genGopsutilReportContent(gopsutilData map[int64
 		"虚拟内存已使用",
 	})
 	for _, key := range keys {
+		var rows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
@@ -243,11 +275,18 @@ func (r HostMemoryUsageReporter) genGopsutilReportContent(gopsutilData map[int64
 				size.GenHumanReadableSize(float64(p.VMallocTotal), 2),
 				size.GenHumanReadableSize(float64(p.VMallocUsed), 2),
 			})
+			row := make(map[string]interface{})
+			row[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			row[_key_usage] = numutil.TruncateFloat64(p.UsedPercent, 2)
+			row[_key_usage] = numutil.TruncateFloat64(float64(p.Available/p.Total), 2)
+			rows = append(rows, row)
 		}
 		c := reporter.GenReportContentByWriter(tw)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+		content.HTML += reporter.GenHTMLTitle(_graph_name_memory_usage, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph = htmldef.GenGraphData(graphName, rows, _key_time, _yKeysMemory, _yLabelsMemory)
 		tw.ResetRows()
 	}
 	return
@@ -266,10 +305,11 @@ func (r HostMemoryUsageReporter) genHistoryContent(historyItem datadef.YTCItem, 
 			err = yaserr.Wrapf(e, "parse history memory usage")
 			return
 		}
-		c := r.genSarReportContent(history)
+		c := r.genSarReportContent(history, _graph_history_memory_usage)
 		historyItemContent.Txt += c.Txt
 		historyItemContent.Markdown += c.Markdown
 		historyItemContent.HTML += c.HTML
+		historyItemContent.Graph += c.Graph
 	}
 	return
 }
@@ -288,20 +328,22 @@ func (r HostMemoryUsageReporter) genCurrentContent(currentItem datadef.YTCItem, 
 				err = yaserr.Wrapf(e, "parse sar current memory usage")
 				return
 			}
-			c := r.genSarReportContent(current)
+			c := r.genSarReportContent(current, _graph_current_memory_usage)
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		} else {
 			current, e := r.parseGopsutilCurrentItem(currentItem)
 			if e != nil {
 				err = yaserr.Wrapf(e, "parse gopsutil current memory usage")
 				return
 			}
-			c := r.genGopsutilReportContent(current)
+			c := r.genGopsutilReportContent(current, _graph_current_memory_usage)
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		}
 	}
 	return

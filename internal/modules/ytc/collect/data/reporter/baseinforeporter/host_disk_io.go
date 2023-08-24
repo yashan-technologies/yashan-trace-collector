@@ -14,11 +14,44 @@ import (
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/data/reporter/commons"
 	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
+	"ytc/internal/modules/ytc/collect/resultgenner/reporter/htmldef"
+	"ytc/utils/numutil"
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaserr"
 	"git.yasdb.com/go/yasutil/size"
 	"github.com/jedib0t/go-pretty/v6/table"
+)
+
+const (
+	_graph_name_disk_iops       = "IOPS"
+	_graph_name_disk_read_write = "磁盘读写"
+
+	_graph_history_disk_iops = "history_disk_iops"
+	_graph_current_disk_iops = "current_disk_iops"
+
+	_graph_history_disk_read_write = "history_disk_read_write"
+	_graph_current_disk_read_write = "current_disk_read_write"
+)
+
+const (
+	// keys
+	_key_disk_iops  = "disk_iops"
+	_key_disk_read  = "disk_read"
+	_key_disk_write = "disk_write"
+
+	// labels
+	_label_disk_iops  = "IPOS"
+	_label_disk_read  = "磁盘读取(KB/S)"
+	_label_disk_write = "磁盘写入(KB/S)"
+)
+
+var (
+	_yKeysDiskIOPS = []string{_key_disk_iops}
+	_yLabelsIOPS   = []string{_label_disk_iops}
+
+	_yKeysDiskReadWrite = []string{_key_disk_read, _key_disk_write}
+	_yLabelsReadWrite   = []string{_label_disk_read, _label_disk_write}
 )
 
 // validate interface
@@ -69,6 +102,7 @@ func (r HostDiskIOReporter) Report(item datadef.YTCItem, titlePrefix string) (co
 	content.Txt = strings.Join([]string{txt, historyItemContent.Txt, currentItemContent.Txt}, stringutil.STR_NEWLINE)
 	content.Markdown = strings.Join([]string{markdown, historyItemContent.Markdown, currentItemContent.Markdown}, stringutil.STR_NEWLINE)
 	content.HTML = strings.Join([]string{html, historyItemContent.HTML, currentItemContent.HTML}, stringutil.STR_NEWLINE)
+	content.Graph = strings.Join([]string{historyItemContent.Graph, currentItemContent.Graph}, stringutil.STR_NEWLINE)
 	return
 }
 
@@ -124,7 +158,7 @@ func (r HostDiskIOReporter) parseGopsutilCurrentItem(currentItem datadef.YTCItem
 	return
 }
 
-func (r HostDiskIOReporter) genSarReportContent(sarData map[int64]map[string]sar.DiskIO) (content reporter.ReportContent) {
+func (r HostDiskIOReporter) genSarReportContent(sarData map[int64]map[string]sar.DiskIO, isHistory bool) (content reporter.ReportContent) {
 	tmp := make(map[string][]sarDiskO)
 	for time, val := range sarData {
 		for k, v := range val {
@@ -155,6 +189,8 @@ func (r HostDiskIOReporter) genSarReportContent(sarData map[int64]map[string]sar
 		"设备的利用率",
 	})
 	for _, key := range keys {
+		var diskIOPSRows []map[string]interface{}
+		var diskReadWriteRows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
@@ -171,11 +207,37 @@ func (r HostDiskIOReporter) genSarReportContent(sarData map[int64]map[string]sar
 				fmt.Sprintf("%.2fms", p.Svctm),
 				fmt.Sprintf("%.2f", p.Util),
 			})
+			diskIOPSRow := make(map[string]interface{})
+			diskIOPSRow[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			diskIOPSRow[_key_disk_iops] = numutil.TruncateFloat64(p.Tps, 2)
+			diskIOPSRows = append(diskIOPSRows, diskIOPSRow)
+
+			diskReadWriteRow := make(map[string]interface{})
+			diskReadWriteRow[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			diskReadWriteRow[_key_disk_read] = numutil.TruncateFloat64(p.RdSec, 2)
+			diskReadWriteRow[_key_disk_write] = numutil.TruncateFloat64(p.WrSec, 2)
+			diskReadWriteRows = append(diskReadWriteRows, diskReadWriteRow)
 		}
+
 		c := reporter.GenReportContentByWriterAndTitle(tw, fmt.Sprintf("磁盘设备：%s", key), reporter.FONT_SIZE_H4)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+
+		graphName := _graph_current_disk_iops + key
+		if isHistory {
+			graphName = _graph_history_disk_iops + key
+		}
+		content.HTML += reporter.GenHTMLTitle(_graph_name_disk_iops, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph += htmldef.GenGraphData(graphName, diskIOPSRows, _key_time, _yKeysDiskIOPS, _yLabelsIOPS)
+
+		graphName = _graph_current_disk_read_write + key
+		if isHistory {
+			graphName = _graph_history_disk_read_write + key
+		}
+		content.HTML += reporter.GenHTMLTitle(_graph_name_disk_read_write, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph += htmldef.GenGraphData(graphName, diskReadWriteRows, _key_time, _yKeysDiskReadWrite, _yLabelsReadWrite)
+
 		tw.ResetRows()
 	}
 	return
@@ -210,6 +272,8 @@ func (r HostDiskIOReporter) genGopsutilReportContent(gopsutilData map[int64]map[
 		"设备标签",
 	})
 	for _, key := range keys {
+		var diskIOPSRows []map[string]interface{}
+		var diskReadWriteRows []map[string]interface{}
 		pointers := tmp[key]
 		sort.Slice(pointers, func(i, j int) bool {
 			return pointers[i].timestamp < pointers[j].timestamp
@@ -224,11 +288,30 @@ func (r HostDiskIOReporter) genGopsutilReportContent(gopsutilData map[int64]map[
 				p.WriteCountSec,
 				p.Label,
 			})
+			diskIOPSRow := make(map[string]interface{})
+			diskIOPSRow[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			diskIOPSRow[_key_disk_iops] = numutil.TruncateFloat64(float64(p.Iops), 2)
+			diskIOPSRows = append(diskIOPSRows, diskIOPSRow)
+
+			diskReadWriteRow := make(map[string]interface{})
+			diskReadWriteRow[_key_time] = time.Unix(p.timestamp, 0).Format(timedef.TIME_FORMAT)
+			diskReadWriteRow[_key_disk_read] = numutil.TruncateFloat64(p.KBReadSec, 2)
+			diskReadWriteRow[_key_disk_write] = numutil.TruncateFloat64(p.KBWriteSec, 2)
+			diskReadWriteRows = append(diskReadWriteRows, diskReadWriteRow)
 		}
 		c := reporter.GenReportContentByWriterAndTitle(tw, fmt.Sprintf("磁盘设备：%s", key), reporter.FONT_SIZE_H4)
 		content.Txt += c.Txt + stringutil.STR_NEWLINE
 		content.Markdown += c.Markdown + stringutil.STR_NEWLINE
 		content.HTML += c.HTML + stringutil.STR_NEWLINE
+
+		graphName := _graph_current_disk_iops + key
+		content.HTML += reporter.GenHTMLTitle(_graph_name_disk_iops, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph += htmldef.GenGraphData(graphName, diskIOPSRows, _key_time, _yKeysDiskIOPS, _yLabelsIOPS)
+
+		graphName = _graph_current_disk_read_write + key
+		content.HTML += reporter.GenHTMLTitle(_graph_name_disk_read_write, reporter.FONT_SIZE_H4) + htmldef.GenGraphElement(graphName)
+		content.Graph += htmldef.GenGraphData(graphName, diskReadWriteRows, _key_time, _yKeysDiskReadWrite, _yLabelsReadWrite)
+
 		tw.ResetRows()
 	}
 	return
@@ -247,10 +330,11 @@ func (r HostDiskIOReporter) genHistoryContent(historyItem datadef.YTCItem, title
 			err = yaserr.Wrapf(e, "parse history disk io")
 			return
 		}
-		c := r.genSarReportContent(history)
+		c := r.genSarReportContent(history, true)
 		historyItemContent.Txt += c.Txt
 		historyItemContent.Markdown += c.Markdown
 		historyItemContent.HTML += c.HTML
+		historyItemContent.Graph += c.Graph
 	}
 	return
 }
@@ -269,10 +353,11 @@ func (r HostDiskIOReporter) genCurrentContent(currentItem datadef.YTCItem, title
 				err = yaserr.Wrapf(e, "parse sar current disk io")
 				return
 			}
-			c := r.genSarReportContent(current)
+			c := r.genSarReportContent(current, false)
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		} else {
 			current, e := r.parseGopsutilCurrentItem(currentItem)
 			if e != nil {
@@ -283,6 +368,7 @@ func (r HostDiskIOReporter) genCurrentContent(currentItem datadef.YTCItem, title
 			currentItemContent.Txt += c.Txt
 			currentItemContent.Markdown += c.Markdown
 			currentItemContent.HTML += c.HTML
+			currentItemContent.Graph += c.Graph
 		}
 	}
 	return

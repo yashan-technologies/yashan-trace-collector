@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"ytc/defs/bashdef"
+	"ytc/defs/runtimedef"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
 	"ytc/log"
@@ -107,6 +108,13 @@ func (g *BaseResultGenner) genReportPath(reportType reporter.ReportType) string 
 }
 
 func (g *BaseResultGenner) writeReport() error {
+	executer := execerutil.NewExecer(log.Logger)
+	ret, _, stderr := executer.Exec(bashdef.CMD_BASH, "-c",
+		fmt.Sprintf("%s -r %s %s", bashdef.CMD_CP, runtimedef.GetStaticPath(), g.genPackageDir()))
+	if ret != 0 {
+		log.Module.Errorf("copy static failed: %s", stderr)
+	}
+
 	content, err := g.Genner.GenReport()
 	if err != nil {
 		err = yaserr.Wrapf(err, "genner generate report")
