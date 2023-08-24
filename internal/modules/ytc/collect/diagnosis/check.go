@@ -23,60 +23,52 @@ import (
 func GetAdrPath(collectParam *collecttypedef.CollectParam) (string, error) {
 	tx := yasqlutil.GetLocalInstance(collectParam.YasdbUser, collectParam.YasdbPassword, collectParam.YasdbHome, collectParam.YasdbData)
 	dest, err := yasdb.QueryParameter(tx, yasdb.PM_DIAGNOSTIC_DEST)
-	return strings.ReplaceAll(dest, "?", collectParam.YasdbData), err
+	return strings.ReplaceAll(dest, stringutil.STR_QUESTION_MARK, collectParam.YasdbData), err
 }
 
-func GetCoredumpPath() (string, error) {
+func GetCoreDumpPath() (string, string, error) {
 	corePatternBytes, err := fileutil.ReadFile(CORE_PATTERN_PATH)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	corePattern := strings.TrimSpace(string(corePatternBytes))
-	if !strings.HasPrefix(corePattern, "|") {
-		if path.IsAbs(corePattern) {
-			return path.Dir(corePattern), nil
-		}
-		return corePattern, nil
+	if !strings.HasPrefix(corePattern, stringutil.STR_BAR) {
+		return corePattern, CORE_DIRECT, nil
 	}
 	if strings.Contains(corePattern, ABRT_HOOK_CPP) {
-		localtion, err := fileutil.GetConfByKey(ABRT_CONF, DUMP_LOCATION)
+		localtion, err := fileutil.GetConfByKey(ABRT_CONF, KEY_DUMP_LOCATION)
 		if err != nil {
-			log.Module.Errorf("get %s from %s err:%s", DUMP_LOCATION, ABRT_CONF, err.Error())
-			return "", err
+			log.Module.Errorf("get %s from %s err:%s", KEY_DUMP_LOCATION, ABRT_CONF, err.Error())
+			return "", "", err
 		}
 		if stringutil.IsEmpty(localtion) {
 			localtion = DEFAULT_DUMP_LOCATION
 		}
-		return localtion, nil
+		return localtion, CORE_REDIRECT_ABRT, nil
 	}
 	if strings.Contains(corePattern, SYSTEMD_COREDUMP) {
-		storage, err := fileutil.GetConfByKey(SYSTEMD_COREDUMP_CONF, STORAGE)
+		storage, err := fileutil.GetConfByKey(SYSTEMD_COREDUMP_CONF, KEY_STORAGE)
 		if err != nil {
-			log.Module.Errorf("get %s from %s err:%s", SYSTEMD_COREDUMP_CONF, STORAGE, err.Error())
-			return "", err
+			log.Module.Errorf("get %s from %s err:%s", SYSTEMD_COREDUMP_CONF, KEY_STORAGE, err.Error())
+			return "", "", err
 		}
 		// do not collect core dump
-		if storage != EXTERNAL_STORAGE {
-			log.Module.Warnf("the host coredump config is closed")
+		if storage != VALUE_EXTERNAL {
+			err := fmt.Errorf("the host coredump config is %s, does not collect", storage)
+			log.Module.Error(err)
+			return "", "", err
 		}
-		externalStorage, err := fileutil.GetConfByKey(SYSTEMD_COREDUMP_CONF, EXTERNAL_STORAGE)
-		if err != nil {
-			log.Module.Errorf("get %s from %s err:%s", SYSTEMD_COREDUMP_CONF, EXTERNAL_STORAGE, err.Error())
-			return "", err
-		}
-		if stringutil.IsEmpty(externalStorage) {
-			externalStorage = DEFAULT_EXTERNAL_STORAGE
-		}
-		return externalStorage, nil
+		return DEFAULT_EXTERNAL_STORAGE, CORE_REDIRECT_SYSTEMD, nil
 	}
-	log.Module.Warnf("core parttern %s is un known, do not collect", corePattern)
-	return "", nil
+	err = fmt.Errorf("core parttern %s is unknown, do not collect", corePattern)
+	log.Module.Error(err)
+	return "", "", err
 }
 
 func GetYasdbRunLogPath(collectParam *collecttypedef.CollectParam) (string, error) {
 	tx := yasqlutil.GetLocalInstance(collectParam.YasdbUser, collectParam.YasdbPassword, collectParam.YasdbHome, collectParam.YasdbData)
 	dest, err := yasdb.QueryParameter(tx, yasdb.PM_RUN_LOG_FILE_PATH)
-	return strings.ReplaceAll(dest, "?", collectParam.YasdbData), err
+	return strings.ReplaceAll(dest, stringutil.STR_QUESTION_MARK, collectParam.YasdbData), err
 }
 
 func GetYasdbAlertLogPath(yasdbData string) string {
@@ -104,42 +96,6 @@ func GetSystemLogPath() (string, error) {
 	}
 	log.Module.Warnf("%s and %s not exist do not collect", SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
 	return "", err
-}
-
-// return diag item path map key:diagitem value path
-func GetDiagPath(collectParam *collecttypedef.CollectParam) (m map[string]string) {
-	m = make(map[string]string)
-	p, err := GetAdrPath(collectParam)
-	if err != nil {
-		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_ADR, err.Error())
-	} else {
-		m[datadef.DIAG_YASDB_ADR] = p
-	}
-	p, err = GetCoredumpPath()
-	if err != nil {
-		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_COREDUMP, err.Error())
-	} else {
-		m[datadef.DIAG_YASDB_COREDUMP] = p
-	}
-	p, err = GetYasdbRunLogPath(collectParam)
-	if err != nil {
-		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_RUNLOG, err.Error())
-	} else {
-		m[datadef.DIAG_YASDB_RUNLOG] = path.Join(p, ytccollectcommons.RUN_LOG)
-	}
-	p = GetYasdbAlertLogPath(collectParam.YasdbData)
-	if err != nil {
-		log.Module.Warnf(_getErrMessage, datadef.DIAG_YASDB_ALERTLOG, err.Error())
-	} else {
-		m[datadef.DIAG_YASDB_ALERTLOG] = path.Join(p, ytccollectcommons.ALERT_LOG)
-	}
-	p, err = GetSystemLogPath()
-	if err != nil {
-		log.Module.Warnf(_getErrMessage, datadef.DIAG_HOST_SYSTEMLOG, err.Error())
-	} else {
-		m[datadef.DIAG_HOST_SYSTEMLOG] = p
-	}
-	return
 }
 
 func (d *DiagCollecter) checkYasdbProcess() *ytccollectcommons.NoAccessRes {
@@ -313,29 +269,24 @@ func (d *DiagCollecter) checkYasdbAlertLog() *ytccollectcommons.NoAccessRes {
 func (d *DiagCollecter) checkYasdbCoredump() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
 	noAccess.ModuleItem = datadef.DIAG_YASDB_COREDUMP
-	core, err := GetCoredumpPath()
+	originCoreDumpPath, coreDumpType, err := GetCoreDumpPath()
 	if err != nil {
 		noAccess.Description = fmt.Sprintf(ytccollectcommons.COREDUMP_ERR_DESC, err.Error())
 		noAccess.Tips = " "
 		return noAccess
 	}
-	if !path.IsAbs(core) {
-		bin := path.Join(d.YasdbHome, ytccollectcommons.BIN)
-		if err := fileutil.CheckAccess(bin); err != nil {
-			desc, tips := ytccollectcommons.PathErrDescAndTips(core, err)
-			noAccess.Description = desc
-			noAccess.Tips = tips
-			return noAccess
-		}
-		noAccess.Description = fmt.Sprintf(ytccollectcommons.COREDUMP_RELATIVE_DESC, core)
-		noAccess.Tips = fmt.Sprintf(ytccollectcommons.COREDUMP_RELATIVE_TIPS, bin)
-		noAccess.ForceCollect = true
-		return noAccess
-	}
-	if err := fileutil.CheckAccess(core); err != nil {
-		desc, tips := ytccollectcommons.PathErrDescAndTips(core, err)
+	coreDumpPath := d.getCoreDumpRealPath(originCoreDumpPath, coreDumpType)
+	if err := fileutil.CheckAccess(coreDumpPath); err != nil {
+		desc, tips := ytccollectcommons.PathErrDescAndTips(coreDumpPath, err)
 		noAccess.Description = desc
 		noAccess.Tips = tips
+		return noAccess
+	}
+	// gen relative path info
+	if !path.IsAbs(originCoreDumpPath) {
+		noAccess.Description = fmt.Sprintf(ytccollectcommons.COREDUMP_RELATIVE_DESC, originCoreDumpPath)
+		noAccess.Tips = fmt.Sprintf(ytccollectcommons.COREDUMP_RELATIVE_TIPS, coreDumpPath)
+		noAccess.ForceCollect = true
 		return noAccess
 	}
 	return nil

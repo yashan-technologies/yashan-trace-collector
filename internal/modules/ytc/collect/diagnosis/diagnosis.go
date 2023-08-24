@@ -19,14 +19,13 @@ const (
 
 	ABRT_HOOK_CPP         = "abrt-hook-ccpp"
 	ABRT_CONF             = "/etc/abrt/abrt.conf"
-	DUMP_LOCATION         = "DumpLocation"
+	KEY_DUMP_LOCATION     = "DumpLocation"
 	DEFAULT_DUMP_LOCATION = "/var/spool/abrt"
 
 	SYSTEMD_COREDUMP         = "systemd-coredump"
 	SYSTEMD_COREDUMP_CONF    = "/etc/systemd/coredump.conf"
-	STORAGE                  = "Storage"
-	STORAGE_EXTERNAL         = "external"
-	EXTERNAL_STORAGE         = "ExternalStorage"
+	KEY_STORAGE              = "Storage"
+	VALUE_EXTERNAL           = "external"
 	DEFAULT_EXTERNAL_STORAGE = "/var/lib/systemd/coredump"
 	LOG_ROTATE_CONFIG        = "/etc/logrotate.conf"
 
@@ -53,10 +52,6 @@ const (
 	TAR_FILE_SUFFIX = "%s.tar.gz"
 
 	CORE_FILE_KEY = "core"
-)
-
-const (
-	_getErrMessage = "get\t[%s]\terror:\t%s"
 )
 
 var (

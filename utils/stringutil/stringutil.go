@@ -15,6 +15,7 @@ const (
 	STR_UNDER_SCORE   = "_"
 	STR_HASH          = "#"
 	STR_HTML_BR       = "<br>"
+	STR_QUESTION_MARK = "?"
 )
 
 // IsEmpty checks whether a string is empty.
