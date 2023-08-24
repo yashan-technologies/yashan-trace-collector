@@ -2,6 +2,7 @@ package collect
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"ytc/defs/regexdef"
 	"ytc/defs/runtimedef"
 	"ytc/log"
+	"ytc/utils/fileutil"
 	"ytc/utils/jsonutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/timeutil"
@@ -38,7 +40,7 @@ func (c *CollectCmd) validate() error {
 	if err := c.validateOutput(); err != nil {
 		return err
 	}
-	if err := c.validateExtra(); err != nil {
+	if err := c.validateIncludePath(); err != nil {
 		return err
 	}
 	return nil
@@ -61,22 +63,49 @@ func (c *CollectCmd) validateType() error {
 	return nil
 }
 
-func (c *CollectCmd) validateExtra() error {
-	if err := c.validateExtraPath(c.Include); err != nil {
-		return err
-	}
-	// no need to check exclude
-	return nil
-}
-
-func (c *CollectCmd) validateExtraPath(value string) error {
-	paths := c.getExtraPath(value)
-	for _, path := range paths {
-		if _, err := os.Stat(path); err != nil {
+func (c *CollectCmd) validateIncludePath() error {
+	includes := c.getExtraPath(c.Include)
+	for _, include := range includes {
+		if c.inExclude(include) {
+			continue
+		}
+		if _, err := os.Stat(include); err != nil {
+			return err
+		}
+		if err := c.checkInclude(include); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (c *CollectCmd) checkInclude(include string) error {
+	invalidPaths := []string{
+		runtimedef.GetYTCHome(),
+		c.Output,
+	}
+	for _, invalidPath := range invalidPaths {
+		if c.inExclude(invalidPath) {
+			continue
+		}
+		if fileutil.IsAncestorDir(include, invalidPath) {
+			return fmt.Errorf("could not collect: %s, because it contails the invalid path: %s", include, invalidPath)
+		}
+		if fileutil.IsAncestorDir(invalidPath, include) {
+			return fmt.Errorf("could not collect: %s, because the invalid path: %s contails it", include, invalidPath)
+		}
+	}
+	return nil
+}
+
+func (c *CollectCmd) inExclude(filePath string) bool {
+	excludes := c.getExtraPath(c.Exclude)
+	for _, exclude := range excludes {
+		if fileutil.IsAncestorDir(exclude, filePath) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *CollectCmd) validateRange() error {
@@ -191,4 +220,5 @@ func (c *CollectCmd) fillDefault(stra confdef.Strategy) {
 	if !path.IsAbs(c.Output) {
 		c.Output = path.Join(runtimedef.GetYTCHome(), c.Output)
 	}
+	c.Output = path.Clean(c.Output)
 }

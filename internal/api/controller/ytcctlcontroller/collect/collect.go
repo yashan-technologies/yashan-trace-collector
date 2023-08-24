@@ -3,6 +3,7 @@ package collect
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -161,13 +162,16 @@ func (c *CollectCmd) getTypes() (types map[string]struct{}, err error) {
 	return
 }
 
-func (c *CollectCmd) getExtraPath(value string) []string {
+func (c *CollectCmd) getExtraPath(value string) (res []string) {
 	if stringutil.IsEmpty(value) {
-		return nil
+		return
 	}
 	value = strings.TrimSpace(value)
 	value = strings.TrimPrefix(value, stringutil.STR_COMMA)
 	value = strings.TrimSuffix(value, stringutil.STR_COMMA)
 	fields := strings.Split(value, stringutil.STR_COMMA)
-	return fields
+	for _, field := range fields {
+		res = append(res, filepath.Clean(strings.TrimSpace(field)))
+	}
+	return
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,6 +16,10 @@ import (
 
 	"ytc/defs/regexdef"
 	"ytc/utils/userutil"
+)
+
+const (
+	ROOT_DIR = "/"
 )
 
 var (
@@ -184,4 +189,26 @@ func GetFileErrDescAndTips(err error) (string, string) {
 		tips = "please run with yasdb user or run with sudo"
 	}
 	return desc, tips
+}
+
+func IsAncestorDir(ancestorDir, dir string) bool {
+	if !path.IsAbs(ancestorDir) || !path.IsAbs(dir) {
+		return false
+	}
+	if ancestorDir == dir || ancestorDir == ROOT_DIR {
+		return true
+	}
+	for i := dir; i != ROOT_DIR; i = path.Dir(i) {
+		if i == ancestorDir {
+			return true
+		}
+	}
+	return false
+}
+
+func ComparePathDepth(path1, path2 string) int {
+	sep := string(filepath.Separator)
+	depth1 := strings.Count(path1, sep)
+	depth2 := strings.Count(path2, sep)
+	return depth1 - depth2
 }
