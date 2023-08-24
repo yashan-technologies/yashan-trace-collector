@@ -246,7 +246,7 @@ func (b *baseParser) ParseMemory(m collecttypedef.WorkloadItem, values []string)
 
 func (b *baseParser) calculateRealMemUsed(m MemoryUsage) MemoryUsage {
 	if m.KBMemFree+m.KBmemUsed != 0 {
-		m.RealMemUsed = float64((m.KBMemFree + m.KBBuffers + m.KBCached) / (m.KBMemFree + m.KBmemUsed))
+		m.RealMemUsed = 100 * (1 - float64(m.KBMemFree+m.KBBuffers+m.KBCached)/float64(m.KBMemFree+m.KBmemUsed))
 	}
 	return m
 }
