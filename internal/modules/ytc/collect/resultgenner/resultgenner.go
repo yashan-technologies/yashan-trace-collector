@@ -3,17 +3,15 @@ package resultgenner
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path"
 
 	"ytc/defs/bashdef"
-	"ytc/defs/runtimedef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/resultgenner/reporter"
 	"ytc/log"
 	"ytc/utils/execerutil"
 	"ytc/utils/fileutil"
 	"ytc/utils/stringutil"
-	"ytc/utils/userutil"
 
 	"git.yasdb.com/go/yaserr"
 	"git.yasdb.com/go/yasutil/fs"
@@ -42,19 +40,23 @@ type BaseResultGenner struct {
 }
 
 func (g *BaseResultGenner) GenResult() (string, error) {
+	logger := log.Module.M("gen result")
 	if err := g.Mkdirs(); err != nil {
 		return stringutil.STR_EMPTY, err
 	}
 	if err := g.Genner.GenData(g.Datas, g.genDataPath()); err != nil {
-		log.Module.Warnf("generate data failed: %s", err)
+		logger.Warnf("generate data failed: %s", err)
 	}
 	if err := g.writeReport(); err != nil {
-		log.Module.Errorf("write report failed: %s", err)
-		log.Module.Errorf("cause: %s", yaserr.Cause(err))
+		logger.Errorf("write report failed: %s", err)
+		logger.Errorf("cause: %s", yaserr.Cause(err))
 	}
 	if err := g.tarResult(); err != nil {
-		log.Module.Errorf("tar result failed: %s", err)
+		logger.Errorf("tar result failed: %s", err)
 		return stringutil.STR_EMPTY, err
+	}
+	if err := g.chownResult(); err != nil {
+		logger.Errorf("chown result failed: %s", err)
 	}
 	return g.genPackageTarPath(), nil
 }
@@ -89,11 +91,8 @@ func (g *BaseResultGenner) Mkdirs() error {
 		if err := fs.Mkdir(g.OutputDir); err != nil {
 			return err
 		}
-		if userutil.IsCurrentUserRoot() {
-			owner := runtimedef.GetExecuteableOwner()
-			if owner.Uid != 0 || owner.Gid != 0 {
-				_ = os.Chown(g.OutputDir, owner.Uid, owner.Uid)
-			}
+		if err := ytccollectcommons.ChownToExecuter(g.OutputDir); err != nil {
+			log.Module.Warnf("chown %s failed: %s", g.OutputDir, err)
 		}
 	}
 	if err := fs.Mkdir(path.Dir(g.genDataPath())); err != nil {
@@ -139,4 +138,8 @@ func (g *BaseResultGenner) tarResult() error {
 		return errors.New(stderr)
 	}
 	return nil
+}
+
+func (g *BaseResultGenner) chownResult() error {
+	return ytccollectcommons.ChownToExecuter(g.genPackageTarPath())
 }

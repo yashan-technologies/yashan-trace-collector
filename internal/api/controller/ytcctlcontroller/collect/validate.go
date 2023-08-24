@@ -11,11 +11,13 @@ import (
 	"ytc/defs/errdef"
 	"ytc/defs/regexdef"
 	"ytc/defs/runtimedef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
 	"ytc/utils/jsonutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/timeutil"
 
+	"git.yasdb.com/go/yasutil/fs"
 	"github.com/google/uuid"
 )
 
@@ -161,9 +163,12 @@ func (c *CollectCmd) validateOutput() error {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if err := os.MkdirAll(output, 0766); err != nil {
+		if err := fs.Mkdir(output); err != nil {
 			log.Controller.Errorf("create output err: %s", err.Error())
 			return err
+		}
+		if err := ytccollectcommons.ChownToExecuter(output); err != nil {
+			log.Controller.Warnf("chown %s failed: %s", output, err)
 		}
 	}
 	tmpFile := uuid.NewString()[0:7]
