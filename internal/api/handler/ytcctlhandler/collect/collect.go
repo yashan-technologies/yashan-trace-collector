@@ -17,6 +17,15 @@ import (
 	"git.yasdb.com/go/yasutil/tabler"
 )
 
+var (
+	_module_order = []string{
+		collecttypedef.TYPE_BASE,
+		collecttypedef.TYPE_DIAG,
+		collecttypedef.TYPE_PERF,
+		collecttypedef.TYPE_EXTRA,
+	}
+)
+
 func (c *CollecterHandler) Collect(yasdbValidate error) error {
 	noAccessMap, err := c.checkAccess(yasdbValidate)
 	if err != nil {
@@ -148,14 +157,19 @@ func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 		return e
 	}
 	collMap := c.collecterMap()
+	moduleFuncs := make(map[string]map[string]func() error)
 	for module, items := range moduleItems {
 		_, ok := collMap[module]
 		if !ok {
 			log.Handler.Errorf("collect type: %s not exist", module)
 			continue
 		}
-		itemFunc := collMap[module].CollectFunc(items)
-		progress.AddBar(module, itemFunc)
+		moduleFuncs[module] = collMap[module].CollectFunc(items)
+	}
+	for _, module := range _module_order {
+		if funcs, ok := moduleFuncs[module]; ok {
+			progress.AddBar(module, funcs)
+		}
 	}
 	progress.Start()
 	return c.CollectOK()

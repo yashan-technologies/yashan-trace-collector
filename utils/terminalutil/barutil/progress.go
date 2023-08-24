@@ -3,7 +3,6 @@ package barutil
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	mpb "github.com/vbauerster/mpb/v8"
 )
@@ -33,7 +32,7 @@ func NewProgress(opts ...ProgressOpt) *Progress {
 	}
 	var mpbOpt []mpb.ContainerOption
 	mpbOpt = append(mpbOpt, mpb.WithWaitGroup(group))
-	mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
+	// mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
 	if p.width != 0 {
 		mpbOpt = append(mpbOpt, mpb.WithWidth(p.width))
 	}
