@@ -4,7 +4,7 @@ import "regexp"
 
 const (
 	// 24h
-	range_format = `^[1-9][0-9]*[yMdhms]$`
+	range_format = `^[1-9][0-9]*[Mdhms]$`
 	// yyyy-MM-dd-hh-mm
 	time_format = `^[1-9]\d{3}-(0\d|1[0-2])-([012]\d|3[01])(-(0\d|1\d|2[0-3])(-([0-5]\d))?)?$`
 	// 绝对路径 | 相对路径

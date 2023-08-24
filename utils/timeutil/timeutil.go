@@ -24,35 +24,40 @@ const (
 	hour   = "h"
 	day    = "d"
 	month  = "M"
-	year   = "y"
 
 	minute_dur time.Duration = time.Minute
 	hour_dur                 = time.Hour
 	day_dur                  = hour_dur * 24
 	month_dur                = day_dur * 30
-	year_dur                 = month_dur * 12
-
-	NOON = time.Hour * 12
 )
 
 var (
 	ErrDurationInvalid = errors.New("duration invalid")
 )
 
-var monthMap = map[string]time.Month{
-	"Jan": time.January,
-	"Feb": time.February,
-	"Mar": time.March,
-	"Apr": time.April,
-	"May": time.May,
-	"Jun": time.June,
-	"Jul": time.July,
-	"Aug": time.August,
-	"Sep": time.September,
-	"Oct": time.October,
-	"Nov": time.November,
-	"Dec": time.December,
-}
+var (
+	monthMap = map[string]time.Month{
+		"Jan": time.January,
+		"Feb": time.February,
+		"Mar": time.March,
+		"Apr": time.April,
+		"May": time.May,
+		"Jun": time.June,
+		"Jul": time.July,
+		"Aug": time.August,
+		"Sep": time.September,
+		"Oct": time.October,
+		"Nov": time.November,
+		"Dec": time.December,
+	}
+
+	durMap = map[string]time.Duration{
+		minute: minute_dur,
+		hour:   hour_dur,
+		day:    day_dur,
+		month:  month_dur,
+	}
+)
 
 func GetTimeDivBySepa(timeStr, sepa string) (time.Time, error) {
 	dateFields := [6]int{}
@@ -82,26 +87,13 @@ func GetDuration(s string) (d time.Duration, err error) {
 		return
 	}
 	var p int64
-	var dunit time.Duration
 	suffix := s[len(s)-1:]
 	prefix := s[:len(s)-1]
 	p, err = strconv.ParseInt(prefix, 10, 64)
 	if err != nil {
 		return
 	}
-	switch suffix {
-	case year:
-		dunit = year_dur
-	case month:
-		dunit = month_dur
-	case day:
-		dunit = day_dur
-	case hour:
-		dunit = hour_dur
-	case minute:
-		dunit = minute_dur
-	}
-	d = duration(p, dunit)
+	d = duration(p, durMap[suffix])
 	return
 }
 
