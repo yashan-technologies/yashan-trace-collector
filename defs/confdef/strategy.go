@@ -27,6 +27,7 @@ type Collect struct {
 	ProcessNumberLimit int    `toml:"process_number_limit"`
 	SarDir             string `toml:"sar_dir"`
 	CoreFileKey        string `toml:"core_file_key"`
+	CoreDumpPath       string `toml:"core_dump_path"`
 	NetworkIODiscard   string `toml:"network_io_discard"`
 	AWRTimeout         string `toml:"awr_timeout"`
 }

@@ -22,7 +22,7 @@ const (
 	DIAG_YASDB_ADR             = "YashanDB-ADR"
 	DIAG_YASDB_RUNLOG          = "YashanDB-RunLog"
 	DIAG_YASDB_ALERTLOG        = "YashanDB-AlertLog"
-	DIAG_YASDB_COREDUMP        = "YashanDB-Coredump"
+	DIAG_YASDB_COREDUMP        = "YashanDB-CoreDump"
 	DIAG_HOST_KERNELLOG        = "Host-KernelLog"
 	DIAG_HOST_SYSTEMLOG        = "Host-SystemLog"
 
