@@ -10,8 +10,8 @@ var (
 	_moduleOrder = []string{
 		collecttypedef.TYPE_BASE,
 		collecttypedef.TYPE_DIAG,
-		collecttypedef.TYPE_EXTRA,
 		collecttypedef.TYPE_PERF,
+		collecttypedef.TYPE_EXTRA,
 	}
 )
 
@@ -57,7 +57,7 @@ var (
 	_itemOrder = map[string][]string{
 		collecttypedef.TYPE_BASE:  _baseItemOrder,
 		collecttypedef.TYPE_DIAG:  _diagItemOrder,
-		collecttypedef.TYPE_EXTRA: _extraItemOrder,
 		collecttypedef.TYPE_PERF:  _perfItemOrder,
+		collecttypedef.TYPE_EXTRA: _extraItemOrder,
 	}
 )

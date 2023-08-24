@@ -1,4 +1,4 @@
-package reporter
+package htmldef
 
 const HTML_CSS = `
 <style type="text/css">
@@ -7,43 +7,46 @@ const HTML_CSS = `
         padding: 0;
     }
 
+    #catalogs {
+        display: none;
+    }
+
     body {
         padding: 20px 80px;
         background-color: #f5f7f9;
         color: #000;
+        font-family: Verdana
     }
 
     table {
-        *border-collapse: collapse;
-        /* IE7 and lower */
+        border-collapse: collapse;
         border-spacing: 0;
         width: 100%;
         margin-bottom: 20px;
     }
 
-    /* ytc_table */
     .ytc_table {
         border: solid #ccc 1px;
-        -moz-border-radius: 6px;
-        -webkit-border-radius: 6px;
-        border-radius: 6px;
-        -webkit-box-shadow: 0 1px 1px #ccc;
-        -moz-box-shadow: 0 1px 1px #ccc;
+        border-radius: 10px;
         box-shadow: 0 1px 1px #ccc;
+        overflow: hidden;
     }
 
     .ytc_table caption {
         font-size: larger;
-        font-style: initial;
         font-weight: bold;
     }
 
     .ytc_table tr {
-        -o-transition: all 0.1s ease-in-out;
-        -webkit-transition: all 0.1s ease-in-out;
-        -moz-transition: all 0.1s ease-in-out;
-        -ms-transition: all 0.1s ease-in-out;
         transition: all 0.1s ease-in-out;
+    }
+
+    .ytc_table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .ytc_table tr:nth-child(odd) {
+        background-color: #ffffff;
     }
 
     .ytc_table .highlight,
@@ -61,16 +64,7 @@ const HTML_CSS = `
 
     .ytc_table th {
         background-color: #f5b31a;
-        background-image: -webkit-gradient(linear, left top, left bottom, from(#ffe194), to(#f5b31a));
-        background-image: -webkit-linear-gradient(top, #ffe194, #f5b31a);
-        background-image: -moz-linear-gradient(top, #ffe194, #f5b31a);
-        background-image: -ms-linear-gradient(top, #ffe194, #f5b31a);
-        background-image: -o-linear-gradient(top, #ffe194, #f5b31a);
         background-image: linear-gradient(top, #ffe194, #f5b31a);
-        filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#ffe194, endColorstr=#f5b31a);
-        -ms-filter: "progid:DXImageTransform.Microsoft.gradient (GradientType=0, startColorstr=#ffe194, endColorstr=#f5b31a)";
-        -webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset;
-        -moz-box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset;
         box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset;
         border-top: none;
         text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
@@ -82,27 +76,19 @@ const HTML_CSS = `
     }
 
     .ytc_table th:first-child {
-        -moz-border-radius: 6px 0 0 0;
-        -webkit-border-radius: 6px 0 0 0;
-        border-radius: 6px 0 0 0;
+        border-radius: 10px 0 0 0;
     }
 
     .ytc_table th:last-child {
-        -moz-border-radius: 0 6px 0 0;
-        -webkit-border-radius: 0 6px 0 0;
-        border-radius: 0 6px 0 0;
+        border-radius: 0 10px 0 0;
     }
 
     .ytc_table tr:last-child td:first-child {
-        -moz-border-radius: 0 0 0 6px;
-        -webkit-border-radius: 0 0 0 6px;
-        border-radius: 0 0 0 6px;
+        border-radius: 0 0 0 10px;
     }
 
     .ytc_table tr:last-child td:last-child {
-        -moz-border-radius: 0 0 6px 0;
-        -webkit-border-radius: 0 0 6px 0;
-        border-radius: 0 0 6px 0;
+        border-radius: 0 0 10px 0;
     }
 
 
@@ -130,11 +116,10 @@ const HTML_CSS = `
     li::before {
         position: absolute;
         content: '\2022';
-        font-family: Arial;
-        top: 0;
+        top: 0.25em;
         left: 0;
         text-align: center;
-        font-size: 2em;
+        font-size: 1em;
         opacity: .5;
         line-height: .75;
         -webkit-transition: .5s;
@@ -143,7 +128,7 @@ const HTML_CSS = `
 
     li:hover {
         color: #f5b31a;
-        font-size: 1.5em;
+        font-size: 1.1em;
     }
 
     li:hover::before {
@@ -164,6 +149,29 @@ const HTML_CSS = `
 
     .ytc_list>li::before {
         content: "";
+    }
+
+    /* ytc_button */
+    .ytc_button {
+        background-color: #F5B31A;
+        color: #000000;
+        padding: 10px 20px;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        border-radius: 15px;
+        font-family: Verdana, sans-serif;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .ytc_button:hover {
+        background-color: #ffc94a;
+    }
+
+    .ytc_button:active {
+        transform: translateY(1px);
     }
 </style>
 `

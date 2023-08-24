@@ -2,6 +2,8 @@
 package extrareporter
 
 import (
+	"fmt"
+
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/data/reporter/commons"
 	"ytc/internal/modules/ytc/collect/extra"
@@ -19,7 +21,7 @@ func NewExtraFileReporter() ExtraFileReporter {
 
 // [Interface Func]
 func (r ExtraFileReporter) Report(item datadef.YTCItem, titlePrefix string) (content reporter.ReportContent, err error) {
-	title := extra.ExtraChineseName[item.Name]
+	title := fmt.Sprintf("%s %s", titlePrefix, extra.ExtraChineseName[item.Name])
 	fontSize := reporter.FONT_SIZE_H2
 
 	// report error
