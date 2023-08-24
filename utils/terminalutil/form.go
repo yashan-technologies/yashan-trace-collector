@@ -14,8 +14,8 @@ var (
 	FormExitNotContinue = 1
 	FormExitContinue    = 2
 
-	Ok     = "Ok"
-	Cancel = "Cancel"
+	CONTINUE = "Continue"
+	BACK     = "Back"
 )
 
 type WithOption func(c *CollectFrom)
@@ -128,13 +128,13 @@ func (f *CollectFrom) ConfrimExit(errMsg string) {
 	modal := tview.NewModal().
 		SetBackgroundColor(tcell.ColorRed).
 		SetText(errMsg).
-		AddButtons([]string{Ok, Cancel}).
+		AddButtons([]string{CONTINUE, BACK}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonLabel == Ok {
+			if buttonLabel == CONTINUE {
 				f.Stop(FormExitContinue)
 				return
 			}
-			if buttonLabel == Cancel {
+			if buttonLabel == BACK {
 				f.app.SetRoot(f.form, false)
 				return
 			}
