@@ -20,6 +20,11 @@ const (
 	PasswordIsRequired = "password is required"
 )
 
+const (
+	ENV_SUDO_USER = "SUDO_USER"
+	ROOT_USER_UID = 0
+)
+
 var (
 	ErrSudoNeedPwd = errors.New("a password is required")
 	ErrNotRunSudo  = errors.New("user may not run sudo")
@@ -54,7 +59,7 @@ func GetCurrentUser() (string, error) {
 
 // IsCurrentUserRoot checks whether the current user is root.
 func IsCurrentUserRoot() bool {
-	return os.Getuid() == 0
+	return os.Getuid() == ROOT_USER_UID
 }
 
 // IsSysUserExists checks if the OS user exists.
@@ -83,4 +88,15 @@ func CheckSudovn(logger yaslog.YasLog) error {
 		return ErrNotRunSudo
 	}
 	return errors.New(err)
+}
+
+func GetRealUser() (*user.User, error) {
+	if IsCurrentUserRoot() {
+		username := os.Getenv(ENV_SUDO_USER)
+		if len(username) == 0 {
+			return user.LookupId(fmt.Sprint(ROOT_USER_UID))
+		}
+		return user.Lookup(username)
+	}
+	return user.LookupId(fmt.Sprint(os.Getuid()))
 }
