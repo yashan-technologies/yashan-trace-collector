@@ -100,6 +100,9 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 }
 
 func (c *CollectCmd) getStartAndEnd() (start time.Time, end time.Time, err error) {
+	defer func() {
+		end = end.Add(time.Minute)
+	}()
 	startegy := confdef.GetStrategyConf()
 	defRange := startegy.Collect.GetRange()
 	if !stringutil.IsEmpty(c.Range) {
