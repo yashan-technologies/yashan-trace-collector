@@ -1,6 +1,13 @@
 package errdef
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrPathFormat = errors.New("path format error, please check")
+)
 
 type ErrFileNotFound struct {
 	Fname string

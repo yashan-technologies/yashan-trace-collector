@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
@@ -166,7 +167,11 @@ func (c *CollectCmd) validateStartAndEnd() error {
 			return err
 		}
 		if end.Before(start) {
-			return ErrEndLessStart
+			return errdef.ErrEndLessStart
+		}
+		now := time.Now()
+		if start.After(now) {
+			return errdef.ErrStartShouldLessCurr
 		}
 		r := end.Sub(start)
 		if r > maxDuration {
@@ -182,7 +187,7 @@ func (c *CollectCmd) validateStartAndEnd() error {
 func (c *CollectCmd) validateOutput() error {
 	output := c.Output
 	if !regexdef.PathRegex.Match([]byte(output)) {
-		return ErrPathFormat
+		return errdef.ErrPathFormat
 	}
 	if !path.IsAbs(output) {
 		output = path.Join(runtimedef.GetYTCHome(), output)

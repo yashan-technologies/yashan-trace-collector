@@ -75,29 +75,6 @@ func GetYasdbAlertLogPath(yasdbData string) string {
 	return path.Join(yasdbData, ytccollectcommons.LOG, ytccollectcommons.ALERT)
 }
 
-func GetSystemLogPath() (string, error) {
-	_, err := os.Stat(SYSTEM_LOG_MESSAGES)
-	if err == nil {
-		return SYSTEM_LOG_MESSAGES, nil
-	}
-	log.Module.Errorf(err.Error())
-	if os.IsPermission(err) {
-		return SYSTEM_LOG_MESSAGES, nil
-	}
-	_, err = os.Stat(SYSTEM_LOG_SYSLOG)
-	if err == nil {
-		return SYSTEM_LOG_MESSAGES, nil
-	}
-	if err != nil {
-		log.Module.Errorf(err.Error())
-		if os.IsPermission(err) {
-			return SYSTEM_LOG_SYSLOG, nil
-		}
-	}
-	log.Module.Warnf("%s and %s not exist do not collect", SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
-	return "", err
-}
-
 func (d *DiagCollecter) checkYasdbProcess() *ytccollectcommons.NoAccessRes {
 	proces, err := processutil.GetYasdbProcess(d.YasdbData)
 	if err != nil || len(proces) == 0 {
@@ -295,24 +272,29 @@ func (d *DiagCollecter) checkYasdbCoredump() *ytccollectcommons.NoAccessRes {
 func (d *DiagCollecter) checkSyslog() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
 	noAccess.ModuleItem = datadef.DIAG_HOST_SYSTEMLOG
-	path, err := GetSystemLogPath()
-	if err != nil {
-		noAccess.Description = fmt.Sprintf(ytccollectcommons.GET_SYSLOG_ERR_DESC, err.Error())
-		noAccess.Tips = " "
-		return noAccess
+	messageErr := fileutil.CheckAccess(SYSTEM_MESSAGES_LOG)
+	syslogErr := fileutil.CheckAccess(SYSTEM_LOG_SYSLOG)
+	if messageErr == nil {
+		return nil
 	}
-	if len(path) == 0 {
-		noAccess.Description = fmt.Sprintf(ytccollectcommons.SYSLOG_UN_FOUND_DESC, SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
-		noAccess.Tips = ytccollectcommons.SYSLOG_UN_FOUND_TIPS
-		return noAccess
-	}
-	if err := fileutil.CheckAccess(path); err != nil {
-		desc, tips := ytccollectcommons.PathErrDescAndTips(path, err)
+	if !os.IsNotExist(messageErr) {
+		desc, tips := ytccollectcommons.PathErrDescAndTips(SYSTEM_MESSAGES_LOG, messageErr)
 		noAccess.Description = desc
 		noAccess.Tips = tips
 		return noAccess
 	}
-	return nil
+	if syslogErr == nil {
+		return nil
+	}
+	if !os.IsNotExist(syslogErr) {
+		desc, tips := ytccollectcommons.PathErrDescAndTips(SYSTEM_LOG_SYSLOG, syslogErr)
+		noAccess.Description = desc
+		noAccess.Tips = tips
+		return noAccess
+	}
+	noAccess.Description = fmt.Sprintf(ytccollectcommons.SYSLOG_UN_FOUND_DESC, SYSTEM_LOG_MESSAGES, SYSTEM_LOG_SYSLOG)
+	noAccess.Tips = ytccollectcommons.SYSLOG_UN_FOUND_TIPS
+	return noAccess
 }
 
 func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {

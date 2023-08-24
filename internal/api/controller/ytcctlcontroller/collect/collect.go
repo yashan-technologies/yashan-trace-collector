@@ -1,7 +1,6 @@
 package collect
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -25,11 +24,6 @@ const (
 	f_start       = "--start"
 	f_end         = "--end"
 	f_output      = "--output"
-)
-
-var (
-	ErrEndLessStart = errors.New("start time should be less than end time")
-	ErrPathFormat   = errors.New("path format error, please check")
 )
 
 type CollectGlobal struct {
