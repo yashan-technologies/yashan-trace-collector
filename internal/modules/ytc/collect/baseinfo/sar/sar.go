@@ -14,6 +14,7 @@ import (
 	"ytc/utils/execerutil"
 	"ytc/utils/osutil"
 	"ytc/utils/stringutil"
+	"ytc/utils/timeutil"
 
 	"git.yasdb.com/go/yaslog"
 )
@@ -156,8 +157,8 @@ func (s *Sar) getSarTimestamp(data string, timeStr string, dayPeriod string) (in
 		s.log.Error(err)
 		return 0, err
 	}
-	if dayPeriod == timedef.DAY_PERIOD_PM {
-		t = t.Add(12 * time.Hour)
+	if dayPeriod == timedef.DAY_PERIOD_PM && t.Hour() < int(timeutil.NOON/time.Hour) {
+		t = t.Add(timeutil.NOON)
 	}
 	return t.UTC().Unix(), nil
 }
