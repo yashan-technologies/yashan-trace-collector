@@ -45,7 +45,7 @@ func (y *YasdbEnv) ValidYasdbUser() error {
 
 func (y *YasdbEnv) ValidYasdbPassword() error {
 	if stringutil.IsEmpty(y.YasdbPassword) {
-		return errdef.NewItemEmpty(constdef.YASDB_DATA)
+		return errdef.NewItemEmpty(constdef.YASDB_PASSWORD)
 	}
 	return nil
 }

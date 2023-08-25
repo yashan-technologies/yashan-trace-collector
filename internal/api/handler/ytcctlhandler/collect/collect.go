@@ -9,12 +9,22 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
+	"ytc/defs/errdef"
 	ytccollect "ytc/internal/modules/ytc/collect"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
 	"ytc/utils/terminalutil/barutil"
 
 	"git.yasdb.com/go/yasutil/tabler"
+)
+
+var (
+	_module_order = []string{
+		collecttypedef.TYPE_BASE,
+		collecttypedef.TYPE_DIAG,
+		collecttypedef.TYPE_PERF,
+		collecttypedef.TYPE_EXTRA,
+	}
 )
 
 func (c *CollecterHandler) Collect(yasdbValidate error) error {
@@ -62,7 +72,7 @@ func (c *CollecterHandler) printNoAccessItem(m map[string][]ytccollectcommons.No
 		tabler.NewRowTitle("TIPS", 50),
 		tabler.NewRowTitle("COLLECTED?", 15),
 	)
-	fmt.Printf("%s\n\n", bashdef.WithYellow("Detect some problem and some tips will give to you"))
+	fmt.Printf("%s\n\n", bashdef.WithYellow("There are some tips for you"))
 	var modules []string
 	for t := range m {
 		modules = append(modules, t)
@@ -102,9 +112,15 @@ func (c *CollecterHandler) printCollectItem(typeItem map[string][]string) error 
 		moduleNames = make([]string, 0)
 	)
 	for module := range typeItem {
+		if len(typeItem[module]) == 0 {
+			continue
+		}
 		moduleNames = append(moduleNames, module)
 	}
 	sort.Strings(moduleNames)
+	if len(moduleNames) == 0 {
+		return errdef.ErrNoneCollectTtem
+	}
 	for _, t := range moduleNames {
 		itemTitle = append(itemTitle, tabler.NewRowTitle(strings.ToUpper(collecttypedef.GetTypeFullName(t)), 30))
 		moduleItems = append(moduleItems, typeItem[t])
@@ -148,14 +164,19 @@ func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 		return e
 	}
 	collMap := c.collecterMap()
+	moduleFuncs := make(map[string]map[string]func() error)
 	for module, items := range moduleItems {
 		_, ok := collMap[module]
 		if !ok {
 			log.Handler.Errorf("collect type: %s not exist", module)
 			continue
 		}
-		itemFunc := collMap[module].CollectFunc(items)
-		progress.AddBar(module, itemFunc)
+		moduleFuncs[module] = collMap[module].CollectFunc(items)
+	}
+	for _, module := range _module_order {
+		if funcs, ok := moduleFuncs[module]; ok {
+			progress.AddBar(module, funcs)
+		}
 	}
 	progress.Start()
 	return c.CollectOK()
@@ -185,6 +206,7 @@ func (c *CollecterHandler) CollectOK() error {
 	for _, collecter := range c.Collecters {
 		c.CollectResult.Modules[collecter.Type()] = collecter.CollectOK()
 	}
+	fmt.Printf("Packing collected results, please wait for a moment...\n\n")
 	path, err := c.CollectResult.GenResult(c.CollectResult.CollectParam.Output, c.Types)
 	if err != nil {
 		err = fmt.Errorf("failed to gen result, err: %v", err)

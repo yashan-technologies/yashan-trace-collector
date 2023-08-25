@@ -14,6 +14,7 @@ import (
 	"strings"
 	"syscall"
 
+	"ytc/defs/errdef"
 	"ytc/defs/regexdef"
 	"ytc/utils/userutil"
 )
@@ -211,4 +212,38 @@ func ComparePathDepth(path1, path2 string) int {
 	depth1 := strings.Count(path1, sep)
 	depth2 := strings.Count(path2, sep)
 	return depth1 - depth2
+
+}
+
+func CheckUserWrite(path string) error {
+	file, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if file.Mode().Perm()&syscall.S_IWRITE == 0 {
+		return errdef.NewErrPermissionDenied(userutil.CurrentUser, path)
+	}
+	return nil
+}
+
+func CheckUserRead(path string) error {
+	file, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if file.Mode().Perm()&syscall.S_IREAD == 0 {
+		return errdef.NewErrPermissionDenied(userutil.CurrentUser, path)
+	}
+	return nil
+}
+
+func CheckUserExec(path string) error {
+	file, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if file.Mode().Perm()&syscall.S_IEXEC == 0 {
+		return errdef.NewErrPermissionDenied(userutil.CurrentUser, path)
+	}
+	return nil
 }

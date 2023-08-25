@@ -15,7 +15,7 @@ const (
 	fileNotExistDesc            = "%s not exist"
 	fileNotPermissionDesc       = "current user: %s stat: %s permission denied"
 	fileNotExistTips            = "you can check if %s exists"
-	itemEmptyTips               = "you can re-run 'ytcctl collect' and fill yashandb user and yashandb password"
+	itemEmptyTips               = "you can run 'ytcctl collect' and fill yashandb user and yashandb password"
 	fileNotPermissionTips       = "you can check whether the current user has access to %s,and use the user who belongs to this file to execute 'ytcctl collect'"
 	databaseNotOpenTips         = "you can open the database first"
 	invalidUserOrPasswordTips   = "you can enter a correct username and password"

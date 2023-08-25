@@ -10,6 +10,7 @@ import (
 const (
 	_tips_apt_base_host_load_status = "sudo apt install sysstat"
 	_tips_yum_base_host_load_status = "sudo yum install sysstat"
+	_tips_sar_not_exist             = "historical load information may not be collected, and current load information will be collected by default, or you can run %s"
 	_tips_base_host_firewalld       = "you can run 'sudo ytcctl collect' or run 'ytcctl collect' with root"
 )
 

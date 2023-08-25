@@ -41,9 +41,9 @@ func (b *BaseCollecter) hostWorkload(log yaslog.YasLog, itemName string) (resp H
 			details[KEY_HISTORY] = historyNetworkWorkload
 		}
 	} else {
-		err = fmt.Errorf("cannot find command '%s'", bashdef.CMD_SAR)
-		resp.Errors[KEY_HISTORY] = err.Error()
-		log.Error(err)
+		e := fmt.Errorf("cannot find command '%s'", bashdef.CMD_SAR)
+		resp.Errors[KEY_HISTORY] = e.Error()
+		log.Error(e)
 	}
 
 	// collect current workload

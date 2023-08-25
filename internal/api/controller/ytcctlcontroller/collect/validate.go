@@ -1,30 +1,54 @@
 package collect
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
 	"ytc/defs/errdef"
 	"ytc/defs/regexdef"
 	"ytc/defs/runtimedef"
-	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
 	"ytc/utils/fileutil"
 	"ytc/utils/jsonutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/timeutil"
+	"ytc/utils/userutil"
 
 	"git.yasdb.com/go/yasutil/fs"
-	"github.com/google/uuid"
+)
+
+const (
+	f_type   = "type"
+	f_range  = "range"
+	f_start  = "start"
+	f_end    = "end"
+	f_output = "output"
 )
 
 var (
-	ErrOutPutNotPermission = errors.New("output permission denied")
+	_examples_time = []string{
+		"yyyy-MM-dd",
+		"yyyy-MM-dd-hh",
+		"yyyy-MM-dd-hh-mm",
+	}
+
+	_exmaples_range = []string{
+		"1M",
+		"1d",
+		"1h",
+		"1m",
+	}
+
+	_exmaples_type = []string{
+		strings.Join([]string{collecttypedef.TYPE_BASE, collecttypedef.TYPE_DIAG, collecttypedef.TYPE_PERF}, stringutil.STR_COMMA),
+	}
+
+	_range_help = "you must ensure that the number before (M|d|h|m) is greater than 0"
 )
 
 func (c *CollectCmd) validate() error {
@@ -58,7 +82,7 @@ func (c *CollectCmd) validateType() error {
 	types := strings.Split(c.Type, stringutil.STR_COMMA)
 	for _, t := range types {
 		if _, ok := tMap[t]; !ok {
-			return errdef.NewErrFlagFormat(ytctl_collect, f_type)
+			return errdef.NewErrYtcFlag(f_type, c.Type, _exmaples_type, "")
 		}
 		resMap[t] = struct{}{}
 	}
@@ -118,7 +142,7 @@ func (c *CollectCmd) validateRange() error {
 		return nil
 	}
 	if !regexdef.RangeRegex.MatchString(c.Range) {
-		return errdef.NewErrFlagFormat(ytctl_collect, f_range)
+		return errdef.NewErrYtcFlag(f_range, c.Range, _exmaples_range, _range_help)
 	}
 	minDuration, maxDuration, err := strategyConf.Collect.GetMinAndMaxDur()
 	if err != nil {
@@ -126,7 +150,10 @@ func (c *CollectCmd) validateRange() error {
 		return err
 	}
 	log.Controller.Debugf("get min %s max %s", minDuration.String(), maxDuration.String())
-	r := strategyConf.Collect.GetRange()
+	r, err := timeutil.GetDuration(c.Range)
+	if err != nil {
+		return err
+	}
 	if r > maxDuration {
 		return errdef.NewGreaterMaxDur(strategyConf.Collect.MaxDuration)
 	}
@@ -138,16 +165,32 @@ func (c *CollectCmd) validateRange() error {
 
 func (c *CollectCmd) validateStartAndEnd() error {
 	strategyConf := confdef.GetStrategyConf()
-	var startNotEmpty, endNotEmpty bool
+	var (
+		startNotEmpty, endNotEmpty bool
+		start, end                 time.Time
+		err                        error
+	)
 	if !stringutil.IsEmpty(c.Start) {
 		if !regexdef.TimeRegex.MatchString(c.Start) {
-			return errdef.NewErrFlagFormat(ytctl_collect, f_start)
+			return errdef.NewErrYtcFlag(f_start, c.Start, _examples_time, "")
+		}
+		start, err = timeutil.GetTimeDivBySepa(c.Start, stringutil.STR_HYPHEN)
+		if err != nil {
+			return err
+		}
+		now := time.Now()
+		if start.After(now) {
+			return errdef.ErrStartShouldLessCurr
 		}
 		startNotEmpty = true
 	}
 	if !stringutil.IsEmpty(c.End) {
 		if !regexdef.TimeRegex.MatchString(c.End) {
-			return errdef.NewErrFlagFormat(ytctl_collect, f_end)
+			return errdef.NewErrYtcFlag(f_end, c.End, _examples_time, "")
+		}
+		end, err = timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
+		if err != nil {
+			return err
 		}
 		endNotEmpty = true
 	}
@@ -157,16 +200,8 @@ func (c *CollectCmd) validateStartAndEnd() error {
 			log.Controller.Errorf("get duration err: %s", err.Error())
 			return err
 		}
-		start, err := timeutil.GetTimeDivBySepa(c.Start, stringutil.STR_HYPHEN)
-		if err != nil {
-			return err
-		}
-		end, err := timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
-		if err != nil {
-			return err
-		}
 		if end.Before(start) {
-			return ErrEndLessStart
+			return errdef.ErrEndLessStart
 		}
 		r := end.Sub(start)
 		if r > maxDuration {
@@ -182,40 +217,29 @@ func (c *CollectCmd) validateStartAndEnd() error {
 func (c *CollectCmd) validateOutput() error {
 	output := c.Output
 	if !regexdef.PathRegex.Match([]byte(output)) {
-		return ErrPathFormat
+		return errdef.ErrPathFormat
 	}
 	if !path.IsAbs(output) {
 		output = path.Join(runtimedef.GetYTCHome(), output)
 	}
 	_, err := os.Stat(output)
 	if err != nil {
+		if os.IsPermission(err) {
+			return errdef.NewErrPermissionDenied(userutil.CurrentUser, output)
+		}
 		if !os.IsNotExist(err) {
 			return err
 		}
 		if err := fs.Mkdir(output); err != nil {
 			log.Controller.Errorf("create output err: %s", err.Error())
-			return err
-		}
-		if err := ytccollectcommons.ChownToExecuter(output); err != nil {
-			log.Controller.Warnf("chown %s failed: %s", output, err)
-		}
-	}
-	tmpFile := uuid.NewString()[0:7]
-	for {
-		_, err := os.OpenFile(path.Join(output, tmpFile), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-		if err != nil {
-			if os.IsExist(err) {
-				continue
-			}
-			log.Controller.Errorf("create tmp err: %s", err.Error())
 			if os.IsPermission(err) {
-				return errdef.NewErrPermissionDenied(output)
+				return errdef.NewErrPermissionDenied(userutil.CurrentUser, output)
 			}
 			return err
 		}
-		_ = os.Remove(path.Join(output, tmpFile))
-		return nil
 	}
+	return fileutil.CheckUserWrite(output)
+
 }
 
 func (c *CollectCmd) fillDefault(stra confdef.Strategy) {

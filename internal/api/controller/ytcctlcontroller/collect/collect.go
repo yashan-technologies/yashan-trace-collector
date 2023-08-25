@@ -1,14 +1,15 @@
 package collect
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
+	"ytc/defs/errdef"
 	ytcctlhandler "ytc/internal/api/handler/ytcctlhandler/collect"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
@@ -18,23 +19,9 @@ import (
 	"ytc/utils/timeutil"
 )
 
-const (
-	ytctl_collect = "ytctl collect"
-	f_type        = "--type"
-	f_range       = "--range"
-	f_start       = "--start"
-	f_end         = "--end"
-	f_output      = "--output"
-)
-
-var (
-	ErrEndLessStart = errors.New("start time should be less than end time")
-	ErrPathFormat   = errors.New("path format error, please check")
-)
-
 type CollectGlobal struct {
 	Type    string `name:"type"   short:"t" default:"base,diag" help:"The type of collection, choose many of (base|diag|perf) and split with ','."`
-	Range   string `name:"range"  short:"r" help:"The time range of the collection, such as ''1M', '1d', '1h', '1m'. If <range> is given, <start> and <end> will be discard."`
+	Range   string `name:"range"  short:"r" help:"The time range of the collection, such as '1M', '1d', '1h', '1m'. If <range> is given, <start> and <end> will be discard."`
 	Start   string `name:"start"  short:"s" help:"The start datetime of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm'"`
 	End     string `name:"end"    short:"e" help:"The end timestamp of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm',, default value is current datetime."`
 	Output  string `name:"output" short:"o" help:"The output dir of the collection."`
@@ -72,7 +59,10 @@ func (c *CollectCmd) Run() error {
 	log.Controller.Debugf("from validate res :%s, ", jsonutil.ToJSONString(YasdbValidate))
 	if err := handler.Collect(YasdbValidate); err != nil {
 		log.Controller.Errorf(err.Error())
-		fmt.Printf("Stopping Collect...\n\n")
+		if err == errdef.ErrNoneCollectTtem {
+			fmt.Println(bashdef.WithBlue(err.Error()))
+		}
+		fmt.Println("Stopping Collect...")
 	}
 	return nil
 }
@@ -100,6 +90,9 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 }
 
 func (c *CollectCmd) getStartAndEnd() (start time.Time, end time.Time, err error) {
+	defer func() {
+		end = end.Add(time.Minute)
+	}()
 	startegy := confdef.GetStrategyConf()
 	defRange := startegy.Collect.GetRange()
 	if !stringutil.IsEmpty(c.Range) {

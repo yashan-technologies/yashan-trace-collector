@@ -1,6 +1,14 @@
 package errdef
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrEndLessStart        = errors.New("start time should be less than end time")
+	ErrStartShouldLessCurr = errors.New("start time should be less current time")
+)
 
 type ErrGreaterMaxDur struct {
 	MaxDuration string

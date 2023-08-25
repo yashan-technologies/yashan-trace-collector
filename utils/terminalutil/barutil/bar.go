@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
@@ -69,10 +70,9 @@ func (b *bar) draw() {
 			decor.Percentage(decor.WCSyncSpace),
 		),
 		mpb.AppendDecorators(
-			// replace ETA decorator with "done" message, OnComplete event
 			decor.OnComplete(
 				// ETA decorator with ewma age of 30
-				decor.EwmaETA(decor.ET_STYLE_GO, 30), "done",
+				decor.Name("collecting"), "done",
 			),
 		),
 	)
@@ -83,13 +83,17 @@ func (b *bar) run() {
 	defer func() {
 		b.progress.wg.Done()
 	}()
+	var wg sync.WaitGroup
 	for _, t := range b.tasks {
-		go t.start()
+		wg.Add(1)
+		go func(t *task) {
+			defer wg.Done()
+			t.start()
+			t.wait()
+			b.bar.Increment()
+		}(t)
 	}
-	for _, t := range b.tasks {
-		t.wait()
-		b.bar.Increment()
-	}
+	wg.Wait()
 }
 
 func (b *bar) splitMsg(msg string) []string {

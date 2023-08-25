@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+
 	"ytc/commons/flags"
 	"ytc/defs/compiledef"
 	"ytc/defs/confdef"
@@ -26,7 +28,7 @@ func main() {
 		ctx.FatalIfErrorf(err)
 	}
 	if err := ctx.Run(); err != nil {
-		ctx.FatalIfErrorf(yaserr.Unwrap(err))
+		fmt.Println(yaserr.Unwrap(err))
 	}
 }
 

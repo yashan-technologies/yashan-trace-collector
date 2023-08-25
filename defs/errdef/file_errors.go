@@ -1,6 +1,13 @@
 package errdef
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrPathFormat = errors.New("path format error, please check")
+)
 
 type ErrFileNotFound struct {
 	Fname string
@@ -9,11 +16,6 @@ type ErrFileNotFound struct {
 type ErrFileParseFailed struct {
 	Fname string
 	Err   error
-}
-
-type ErrFlagFormat struct {
-	Cmd  string
-	Flag string
 }
 
 type ErrCmdNotExist struct {
@@ -25,14 +27,8 @@ type ErrCmdNeedRoot struct {
 }
 
 type ErrPermissionDenied struct {
+	User     string
 	FileName string
-}
-
-func NewErrFlagFormat(cmd, flag string) *ErrFlagFormat {
-	return &ErrFlagFormat{
-		Cmd:  cmd,
-		Flag: flag,
-	}
 }
 
 func NewErrCmdNotExist(cmd string) *ErrCmdNotExist {
@@ -47,9 +43,10 @@ func NewErrCmdNeedRoot(cmd string) *ErrCmdNeedRoot {
 	}
 }
 
-func NewErrPermissionDenied(name string) *ErrPermissionDenied {
+func NewErrPermissionDenied(user string, path string) *ErrPermissionDenied {
 	return &ErrPermissionDenied{
-		FileName: name,
+		User:     user,
+		FileName: path,
 	}
 }
 
@@ -61,10 +58,6 @@ func (e *ErrFileParseFailed) Error() string {
 	return fmt.Sprintf("parse %s failed: %s", e.Fname, e.Err)
 }
 
-func (e *ErrFlagFormat) Error() string {
-	return fmt.Sprintf("flag: %s format error, please run '%s --help'", e.Flag, e.Cmd)
-}
-
 func (e *ErrCmdNotExist) Error() string {
 	return fmt.Sprintf("command: %s not exist", e.Cmd)
 }
@@ -74,5 +67,5 @@ func (e *ErrCmdNeedRoot) Error() string {
 }
 
 func (e *ErrPermissionDenied) Error() string {
-	return fmt.Sprintf("%s permission denied", e.FileName)
+	return fmt.Sprintf("The current user %s does not have permission to: %s", e.User, e.FileName)
 }

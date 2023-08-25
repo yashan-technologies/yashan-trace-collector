@@ -20,7 +20,7 @@ const (
 func (p *PerfCollecter) checkAwr() *ytccollectcommons.NoAccessRes {
 	noAccess := &ytccollectcommons.NoAccessRes{ModuleItem: datadef.PERF_YASDB_AWR}
 	if strings.ToUpper(p.YasdbUser) != USER_SYS {
-		ytccollectcommons.FillDescTips(noAccess, ytccollectcommons.USER_NOT_SYS_DESC, ytccollectcommons.USER_NOT_SYS_TIPS)
+		ytccollectcommons.FillDescTips(noAccess, fmt.Sprintf(ytccollectcommons.USER_NOT_SYS_DESC, p.YasdbUser), ytccollectcommons.USER_NOT_SYS_TIPS)
 		return noAccess
 	}
 	if p.yasdbValidateErr != nil {

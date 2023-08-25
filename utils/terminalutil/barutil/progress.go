@@ -3,7 +3,6 @@ package barutil
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	mpb "github.com/vbauerster/mpb/v8"
 )
@@ -33,7 +32,7 @@ func NewProgress(opts ...ProgressOpt) *Progress {
 	}
 	var mpbOpt []mpb.ContainerOption
 	mpbOpt = append(mpbOpt, mpb.WithWaitGroup(group))
-	mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
+	// mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
 	if p.width != 0 {
 		mpbOpt = append(mpbOpt, mpb.WithWidth(p.width))
 	}
@@ -44,6 +43,9 @@ func NewProgress(opts ...ProgressOpt) *Progress {
 
 func (p *Progress) AddBar(name string, namedWorker map[string]func() error) {
 	bar := newBar(name, p, withBarWidth(p.width))
+	if len(namedWorker) == 0 {
+		return
+	}
 	p.wg.Add(1)
 	for name, w := range namedWorker {
 		bar.addTask(name, w)
