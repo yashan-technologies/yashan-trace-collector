@@ -10,10 +10,16 @@ func (b *ExtraCollecter) checkExtraCollect() *ytccollectcommons.NoAccessRes {
 	noAccess := new(ytccollectcommons.NoAccessRes)
 	noAccess.ModuleItem = datadef.EXTRA_FILE_COLLECT
 	for _, path := range b.Include {
-		if err := fileutil.CheckAccess(path); err != nil {
-			tips, desc := ytccollectcommons.PathErrDescAndTips(path, err)
-			noAccess.Description = tips
-			noAccess.Tips = desc
+		res, err := fileutil.CheckDirAccess(path, b.genExcludeMap())
+		if err != nil {
+			desc, tips := ytccollectcommons.PathErrDescAndTips(path, err)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
+			return noAccess
+		}
+		if len(res) != 0 {
+			desc, tips := ytccollectcommons.FilesErrDescAndTips(res)
+			ytccollectcommons.FillDescTips(noAccess, desc, tips)
+			noAccess.ForceCollect = true
 			return noAccess
 		}
 	}
@@ -22,8 +28,8 @@ func (b *ExtraCollecter) checkExtraCollect() *ytccollectcommons.NoAccessRes {
 
 }
 
-func (d *ExtraCollecter) CheckFunc() map[string]func() *ytccollectcommons.NoAccessRes {
+func (b *ExtraCollecter) CheckFunc() map[string]func() *ytccollectcommons.NoAccessRes {
 	return map[string]func() *ytccollectcommons.NoAccessRes{
-		datadef.EXTRA_FILE_COLLECT: d.checkExtraCollect,
+		datadef.EXTRA_FILE_COLLECT: b.checkExtraCollect,
 	}
 }

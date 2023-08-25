@@ -3,10 +3,9 @@ package diagnosis
 import (
 	"fmt"
 	"path"
-	"time"
 
 	"ytc/defs/errdef"
-	"ytc/defs/timedef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
@@ -37,14 +36,13 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 		return
 	}
 	// package adr to dest
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME)
-	destFile := fmt.Sprintf("yasdb-diag-%s.tar.gz", time.Now().Format(timedef.TIME_FORMAT_IN_FILE))
-	if err = fs.TarDir(adrPath, path.Join(destPath, destFile)); err != nil {
+	destPath := path.Join(_packageDir, DIAG_DIR_NAME, ADR_DIR_NAME)
+	if err = ytccollectcommons.CopyDir(log, adrPath, destPath, nil); err != nil {
 		log.Error(err)
 		yasdbADRItem.Error = err.Error()
 		yasdbADRItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	yasdbADRItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, destFile))
+	yasdbADRItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, ADR_DIR_NAME))
 	return
 }

@@ -47,6 +47,10 @@ const (
 	KEY_SLOW_SQL_CUT_FILE  = "slowCutFile"
 )
 
+const (
+	VIEW_SLOW_LOG = "SLOW_LOG$"
+)
+
 var (
 	_packageDir string
 )
@@ -212,17 +216,20 @@ func (p *PerfCollecter) collectAWR() error {
 	sqlFile, err := p.createAWRSqlFile(log)
 	if err != nil {
 		awr.Error = err.Error()
+		awr.Description = datadef.GenDefaultDesc()
 		return err
 	}
 	defer p.deleteSqlFile(sqlFile)
 	htmlPath, err := p.genAwrHtmlReport(log, sqlFile)
 	if err != nil {
 		awr.Error = err.Error()
+		awr.Description = datadef.GenDefaultDesc()
 		return err
 	}
 	relative, err := filepath.Rel(_packageDir, htmlPath)
 	if err != nil {
 		awr.Error = err.Error()
+		awr.Description = datadef.GenDefaultDesc()
 		return err
 	}
 	awr.Details = fmt.Sprintf("./%s", relative)
@@ -373,6 +380,7 @@ func (p *PerfCollecter) collectSlowLogs(log yaslog.YasLog) (slowLogs *datadef.YT
 	if err != nil {
 		slowLogs.Error = err.Error()
 		log.Errorf("query slow log err: %s", err.Error())
+		slowLogs.Description = datadef.GenGetDatabaseViewDesc(VIEW_SLOW_LOG)
 		return
 	}
 	slowLogs.Details = slows
@@ -387,6 +395,7 @@ func (p *PerfCollecter) collectSlowParameter(log yaslog.YasLog) (parameter *data
 		value, err := yasdb.QueryParameter(tx, key)
 		if err != nil {
 			parameter.Error = err.Error()
+			parameter.Description = datadef.GenGetDatabaseParameterDesc(string(key))
 			log.Errorf("get slow parameter: %s err: %s", key, err.Error())
 			return
 		}
@@ -405,12 +414,14 @@ func (p *PerfCollecter) collectCutSlowLogFile(log yaslog.YasLog) (cutSlowLog *da
 	if err != nil {
 		log.Errorf("get slow log err: %s", err.Error())
 		cutSlowLog.Error = err.Error()
+		cutSlowLog.Description = datadef.GenDefaultDesc()
 		return
 	}
 	relative, err := filepath.Rel(_packageDir, slowPath)
 	if err != nil {
 		log.Errorf("get relative path err: %s", err.Error())
 		cutSlowLog.Error = err.Error()
+		cutSlowLog.Description = datadef.GenDefaultDesc()
 		return
 	}
 	cutSlowLog.Details = fmt.Sprintf("./%s", relative)

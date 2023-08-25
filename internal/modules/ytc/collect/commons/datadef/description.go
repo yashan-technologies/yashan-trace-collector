@@ -16,6 +16,7 @@ const (
 	DESC_GET_DATABASE_PARAMETER     = "获取数据库%s参数失败，请检查数据库状态或查看YTC日志定位原因"
 	DESC_SKIP_COLLECT_DATABASE_INFO = "数据库连接失败，将跳过本检查项"
 	DESC_YASDB_PROCESS_STATUS       = "获取数据库进程信息失败，请检查数据库进程是否存在"
+	DESC_GET_DATABASE_VIEW          = "查询数据库%s视图失败，请检查数据库状态或查看YTC日志定位原因"
 )
 
 const (
@@ -63,4 +64,8 @@ func GenSkipCollectDatabaseInfoDesc() string {
 
 func GenYasdbProcessStatusDesc() string {
 	return DESC_YASDB_PROCESS_STATUS
+}
+
+func GenGetDatabaseViewDesc(view string) string {
+	return fmt.Sprintf(DESC_GET_DATABASE_VIEW, view)
 }

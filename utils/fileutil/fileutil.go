@@ -247,3 +247,22 @@ func CheckUserExec(path string) error {
 	}
 	return nil
 }
+
+func CheckDirAccess(dir string, excludeMap map[string]struct{}) (res map[string]error, err error) {
+	res = make(map[string]error)
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if _, ok := excludeMap[path]; ok {
+			return nil
+		}
+		if err != nil {
+			res[path] = err
+			return nil
+		}
+		if err := CheckAccess(path); err != nil {
+			res[path] = err
+			return nil
+		}
+		return nil
+	})
+	return
+}
