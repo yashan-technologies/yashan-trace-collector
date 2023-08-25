@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	"ytc/defs/confdef"
+	"ytc/defs/errdef"
 	ytcctlhandler "ytc/internal/api/handler/ytcctlhandler/collect"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
@@ -57,7 +59,10 @@ func (c *CollectCmd) Run() error {
 	log.Controller.Debugf("from validate res :%s, ", jsonutil.ToJSONString(YasdbValidate))
 	if err := handler.Collect(YasdbValidate); err != nil {
 		log.Controller.Errorf(err.Error())
-		fmt.Printf("Stopping Collect...\n\n")
+		if err == errdef.ErrNoneCollectTtem {
+			fmt.Println(bashdef.WithBlue(err.Error()))
+		}
+		fmt.Println("Stopping Collect...")
 	}
 	return nil
 }

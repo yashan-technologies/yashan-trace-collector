@@ -43,6 +43,9 @@ func NewProgress(opts ...ProgressOpt) *Progress {
 
 func (p *Progress) AddBar(name string, namedWorker map[string]func() error) {
 	bar := newBar(name, p, withBarWidth(p.width))
+	if len(namedWorker) == 0 {
+		return
+	}
 	p.wg.Add(1)
 	for name, w := range namedWorker {
 		bar.addTask(name, w)

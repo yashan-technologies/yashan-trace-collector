@@ -19,10 +19,10 @@ const (
 	SAVE = "Save"
 	QUIT = "Quit"
 
-	FORM_HEADER = "Enter Yashan Trace Collecter Data"
+	FORM_HEADER = "Enter Yashan Trace Collector Data"
 
 	base_yasdb_process_format       = `.*yasdb (?i:(nomount|mount|open))`
-	yasdb_internal_data_not_collect = "yasdb internal data will not be collected, are you continue?"
+	yasdb_internal_data_not_collect = "yasdb internal data will not be collected, are you sure to continue?"
 )
 
 var (

@@ -54,7 +54,7 @@ var (
 	}
 
 	_SlowLogSelector = &yasqlutil.Select{
-		Table: "SLOW_LOG$",
+		Table: "sys.SLOW_LOG$",
 		Columns: []string{
 			"DATABASE_NAME AS dbName",
 			"USER_NAME as userName",

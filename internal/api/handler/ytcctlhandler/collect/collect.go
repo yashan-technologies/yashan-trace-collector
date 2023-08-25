@@ -9,6 +9,7 @@ import (
 
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
+	"ytc/defs/errdef"
 	ytccollect "ytc/internal/modules/ytc/collect"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
@@ -111,9 +112,15 @@ func (c *CollecterHandler) printCollectItem(typeItem map[string][]string) error 
 		moduleNames = make([]string, 0)
 	)
 	for module := range typeItem {
+		if len(typeItem[module]) == 0 {
+			continue
+		}
 		moduleNames = append(moduleNames, module)
 	}
 	sort.Strings(moduleNames)
+	if len(moduleNames) == 0 {
+		return errdef.ErrNoneCollectTtem
+	}
 	for _, t := range moduleNames {
 		itemTitle = append(itemTitle, tabler.NewRowTitle(strings.ToUpper(collecttypedef.GetTypeFullName(t)), 30))
 		moduleItems = append(moduleItems, typeItem[t])
@@ -199,6 +206,7 @@ func (c *CollecterHandler) CollectOK() error {
 	for _, collecter := range c.Collecters {
 		c.CollectResult.Modules[collecter.Type()] = collecter.CollectOK()
 	}
+	fmt.Printf("Packing collected results, please wait for a moment...\n\n")
 	path, err := c.CollectResult.GenResult(c.CollectResult.CollectParam.Output, c.Types)
 	if err != nil {
 		err = fmt.Errorf("failed to gen result, err: %v", err)

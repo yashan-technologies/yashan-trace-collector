@@ -32,7 +32,7 @@ import (
 const (
 	SLOW_LOG_FILE_PATH = "SLOW_LOG_FILE_PATH"
 	AWR                = "awr"
-	SLOW               = "slow"
+	SLOW               = "slowsql"
 	ERR_PREFIX         = "YAS-"
 )
 

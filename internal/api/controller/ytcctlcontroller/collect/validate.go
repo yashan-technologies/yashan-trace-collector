@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"syscall"
 	"time"
 
 	"ytc/defs/collecttypedef"
@@ -19,15 +18,16 @@ import (
 	"ytc/utils/stringutil"
 	"ytc/utils/timeutil"
 	"ytc/utils/userutil"
+
+	"git.yasdb.com/go/yasutil/fs"
 )
 
 const (
-	ytctl_collect = "ytctl collect"
-	f_type        = "type"
-	f_range       = "range"
-	f_start       = "start"
-	f_end         = "end"
-	f_output      = "output"
+	f_type   = "type"
+	f_range  = "range"
+	f_start  = "start"
+	f_end    = "end"
+	f_output = "output"
 )
 
 var (
@@ -230,7 +230,7 @@ func (c *CollectCmd) validateOutput() error {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if err := os.MkdirAll(output, 0775); err != nil {
+		if err := fs.Mkdir(output); err != nil {
 			log.Controller.Errorf("create output err: %s", err.Error())
 			if os.IsPermission(err) {
 				return errdef.NewErrPermissionDenied(userutil.CurrentUser, output)
@@ -238,15 +238,7 @@ func (c *CollectCmd) validateOutput() error {
 			return err
 		}
 	}
-	// 检查有没有写权限
-	file, err := os.Stat(output)
-	if err != nil {
-		return err
-	}
-	if file.Mode().Perm()&syscall.S_IWRITE == 0 {
-		return errdef.NewErrPermissionDenied(userutil.CurrentUser, output)
-	}
-	return nil
+	return fileutil.CheckUserWrite(output)
 
 }
 

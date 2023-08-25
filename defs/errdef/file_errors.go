@@ -67,5 +67,5 @@ func (e *ErrCmdNeedRoot) Error() string {
 }
 
 func (e *ErrPermissionDenied) Error() string {
-	return fmt.Sprintf("current user %s is not permission to :%s", e.User, e.FileName)
+	return fmt.Sprintf("The current user %s does not have permission to: %s", e.User, e.FileName)
 }
