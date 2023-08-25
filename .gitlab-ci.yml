@@ -32,8 +32,8 @@ build:
   stage: compile
   script:
     - python3 build.py build --clean
-    - $CI_SCRIPT dump
   after_script:
+    - $CI_SCRIPT dump
     - $CI_SCRIPT show
   artifacts:
     paths:

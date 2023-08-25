@@ -63,7 +63,7 @@ var (
 
 	PerformanceChildChineseName = map[string]string{
 		KEY_SLOW_SQL_PARAMETER: "慢SQL参数",
-		KEY_SLOW_SQL_LOGS:      "SLOW_LOG$",
+		KEY_SLOW_SQL_LOGS:      "SLOW_LOG$系统表",
 		KEY_SLOW_SQL_CUT_FILE:  "慢SQL日志文件",
 	}
 
