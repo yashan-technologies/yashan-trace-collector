@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/fileutil"
 	"ytc/utils/stringutil"
 
-	"git.yasdb.com/go/yaslog"
 	"git.yasdb.com/go/yasutil/fs"
 )
 
@@ -32,7 +31,7 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 	excludeMap := b.genExcludeMap()
 	for dir, realPath := range dirs {
 		dest := path.Join(destPartentDir, dir)
-		if err = b.copyDir(log, realPath, dest, excludeMap); err != nil {
+		if err = ytccollectcommons.CopyDir(log, realPath, dest, excludeMap); err != nil {
 			log.Error(err)
 			log.Errorf("failed to copy dir %s to %s, err: %v", realPath, dest, err)
 			extraFile.Error = err.Error()
@@ -144,42 +143,6 @@ func (b *ExtraCollecter) genExcludeMap() (res map[string]struct{}) {
 	for _, path := range b.Exclude {
 		res[path] = struct{}{}
 	}
-	return
-}
-
-func (b *ExtraCollecter) copyDir(log yaslog.YasLog, src, dest string, excludeMap map[string]struct{}) (err error) {
-	if strings.TrimSpace(src) == strings.TrimSpace(dest) {
-		log.Infof("src path: %s is equal to dest path: %s, skip", src, dest)
-		return
-	}
-	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Errorf("failed to copy dir, err: %s", err.Error())
-			return err
-		}
-		if _, ok := excludeMap[path]; ok {
-			log.Infof("skip exclude path: %s", path)
-			return filepath.SkipDir
-		}
-		destNewPath := strings.Replace(path, src, dest, -1)
-		if info.IsDir() {
-			if err = os.MkdirAll(destNewPath, info.Mode()); err != nil {
-				log.Errorf("failed to mkdir: %s, err: %s", destNewPath, err.Error())
-				return err
-			}
-		} else {
-			if err = fs.CopyFile(path, destNewPath); err != nil {
-				// skip no permission file
-				if os.IsPermission(err) {
-					log.Infof("skip inaccessible path: %s", path)
-					return nil
-				}
-				log.Errorf("failed to copy file %s to %s, err: %s", path, destNewPath, err.Error())
-				return err
-			}
-		}
-		return nil
-	})
 	return
 }
 

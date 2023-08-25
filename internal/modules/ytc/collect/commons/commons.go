@@ -3,12 +3,18 @@ package ytccollectcommons
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"ytc/defs/errdef"
 	"ytc/log"
+	"ytc/utils/stringutil"
 	"ytc/utils/userutil"
 	"ytc/utils/yasqlutil"
+
+	"git.yasdb.com/go/yaslog"
+	"git.yasdb.com/go/yasutil/fs"
 )
 
 const (
@@ -186,5 +192,50 @@ func NotAccessItem2Set(noAccess []NoAccessRes) (res map[string]struct{}) {
 		}
 		res[noAccessRes.ModuleItem] = struct{}{}
 	}
+	return
+}
+
+func FilesErrDescAndTips(res map[string]error) (desc string, tips string) {
+	i := 1
+	var files []string
+	var buf strings.Builder
+	for path, err := range res {
+		buf.WriteString(fmt.Sprintf("%d.%s:%s; ", i, path, err.Error()))
+		files = append(files, path)
+		i++
+	}
+	desc = buf.String()
+	tips = fmt.Sprintf("these files [%s] will not be collected", strings.Join(files, stringutil.STR_COMMA))
+	return
+}
+
+func CopyDir(log yaslog.YasLog, src, dest string, excludeMap map[string]struct{}) (err error) {
+	if strings.TrimSpace(src) == strings.TrimSpace(dest) {
+		log.Infof("src path: %s is equal to dest path: %s, skip", src, dest)
+		return
+	}
+	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if _, ok := excludeMap[path]; ok {
+			log.Infof("skip exclude path: %s", path)
+			return nil
+		}
+		if err != nil {
+			log.Errorf("failed to copy dir, err: %s", err.Error())
+			return nil
+		}
+		destNewPath := strings.Replace(path, src, dest, -1)
+		if info.IsDir() {
+			if err = os.MkdirAll(destNewPath, info.Mode()); err != nil {
+				log.Errorf("failed to mkdir: %s, err: %s", destNewPath, err.Error())
+				return nil
+			}
+		} else {
+			if err = fs.CopyFile(path, destNewPath); err != nil {
+				log.Infof("skip path: %s, because of err: %s", path, err.Error())
+				return nil
+			}
+		}
+		return nil
+	})
 	return
 }

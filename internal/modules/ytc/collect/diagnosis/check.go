@@ -178,9 +178,16 @@ func (d *DiagCollecter) checkYasdbAdr() *ytccollectcommons.NoAccessRes {
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-	if err := fileutil.CheckAccess(adrPath); err != nil {
+	res, err := fileutil.CheckDirAccess(adrPath, nil)
+	if err != nil {
 		desc, tips := ytccollectcommons.PathErrDescAndTips(adrPath, err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		return noAccess
+	}
+	if len(res) != 0 {
+		desc, tips := ytccollectcommons.FilesErrDescAndTips(res)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		noAccess.ForceCollect = true
 		return noAccess
 	}
 	return nil
