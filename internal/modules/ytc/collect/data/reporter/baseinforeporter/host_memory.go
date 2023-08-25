@@ -95,7 +95,7 @@ func (r HostMemoryReporter) genReportContentWriter(memory *mem.VirtualMemoryStat
 	})
 	tw.AppendSeparator()
 
-	swapUsed := memory.SwapTotal - memory.SwapFree + memory.SwapCached
+	swapUsed := memory.SwapTotal - memory.SwapFree - memory.SwapCached
 	tw.AppendRow(table.Row{
 		"交换分区",
 		size.GenHumanReadableSize(float64(memory.SwapTotal), 2),

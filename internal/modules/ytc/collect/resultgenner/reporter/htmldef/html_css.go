@@ -1,6 +1,6 @@
 package htmldef
 
-const HTML_CSS = `
+const _html_css = `
 <style type="text/css">
     * {
         margin: 0;
@@ -11,6 +11,10 @@ const HTML_CSS = `
         display: none;
     }
 
+    .graph {
+        height: 300px;
+    }
+
     body {
         padding: 20px 80px;
         background-color: #f5f7f9;
@@ -18,18 +22,49 @@ const HTML_CSS = `
         font-family: Verdana
     }
 
+    ::-webkit-scrollbar {
+        width: 8px;
+        background-color: #f5f5f5;
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+        border-radius: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background-color: #f5f5f5;
+        border-radius: 8px;
+    }
+
+    .ytc_container {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin: 10px auto 20px auto;
+    }
+
     table {
         border-collapse: collapse;
         border-spacing: 0;
         width: 100%;
         margin-bottom: 20px;
+        position: relative;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f1f1f1;
+        z-index: 1;
     }
 
     .ytc_table {
-        border: solid #ccc 1px;
         border-radius: 10px;
         box-shadow: 0 1px 1px #ccc;
-        overflow: hidden;
+        overflow-x: hidden;
     }
 
     .ytc_table caption {
@@ -83,6 +118,10 @@ const HTML_CSS = `
         border-radius: 0 10px 0 0;
     }
 
+    .ytc_table th:only-child {
+        border-radius: 10px 10px 0 0;
+    }
+
     .ytc_table tr:last-child td:first-child {
         border-radius: 0 0 0 10px;
     }
@@ -91,6 +130,9 @@ const HTML_CSS = `
         border-radius: 0 0 10px 0;
     }
 
+    .ytc_table tr:only-child td:only-child {
+        border-radius: 0 0 10px 10px;
+    }
 
     /* ytc_list */
     ol,
@@ -153,7 +195,7 @@ const HTML_CSS = `
 
     /* ytc_button */
     .ytc_button {
-        background-color: #F5B31A;
+        background-color: #f5b31a;
         color: #000000;
         padding: 10px 20px;
         border: none;

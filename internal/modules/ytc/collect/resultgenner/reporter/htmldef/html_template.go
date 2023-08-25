@@ -4,13 +4,16 @@ import (
 	"fmt"
 )
 
-const HTML_TEMPLATE = `
+const _html_template = `
 <!DOCTYPE html>
-<html>
+<html  lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YTC Report</title>
+    <link rel='stylesheet' href='./static/css/morris.css'>
+    <script src='./static/js/raphael.min.js'></script>
+    <script src='./static/js/morris.js'></script>
     %s
 </head>
 <body>
@@ -54,10 +57,11 @@ const HTML_TEMPLATE = `
             }
         }
     </script>
+    %s
 </body>
 </html>
 `
 
-func GenHTML(content, style string) string {
-	return fmt.Sprintf(HTML_TEMPLATE, style, content)
+func GenHTML(content, graph string) string {
+	return fmt.Sprintf(_html_template, _html_css, content, graph)
 }

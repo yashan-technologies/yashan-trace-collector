@@ -27,6 +27,7 @@ type ReportContent struct {
 	Txt      string
 	Markdown string
 	HTML     string
+	Graph    string
 }
 
 func GenTxtTitle(title string) string {
@@ -75,7 +76,7 @@ func GenReportContentByWriter(w Writer) ReportContent {
 	return ReportContent{
 		Txt:      w.Render(),
 		Markdown: w.RenderMarkdown(),
-		HTML:     w.RenderHTML(),
+		HTML:     `<div class="ytc_container">` + stringutil.STR_NEWLINE + w.RenderHTML() + "\n</div>",
 	}
 }
 

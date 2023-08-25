@@ -50,6 +50,7 @@ func (r *YTCReport) GenData(data interface{}, fname string) error {
 
 // [Interface Func]
 func (r *YTCReport) GenReport() (content reporter.ReportContent, err error) {
+	var graphs []string
 	logger := log.Module.M("generate report")
 	moduleNum := 0
 	for _, moduleName := range _moduleOrder {
@@ -88,13 +89,16 @@ func (r *YTCReport) GenReport() (content reporter.ReportContent, err error) {
 				err = yaserr.Wrapf(e, "generete report of %s", itemName)
 				return
 			}
+			if !stringutil.IsEmpty(itemContent.Graph) {
+				graphs = append(graphs, itemContent.Graph)
+			}
 			content.Txt += itemContent.Txt + stringutil.STR_NEWLINE
 			content.Markdown += itemContent.Markdown + stringutil.STR_NEWLINE
 			content.HTML += itemContent.HTML + stringutil.STR_NEWLINE
 		}
 	}
 	content = r.addSummary(content, r.genReportOverview(), r.genReportItems())
-	content.HTML = htmldef.GenHTML(content.HTML, htmldef.HTML_CSS)
+	content.HTML = htmldef.GenHTML(content.HTML, strings.Join(graphs, stringutil.STR_NEWLINE))
 	return
 }
 
