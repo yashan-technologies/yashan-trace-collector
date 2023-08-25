@@ -17,6 +17,7 @@ func (b *BaseCollecter) getHostMemoryUsage() (err error) {
 	if err != nil {
 		log.Errorf("failed to gert host memory usage info, err: %s", err.Error())
 		hostMemoryUsage.Error = err.Error()
+		hostMemoryUsage.Description = datadef.GenHostWorkloadDesc(err)
 		return
 	}
 	hostMemoryUsage.Children[KEY_HISTORY] = datadef.YTCItem{

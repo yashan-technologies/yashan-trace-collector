@@ -8,6 +8,7 @@ import (
 	"ytc/defs/errdef"
 	"ytc/defs/timedef"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
+	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 
 	"git.yasdb.com/go/yasutil/fs"
@@ -24,6 +25,7 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 		if adrPath, err = GetAdrPath(b.CollectParam); err != nil {
 			log.Error(err)
 			yasdbADRItem.Error = err.Error()
+			yasdbADRItem.Description = datadef.GenGetDatabaseParameterDesc(string(yasdb.PM_DIAGNOSTIC_DEST))
 			return
 		}
 	}
@@ -31,6 +33,7 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 		err = &errdef.ErrFileNotFound{Fname: adrPath}
 		log.Error(err)
 		yasdbADRItem.Error = err.Error()
+		yasdbADRItem.Description = datadef.GenNoPermissionDesc(adrPath)
 		return
 	}
 	// package adr to dest
@@ -39,6 +42,7 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 	if err = fs.TarDir(adrPath, path.Join(destPath, destFile)); err != nil {
 		log.Error(err)
 		yasdbADRItem.Error = err.Error()
+		yasdbADRItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	yasdbADRItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, destFile))

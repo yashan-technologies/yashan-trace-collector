@@ -8,6 +8,7 @@ import (
 
 	"ytc/defs/timedef"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
+	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 	"ytc/utils/stringutil"
 
@@ -25,6 +26,7 @@ func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 		if runLogPath, err = GetYasdbRunLogPath(b.CollectParam); err != nil {
 			log.Error(err)
 			yasdbRunLogItem.Error = err.Error()
+			yasdbRunLogItem.Description = datadef.GenGetDatabaseParameterDesc(string(yasdb.PM_RUN_LOG_FILE_PATH))
 			return
 		}
 	}
@@ -34,12 +36,14 @@ func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 	if err != nil {
 		log.Error(err)
 		yasdbRunLogItem.Error = err.Error()
+		yasdbRunLogItem.Description = datadef.GenNoPermissionDesc(runLogPath)
 		return
 	}
 	// write run log to dest
 	if err = b.collectRunLog(log, runLogFiles, path.Join(destPath, runLogFile), b.StartTime, b.EndTime); err != nil {
 		log.Error(err)
 		yasdbRunLogItem.Error = err.Error()
+		yasdbRunLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	yasdbRunLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, runLogFile))

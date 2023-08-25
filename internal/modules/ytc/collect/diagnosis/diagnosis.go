@@ -64,7 +64,7 @@ var (
 		datadef.DIAG_YASDB_DATABASE_STATUS: "数据库状态",
 		datadef.DIAG_HOST_SYSTEMLOG:        "操作系统日志",
 		datadef.DIAG_HOST_KERNELLOG:        "操作系统内核日志",
-		datadef.DIAG_YASDB_COREDUMP:        "Core Dump",
+		datadef.DIAG_YASDB_COREDUMP:        "CoreDump",
 	}
 )
 

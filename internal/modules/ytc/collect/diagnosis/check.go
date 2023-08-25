@@ -52,7 +52,7 @@ func GetCoreDumpPath() (string, string, error) {
 			log.Module.Errorf("get %s from %s err:%s", SYSTEMD_COREDUMP_CONF, KEY_STORAGE, err.Error())
 			return "", "", err
 		}
-		// do not collect core dump
+		// do not collect coredump
 		if storage != VALUE_EXTERNAL {
 			err := fmt.Errorf("the host coredump config is %s, does not collect", storage)
 			log.Module.Error(err)

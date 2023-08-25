@@ -26,12 +26,14 @@ func (b *DiagCollecter) collectHostKernelLog() (err error) {
 		err = fmt.Errorf("failed to get host dmesg log, err: %s", stderr)
 		log.Error(err)
 		hostKernelLogItem.Error = err.Error()
+		hostKernelLogItem.Description = datadef.GenKylinDmesgDesc()
 		return
 	}
 	// write to dest
 	if err = fileutil.WriteFile(dest, []byte(stdout)); err != nil {
 		log.Error(err)
 		hostKernelLogItem.Error = err.Error()
+		hostKernelLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	hostKernelLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, dmesgFile))

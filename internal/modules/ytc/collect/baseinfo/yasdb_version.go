@@ -25,7 +25,7 @@ func (b *BaseCollecter) getYasdbVersion() (err error) {
 		err = &errdef.ErrFileNotFound{Fname: yasdbBinPath}
 		log.Errorf("failed to get yashandb version, err: %s", err.Error())
 		yasdbVersionItem.Error = err.Error()
-		// TODO: 补充description信息
+		yasdbVersionItem.Description = datadef.GenNoPermissionDesc(yasdbBinPath)
 		return
 	}
 	execer := execerutil.NewExecer(log)
@@ -35,6 +35,7 @@ func (b *BaseCollecter) getYasdbVersion() (err error) {
 		err = fmt.Errorf("failed to get yasdb version, err: %s", stderr)
 		log.Error(err)
 		yasdbVersionItem.Error = stderr
+		yasdbVersionItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	yasdbVersionItem.Details = strings.TrimSpace(stdout)

@@ -16,6 +16,7 @@ func (b *DiagCollecter) getYasdbProcessStatus() (err error) {
 	if err != nil {
 		log.Error(err)
 		yasdbProcessStatusItem.Error = err.Error()
+		yasdbProcessStatusItem.Description = datadef.GenYasdbProcessStatusDesc()
 		return
 	}
 	if len(processes) == 0 {

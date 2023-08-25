@@ -30,8 +30,8 @@ func (r YashanDBCoreDumpReporter) Report(item datadef.YTCItem, titlePrefix strin
 		return
 	}
 
-	// report yasdb core dump
-	coreDump, err := commons.ParseString(item.Name, item.Details, "parse yasdb core dump")
+	// report yasdb coredump
+	coreDump, err := commons.ParseString(item.Name, item.Details, "parse yasdb coredump")
 	if err != nil {
 		return
 	}

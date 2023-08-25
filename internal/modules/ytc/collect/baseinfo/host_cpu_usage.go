@@ -17,6 +17,7 @@ func (b *BaseCollecter) getHostCPUUsage() (err error) {
 	if err != nil {
 		log.Error("failed to get host cpu usage info, err: %s", err.Error())
 		hostCPUUsage.Error = err.Error()
+		hostCPUUsage.Description = datadef.GenHostWorkloadDesc(err)
 		return
 	}
 	hostCPUUsage.Children[KEY_HISTORY] = datadef.YTCItem{

@@ -15,6 +15,10 @@ const (
 	EXTRA_DIR_NAME = "extra"
 )
 
+const (
+	KEY_EXTRA_FILE = "extra file"
+)
+
 var _packageDir = ""
 
 var (

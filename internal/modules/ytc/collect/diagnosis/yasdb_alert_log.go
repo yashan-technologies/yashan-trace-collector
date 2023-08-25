@@ -29,6 +29,7 @@ func (b *DiagCollecter) collectYasdbAlertLog() (err error) {
 	if err = b.collectLog(log, srcFile, destFile, time.Now(), timeParseFunc); err != nil {
 		log.Error(err)
 		yasdbAlertLogItem.Error = err.Error()
+		yasdbAlertLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
 	yasdbAlertLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, alertLogFile))

@@ -16,6 +16,7 @@ func (b *BaseCollecter) getHostNetworkInfo() (err error) {
 	if err != nil {
 		log.Errorf("failed to get host network info, err: %s", err.Error())
 		hostNetInfo.Error = err.Error()
+		hostNetInfo.Description = datadef.GenDefaultDesc()
 		return
 	}
 	hostNetInfo.Details = netInfo

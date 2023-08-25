@@ -24,7 +24,7 @@ func (b *BaseCollecter) getHostFirewalldStatus() (err error) {
 	if osRelease.Id == osutil.UBUNTU_ID {
 		if !userutil.IsCurrentUserRoot() {
 			hostFirewallStatus.Error = "checking ubuntu firewall status requires sudo or root"
-			hostFirewallStatus.Description = "查看Ubuntu系统防火墙状态需要root权限"
+			hostFirewallStatus.Description = datadef.GenUbuntuFirewalldDesc()
 			return
 		}
 		_, stdout, _ := execer.Exec(bashdef.CMD_BASH, "-c", fmt.Sprintf("%s status", bashdef.CMD_UFW))
