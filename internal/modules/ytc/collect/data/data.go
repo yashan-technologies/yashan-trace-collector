@@ -140,16 +140,16 @@ func (r *YTCReport) genReportOverview() (content reporter.ReportContent) {
 		rows := []table.Row{
 			{"收集类型", strings.Join(modules, "，")},
 			{"收集范围--起始时间", r.CollectParam.StartTime.Format(timedef.TIME_FORMAT_UNTIL_MINITE)},
-			{"收集据围--截止时间", r.CollectParam.EndTime.Format(timedef.TIME_FORMAT_UNTIL_MINITE)},
+			{"收集范围--截止时间", r.CollectParam.EndTime.Format(timedef.TIME_FORMAT_UNTIL_MINITE)},
 			{"YashanDB信息--YASDB_HOME", r.CollectParam.YasdbHome},
 			{"YashanDB信息--YASDB_DATA", r.CollectParam.YasdbData},
-			{"连接YashanDB的数据库用户", user},
+			{"数据库用户(用于收集YashanDB信息)", user},
 		}
 		if len(r.CollectParam.Include) > 0 {
-			rows = append(rows, table.Row{"额外收集的文件", strings.Join(r.CollectParam.Include, sep)})
+			rows = append(rows, table.Row{"额外的收集文件", strings.Join(r.CollectParam.Include, sep)})
 		}
 		if len(r.CollectParam.Exclude) > 0 {
-			rows = append(rows, table.Row{"过滤收集的文件", strings.Join(r.CollectParam.Exclude, sep)})
+			rows = append(rows, table.Row{"过滤的收集文件", strings.Join(r.CollectParam.Exclude, sep)})
 		}
 		rows = append(rows, table.Row{"收集结果存放目录", r.CollectParam.Output})
 		rows = append(rows, table.Row{"任务开始时间", r.CollectBeginTime.Format(timedef.TIME_FORMAT)})

@@ -43,8 +43,7 @@ func (r HostNetworkReporter) Report(item datadef.YTCItem, titlePrefix string) (c
 		err = yaserr.Wrapf(err, "parse network info")
 		return
 	}
-	writer := r.genReportContentWriter(networks)
-	content = reporter.GenReportContentByWriterAndTitle(writer, title, fontSize)
+	content = r.genReportContentWriter(networks, title, fontSize)
 	return
 }
 
@@ -73,17 +72,34 @@ func (r HostNetworkReporter) parseNetworkInfo(item datadef.YTCItem) (networks []
 	return
 }
 
-func (r HostNetworkReporter) genReportContentWriter(networks []net.InterfaceStat) reporter.Writer {
+func (r HostNetworkReporter) genReportContentWriter(networks []net.InterfaceStat, title string, fontSize reporter.FontSize) (content reporter.ReportContent) {
+	titleContent := reporter.GenReportContentByTitle(title, fontSize)
 	tw := commons.ReporterWriter.NewTableWriter()
-	tw.AppendHeader(table.Row{"网络接口", "MAC地址", "IP地址"})
-
-	for _, n := range networks {
-		var ips []string
-		for _, addr := range n.Addrs {
-			ips = append(ips, addr.Addr)
+	tw.AppendHeader(table.Row{"IP地址", "网络接口", "MAC地址"})
+	genTableRows := func(sep string) (rows []table.Row) {
+		for _, n := range networks {
+			var ips []string
+			for _, addr := range n.Addrs {
+				ips = append(ips, addr.Addr)
+			}
+			rows = append(rows, table.Row{strings.Join(ips, sep), n.Name, n.HardwareAddr})
+			tw.AppendSeparator()
 		}
-		tw.AppendRow(table.Row{n.Name, n.HardwareAddr, strings.Join(ips, stringutil.STR_COMMA)})
+		return rows
+	}
+
+	// render txt
+	for _, r := range genTableRows(stringutil.STR_NEWLINE) {
+		tw.AppendRow(r)
 		tw.AppendSeparator()
 	}
-	return tw
+	content.Txt = strings.Join([]string{titleContent.Txt, tw.Render()}, stringutil.STR_NEWLINE)
+	tw.ResetRows()
+
+	// render markdown and html
+	tw.AppendRows(genTableRows(stringutil.STR_HTML_BR))
+	content.Markdown = strings.Join([]string{titleContent.Markdown, tw.RenderMarkdown()}, stringutil.STR_NEWLINE)
+	content.HTML = strings.Join([]string{titleContent.HTML, tw.RenderHTML()}, stringutil.STR_NEWLINE)
+
+	return
 }
