@@ -157,10 +157,13 @@ func (s *Sar) getSarTimestamp(data string, timeStr string, dayPeriod string) (in
 		s.log.Error(err)
 		return 0, err
 	}
+	if dayPeriod == timedef.DAY_PERIOD_AM && t.Hour() >= int(timeutil.NOON/time.Hour) {
+		t = t.Add(-timeutil.NOON)
+	}
 	if dayPeriod == timedef.DAY_PERIOD_PM && t.Hour() < int(timeutil.NOON/time.Hour) {
 		t = t.Add(timeutil.NOON)
 	}
-	return t.UTC().Unix(), nil
+	return t.Unix(), nil
 }
 
 func (s *Sar) parseSarOutput(output string, parseFunc SarParseFunc, checkTitleFunc SarCheckTitleFunc) collecttypedef.WorkloadOutput {
