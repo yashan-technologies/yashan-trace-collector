@@ -16,11 +16,20 @@ check_ret() {
 dump() {
     mkdir -p "$ARTIFACTS_PATH"
     check_ret $? "make dir"
-    cp -fr build code_check.txt  "$ARTIFACTS_PATH"
+    if [ -f "./code_check.txt" ]; then
+        cp -fr ./code_check.txt "$ARTIFACTS_PATH"
+    fi
+    check_ret $? "copy code_check.txt"
+
+    if [ -d "./build" ]; then
+        cp -fr ./build "$ARTIFACTS_PATH"
+    fi
+    check_ret $? "copy build"
+
     if [ -d "./unittest" ]; then
         cp -fr ./unittest "$ARTIFACTS_PATH"
     fi
-    check_ret $? "copy artifacts"
+    check_ret $? "copy unittest"
 }
 
 show() {
@@ -29,15 +38,15 @@ show() {
 
 case "$1" in
 dump)
-  dump
-  ;;
+    dump
+    ;;
 show)
-  show
-  ;;
+    show
+    ;;
 *)
-  echo "Usage: $0 {dump|show}"
-  exit 2
-  ;;
+    echo "Usage: $0 {dump|show}"
+    exit 2
+    ;;
 esac
 
 exit $?
