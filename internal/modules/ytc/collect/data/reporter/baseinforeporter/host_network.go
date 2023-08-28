@@ -12,6 +12,7 @@ import (
 	"ytc/utils/stringutil"
 
 	"git.yasdb.com/go/yaserr"
+	"git.yasdb.com/go/yasutil/netcli"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/shirou/gopsutil/net"
 )
@@ -75,14 +76,32 @@ func (r HostNetworkReporter) parseNetworkInfo(item datadef.YTCItem) (networks []
 func (r HostNetworkReporter) genReportContentWriter(networks []net.InterfaceStat, title string, fontSize reporter.FontSize) (content reporter.ReportContent) {
 	titleContent := reporter.GenReportContentByTitle(title, fontSize)
 	tw := commons.ReporterWriter.NewTableWriter()
-	tw.AppendHeader(table.Row{"IP地址", "网络接口", "MAC地址"})
+	tw.AppendHeader(table.Row{"网络接口", "IP地址", "MAC地址"})
 	genTableRows := func(sep string) (rows []table.Row) {
 		for _, n := range networks {
-			var ips []string
+			var ipv4, ipv6 []string
 			for _, addr := range n.Addrs {
-				ips = append(ips, addr.Addr)
+				ip := addr.Addr
+				if netcli.IsIPv6(ip) {
+					ipv6 = append(ipv6, ip)
+					continue
+				}
+				ipv4 = append(ipv4, ip)
 			}
-			rows = append(rows, table.Row{strings.Join(ips, sep), n.Name, n.HardwareAddr})
+			var col []string
+			if len(ipv4) > 0 {
+				col = append(col, "IPv4: ")
+				col = append(col, ipv4...)
+			}
+			if len(ipv6) > 0 {
+				if len(col) > 0 {
+					col = append(col, "")
+				}
+				col = append(col, "IPv6: ")
+				col = append(col, ipv6...)
+			}
+
+			rows = append(rows, table.Row{n.Name, strings.Join(col, sep), n.HardwareAddr})
 			tw.AppendSeparator()
 		}
 		return rows
