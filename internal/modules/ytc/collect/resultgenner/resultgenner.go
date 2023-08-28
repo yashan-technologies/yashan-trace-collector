@@ -23,13 +23,14 @@ const (
 	_REPORT_NAME_FORMATTER  = "report-%s.%s"
 	_DATA_NAME_FORMATTER    = "data-%s.json"
 
-	_DIR_DATA   = "data"
-	_DIR_BASE   = "base"
-	_DIR_DIAG   = "diag"
-	_DIR_PERF   = "perf"
-	_DIR_LOG    = "log"
-	_DIR_YASDB  = "yasdb"
-	_DIR_SYSTEM = "system"
+	_DIR_DATA          = "data"
+	_DIR_BASE          = "base"
+	_DIR_DIAG          = "diag"
+	_DIR_PERF          = "perf"
+	_DIR_LOG           = "log"
+	_DIR_YASDB         = "yasdb"
+	_DIR_SYSTEM        = "system"
+	_DIR_REPORT_STATIC = "report_static"
 )
 
 type BaseResultGenner struct {
@@ -87,6 +88,10 @@ func (g *BaseResultGenner) genDataPath() string {
 	return path.Join(g.genPackageDir(), _DIR_DATA, name)
 }
 
+func (g *BaseResultGenner) genReportStaticDir() string {
+	return path.Join(g.genPackageDir(), _DIR_REPORT_STATIC)
+}
+
 func (g *BaseResultGenner) Mkdirs() error {
 	if !fs.IsDirExist(g.OutputDir) {
 		if err := fs.Mkdir(g.OutputDir); err != nil {
@@ -110,7 +115,7 @@ func (g *BaseResultGenner) genReportPath(reportType reporter.ReportType) string 
 func (g *BaseResultGenner) writeReport() error {
 	executer := execerutil.NewExecer(log.Logger)
 	ret, _, stderr := executer.Exec(bashdef.CMD_BASH, "-c",
-		fmt.Sprintf("%s -r %s %s", bashdef.CMD_CP, runtimedef.GetStaticPath(), g.genPackageDir()))
+		fmt.Sprintf("%s -r %s %s", bashdef.CMD_CP, runtimedef.GetStaticPath(), g.genReportStaticDir()))
 	if ret != 0 {
 		log.Module.Errorf("copy static failed: %s", stderr)
 	}
