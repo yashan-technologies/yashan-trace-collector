@@ -23,7 +23,7 @@ func (b *BaseCollecter) getYasdbParameter() (err error) {
 
 	// collect yasdb ini config
 	if yasdbIni, err := b.getYasdbIni(); err != nil {
-		yasdbParameterItem.Children[KEY_YASDB_INI] = datadef.YTCItem{Error: err.Error()}
+		yasdbParameterItem.Children[KEY_YASDB_INI] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 		log.Errorf("failed to get yasdb.ini, err: %s", err.Error())
 	} else {
 		yasdbParameterItem.Children[KEY_YASDB_INI] = datadef.YTCItem{Details: yasdbIni}
@@ -32,13 +32,13 @@ func (b *BaseCollecter) getYasdbParameter() (err error) {
 	// collect parameter from v$parameter
 	if !b.notConnectDB {
 		if pv, err := b.getParameter(); err != nil {
-			yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Error: err.Error()}
+			yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 			log.Errorf("failed to get yashandb parameter, err: %s", err.Error())
 		} else {
 			yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Details: pv}
 		}
 	} else {
-		yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Error: "cannot connect to database"}
+		yasdbParameterItem.Children[KEY_YASDB_PARAMETER] = datadef.YTCItem{Error: "cannot connect to database", Description: datadef.GenSkipCollectDatabaseInfoDesc()}
 	}
 	return
 }
