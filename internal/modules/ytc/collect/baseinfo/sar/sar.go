@@ -134,25 +134,25 @@ func (s *Sar) transferDiskOutput(output collecttypedef.WorkloadOutput) (collectt
 
 // example: Linux 3.10.0-1160.el7.x86_64 (mg_4)     08/10/2023      _x86_64_        (4 CPU)
 func (s *Sar) getDateFromHeadLine(line string) string {
-	currentData := time.Now().Format(timedef.TIME_FORMAT_DATE)
+	currentDate := time.Now().Format(timedef.TIME_FORMAT_DATE)
 	line = stringutil.RemoveExtraSpaces(strings.TrimSpace(line))
 	values := strings.Split(line, stringutil.STR_BLANK_SPACE)
 	if len(values) < 4 { // third item is the data
-		s.log.Error("invalid head line: %s, could not get data from the line", line)
-		return currentData
+		s.log.Error("invalid head line: %s, could not get date from the line", line)
+		return currentDate
 	}
 	arr := strings.Split(values[3], "/")
-	// the third item is the data
+	// the third item is the date
 	if len(arr) != 3 {
-		s.log.Errorf("invalid data str: %s, could not get real data from the data str", values[3])
-		return currentData
+		s.log.Errorf("invalid date str: %s, could not get real date from the date str", values[3])
+		return currentDate
 	}
 	return fmt.Sprintf("%s-%s-%s", arr[2], arr[0], arr[1])
 }
 
 // getSarTimestamp get timestamp from sar time output like '11:52:42 AM' and data like '2023:08:08'
-func (s *Sar) getSarTimestamp(data string, timeStr string, dayPeriod string) (int64, error) {
-	t, err := time.ParseInLocation(timedef.TIME_FORMAT, fmt.Sprintf("%s %s", data, timeStr), time.Local)
+func (s *Sar) getSarTimestamp(date string, timeStr string, dayPeriod string) (int64, error) {
+	t, err := time.ParseInLocation(timedef.TIME_FORMAT, fmt.Sprintf("%s %s", date, timeStr), time.Local)
 	if err != nil {
 		s.log.Error(err)
 		return 0, err
