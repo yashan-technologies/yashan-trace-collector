@@ -34,6 +34,7 @@ def set_build_argument(subparser):
     sp = subparser.add_parser("build", help="build ytc", formatter_class=HelpFormatter)
     sp.add_argument("--skip-check", action="store_true", default=False, help="build without checking code")
     sp.add_argument("--skip-test", action="store_true", default=False, help="build without running unit test")
+    sp.add_argument("--format-goimports", action="store_true", default=False, help="format go imports")
     sp.add_argument("-c", "--clean", action="store_true", default=False, help="clean before building")
     sp.add_argument("-f",
                     "--force",
@@ -50,6 +51,7 @@ def set_clean_argument(subparser):
 
 def set_check_argument(subparser):
     sp = subparser.add_parser("check", help="check code", formatter_class=HelpFormatter)
+    sp.add_argument("--format-goimports", action="store_true", default=False, help="format go imports")
     sp.set_defaults(func=check)
 
 

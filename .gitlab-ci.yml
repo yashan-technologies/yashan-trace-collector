@@ -31,7 +31,7 @@ env:
 build:
   stage: compile
   script:
-    - python3 build.py build --clean
+    - python3 build.py build --clean --format-goimports
   after_script:
     - $CI_SCRIPT dump
     - $CI_SCRIPT show

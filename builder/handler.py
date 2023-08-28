@@ -27,7 +27,11 @@ def build(args):
 
 
 def check(args):
-    passed = checker.Checker().check()
+    _format_goimports = False
+    targets = _gen_targets(args)
+    if "format_goimports" in targets:
+        _format_goimports = True
+    passed = checker.Checker(_format_goimports).check()
     if not passed:
         log.logger.error('check code failed, please check "code_check.txt" for reason.')
     return passed
