@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync"
 
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
@@ -83,17 +82,14 @@ func (b *bar) run() {
 	defer func() {
 		b.progress.wg.Done()
 	}()
-	var wg sync.WaitGroup
 	for _, t := range b.tasks {
-		wg.Add(1)
 		go func(t *task) {
-			defer wg.Done()
 			t.start()
 			t.wait()
 			b.bar.Increment()
 		}(t)
 	}
-	wg.Wait()
+	b.bar.Wait()
 }
 
 func (b *bar) splitMsg(msg string) []string {

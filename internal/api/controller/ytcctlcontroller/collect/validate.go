@@ -44,11 +44,9 @@ var (
 		"1m",
 	}
 
-	_exmaples_type = []string{
-		strings.Join([]string{collecttypedef.TYPE_BASE, collecttypedef.TYPE_DIAG, collecttypedef.TYPE_PERF}, stringutil.STR_COMMA),
-	}
-
 	_range_help = "you must ensure that the number before (M|d|h|m) is greater than 0"
+
+	_type_help = "you can choose one or more of (base|diag|perf), split with ',', such as 'base,diag,perf'."
 )
 
 func (c *CollectCmd) validate() error {
@@ -82,7 +80,7 @@ func (c *CollectCmd) validateType() error {
 	types := strings.Split(c.Type, stringutil.STR_COMMA)
 	for _, t := range types {
 		if _, ok := tMap[t]; !ok {
-			return errdef.NewErrYtcFlag(f_type, c.Type, _exmaples_type, "")
+			return errdef.NewErrYtcFlag(f_type, c.Type, nil, _type_help)
 		}
 		resMap[t] = struct{}{}
 	}
