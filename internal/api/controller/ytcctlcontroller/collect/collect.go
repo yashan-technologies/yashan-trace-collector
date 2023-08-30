@@ -35,6 +35,7 @@ type CollectCmd struct {
 
 // [Interface Func]
 func (c *CollectCmd) Run() error {
+	c.fillDefault()
 	if err := c.validate(); err != nil {
 		return err
 	}
@@ -95,23 +96,40 @@ func (c *CollectCmd) getStartAndEnd() (start time.Time, end time.Time, err error
 	}()
 	startegy := confdef.GetStrategyConf()
 	defRange := startegy.Collect.GetRange()
+	// range
 	if !stringutil.IsEmpty(c.Range) {
-		if err = c.validateRange(); err != nil {
-			return
-		}
-		var r time.Duration
-		r, err = timeutil.GetDuration(c.Range)
+		start, end, err = c.getRangeTime()
 		if err != nil {
 			return
 		}
-		end = time.Now()
-		start = end.Add(-r)
 		return
 	}
-	// start and end
-	if err = c.validateStartAndEnd(); err != nil {
+	// start or end
+	if !stringutil.IsEmpty(c.Start) || !stringutil.IsEmpty(c.End) {
+		start, end, err = c.getStartEndTime(defRange)
+		if err != nil {
+			return
+		}
 		return
 	}
+	// no flag input with default
+	end = time.Now()
+	start = end.Add(-defRange)
+	return
+}
+
+func (c *CollectCmd) getRangeTime() (start, end time.Time, err error) {
+	var r time.Duration
+	r, err = timeutil.GetDuration(c.Range)
+	if err != nil {
+		return
+	}
+	end = time.Now()
+	start = end.Add(-r)
+	return
+}
+
+func (c *CollectCmd) getStartEndTime(defRange time.Duration) (start, end time.Time, err error) {
 	if !stringutil.IsEmpty(c.Start) {
 		start, err = timeutil.GetTimeDivBySepa(c.Start, stringutil.STR_HYPHEN)
 		if err != nil {
@@ -130,15 +148,10 @@ func (c *CollectCmd) getStartAndEnd() (start time.Time, end time.Time, err error
 		return
 	}
 	// only end
-	if !stringutil.IsEmpty(c.End) {
-		end, err = timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
-		if err != nil {
-			return
-		}
-		start = end.Add(-defRange)
+	end, err = timeutil.GetTimeDivBySepa(c.End, stringutil.STR_HYPHEN)
+	if err != nil {
 		return
 	}
-	end = time.Now()
 	start = end.Add(-defRange)
 	return
 }

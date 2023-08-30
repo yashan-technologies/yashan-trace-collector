@@ -79,9 +79,7 @@ func (b *bar) draw() {
 }
 
 func (b *bar) run() {
-	defer func() {
-		b.progress.wg.Done()
-	}()
+	defer b.progress.wg.Done()
 	for _, t := range b.tasks {
 		go func(t *task) {
 			t.start()

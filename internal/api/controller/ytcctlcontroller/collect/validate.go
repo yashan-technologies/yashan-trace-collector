@@ -50,8 +50,6 @@ var (
 )
 
 func (c *CollectCmd) validate() error {
-	strategyConf := confdef.GetStrategyConf()
-	c.fillDefault(strategyConf)
 	if err := c.validateType(); err != nil {
 		return err
 	}
@@ -71,6 +69,7 @@ func (c *CollectCmd) validate() error {
 }
 
 func (c *CollectCmd) validateType() error {
+	c.Type = trimSpace(c.Type)
 	resMap := make(map[string]struct{})
 	tMap := map[string]struct{}{
 		collecttypedef.TYPE_BASE: {},
@@ -240,7 +239,7 @@ func (c *CollectCmd) validateOutput() error {
 
 }
 
-func (c *CollectCmd) fillDefault(stra confdef.Strategy) {
+func (c *CollectCmd) fillDefault() {
 	if stringutil.IsEmpty(c.Output) {
 		c.Output = confdef.GetStrategyConf().Collect.Output
 	}
