@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"ytc/commons/std"
 	"ytc/defs/bashdef"
 	"ytc/defs/collecttypedef"
 	"ytc/defs/errdef"
 	ytccollect "ytc/internal/modules/ytc/collect"
 	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/log"
+	"ytc/utils/stringutil"
 	"ytc/utils/terminalutil/barutil"
 
 	"git.yasdb.com/go/yasutil/tabler"
@@ -98,6 +100,10 @@ func (c *CollecterHandler) printNoAccessItem(m map[string][]ytccollectcommons.No
 	var isConfirm string
 	fmt.Printf("\nAre you want continue collect [y/n] ?\n")
 	fmt.Scanln(&isConfirm)
+
+	// record input
+	std.WriteToFile(isConfirm + stringutil.STR_NEWLINE)
+
 	isConfirm = strings.ToLower(isConfirm)
 	if isConfirm != "y" {
 		return fmt.Errorf("some validations failed, not continue collect")

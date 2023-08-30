@@ -31,7 +31,7 @@ func NewProgress(opts ...ProgressOpt) *Progress {
 		opt(p)
 	}
 	var mpbOpt []mpb.ContainerOption
-	mpbOpt = append(mpbOpt, mpb.WithWaitGroup(group))
+	mpbOpt = append(mpbOpt, mpb.WithWaitGroup(group), mpb.WithAutoRefresh())
 	// mpbOpt = append(mpbOpt, mpb.WithRefreshRate(time.Microsecond*150))
 	if p.width != 0 {
 		mpbOpt = append(mpbOpt, mpb.WithWidth(p.width))
