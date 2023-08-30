@@ -1,0 +1,3 @@
+[submodule "ytc-doc"]
+	path = ytc-doc
+	url = git@git.yasdb.com:pandora/ytc-doc.git
