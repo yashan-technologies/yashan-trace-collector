@@ -18,9 +18,9 @@ var (
 	BACK     = "Back"
 )
 
-type WithOption func(c *CollectFrom)
+type WithOption func(c *CollectForm)
 
-type CollectFrom struct {
+type CollectForm struct {
 	app            *tview.Application
 	form           *tview.Form
 	inputFields    []*formInput
@@ -44,11 +44,11 @@ type formPwssword struct {
 
 type formButton struct {
 	label string
-	click func(c *CollectFrom)
+	click func(c *CollectForm)
 }
 
-func NewCollectFrom(header string, opts ...WithOption) *CollectFrom {
-	form := &CollectFrom{
+func NewCollectFrom(header string, opts ...WithOption) *CollectForm {
+	form := &CollectForm{
 		app:            tview.NewApplication(),
 		form:           tview.NewForm(),
 		inputFields:    make([]*formInput, 0),
@@ -61,7 +61,7 @@ func NewCollectFrom(header string, opts ...WithOption) *CollectFrom {
 	return form
 }
 
-func (f *CollectFrom) AddInput(label string, defaultValue string, validateFunc func(string, string) (bool, string)) {
+func (f *CollectForm) AddInput(label string, defaultValue string, validateFunc func(string, string) (bool, string)) {
 	f.inputFields = append(f.inputFields, &formInput{
 		label:        label,
 		defaultValue: defaultValue,
@@ -69,7 +69,7 @@ func (f *CollectFrom) AddInput(label string, defaultValue string, validateFunc f
 	})
 }
 
-func (f *CollectFrom) AddPassword(label string, defaultValue string, validateFunc func(string, string) (bool, string)) {
+func (f *CollectForm) AddPassword(label string, defaultValue string, validateFunc func(string, string) (bool, string)) {
 	f.inputPasswords = append(f.inputPasswords, &formPwssword{
 		label:        label,
 		defaultValue: defaultValue,
@@ -77,13 +77,13 @@ func (f *CollectFrom) AddPassword(label string, defaultValue string, validateFun
 	})
 }
 
-func (f *CollectFrom) AddButton(buttonName string, click func(c *CollectFrom)) {
+func (f *CollectForm) AddButton(buttonName string, click func(c *CollectForm)) {
 	f.form.AddButton(buttonName, func() {
 		click(f)
 	})
 }
 
-func (f *CollectFrom) GetFormData(label string) (string, error) {
+func (f *CollectForm) GetFormData(label string) (string, error) {
 	keyFormItem := f.form.GetFormItemByLabel(label)
 	if keyFormItem == nil {
 		log.Controller.Errorf("get data by %s err :%s", label)
@@ -92,7 +92,20 @@ func (f *CollectFrom) GetFormData(label string) (string, error) {
 	return keyFormItem.(*tview.InputField).GetText(), nil
 }
 
-func (f *CollectFrom) ShowTips(desc string) {
+func (f *CollectForm) GetFormDataByLabels(labels ...string) (res map[string]string, err error) {
+	res = make(map[string]string)
+	for _, label := range labels {
+		value, valueErr := f.GetFormData(label)
+		if valueErr != nil {
+			err = valueErr
+			return
+		}
+		res[label] = value
+	}
+	return
+}
+
+func (f *CollectForm) ShowTips(desc string) {
 	modal := tview.NewModal().
 		SetBackgroundColor(tcell.ColorRed).
 		SetText(desc).
@@ -105,7 +118,7 @@ func (f *CollectFrom) ShowTips(desc string) {
 	f.app.SetRoot(modal, true)
 }
 
-func (f *CollectFrom) Validate() error {
+func (f *CollectForm) Validate() error {
 	for _, input := range f.inputFields {
 		value, err := f.GetFormData(input.label)
 		if err != nil {
@@ -124,7 +137,7 @@ func (f *CollectFrom) Validate() error {
 	return nil
 }
 
-func (f *CollectFrom) ConfrimExit(errMsg string) {
+func (f *CollectForm) ConfrimExit(errMsg string) {
 	modal := tview.NewModal().
 		SetBackgroundColor(tcell.ColorRed).
 		SetText(errMsg).
@@ -142,12 +155,12 @@ func (f *CollectFrom) ConfrimExit(errMsg string) {
 	f.app.SetRoot(modal, true)
 }
 
-func (f *CollectFrom) Stop(code int) {
+func (f *CollectForm) Stop(code int) {
 	f.ExitCode = code
 	f.app.Stop()
 }
 
-func (f *CollectFrom) Start() {
+func (f *CollectForm) Start() {
 	for _, field := range f.inputFields {
 		f.form.AddInputField(field.label, field.defaultValue, 100, nil, nil)
 	}

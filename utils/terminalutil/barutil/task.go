@@ -1,11 +1,6 @@
 package barutil
 
-import (
-	"sync"
-)
-
 type task struct {
-	sync.Mutex
 	name     string
 	worker   func() error
 	done     chan struct{}
@@ -14,9 +9,7 @@ type task struct {
 }
 
 func (t *task) start() {
-	defer func() {
-		close(t.done)
-	}()
+	defer close(t.done)
 	if t.worker == nil {
 		return
 	}

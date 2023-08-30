@@ -32,12 +32,12 @@ var (
 func (c *CollectCmd) openYasdbCollectForm() (*yasdb.YasdbEnv, int) {
 	yasdbHome, yasdbData := yasdbPath()
 	var opts []terminalutil.WithOption
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddInput(constdef.YASDB_HOME, yasdbHome, validatePath) })
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddInput(constdef.YASDB_DATA, yasdbData, validatePath) })
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddInput(constdef.YASDB_USER, "", nil) })
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddPassword(constdef.YASDB_PASSWORD, "", nil) })
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddButton(SAVE, saveFunc) })
-	opts = append(opts, func(c *terminalutil.CollectFrom) { c.AddButton(QUIT, quitFunc) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddInput(constdef.YASDB_HOME, yasdbHome, validatePath) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddInput(constdef.YASDB_DATA, yasdbData, validatePath) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddInput(constdef.YASDB_USER, "", nil) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddPassword(constdef.YASDB_PASSWORD, "", nil) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddButton(SAVE, saveFunc) })
+	opts = append(opts, func(c *terminalutil.CollectForm) { c.AddButton(QUIT, quitFunc) })
 	form := terminalutil.NewCollectFrom(FORM_HEADER, opts...)
 	form.Start()
 	yasdbEnv, err := getYasdbEnvFromForm(form)
@@ -47,28 +47,16 @@ func (c *CollectCmd) openYasdbCollectForm() (*yasdb.YasdbEnv, int) {
 	return yasdbEnv, form.ExitCode
 }
 
-func getYasdbEnvFromForm(c *terminalutil.CollectFrom) (*yasdb.YasdbEnv, error) {
-	yasdbHome, err := c.GetFormData(constdef.YASDB_HOME)
-	if err != nil {
-		return nil, err
-	}
-	yasdbData, err := c.GetFormData(constdef.YASDB_DATA)
-	if err != nil {
-		return nil, err
-	}
-	yasdbUser, err := c.GetFormData(constdef.YASDB_USER)
-	if err != nil {
-		return nil, err
-	}
-	yasdbPassword, err := c.GetFormData(constdef.YASDB_PASSWORD)
+func getYasdbEnvFromForm(c *terminalutil.CollectForm) (*yasdb.YasdbEnv, error) {
+	labelMap, err := c.GetFormDataByLabels(constdef.YASDB_HOME, constdef.YASDB_DATA, constdef.YASDB_USER, constdef.YASDB_PASSWORD)
 	if err != nil {
 		return nil, err
 	}
 	return &yasdb.YasdbEnv{
-		YasdbHome:     trimSpace(yasdbHome),
-		YasdbData:     trimSpace(yasdbData),
-		YasdbUser:     trimSpace(yasdbUser),
-		YasdbPassword: trimSpace(yasdbPassword),
+		YasdbHome:     trimSpace(labelMap[constdef.YASDB_HOME]),
+		YasdbData:     trimSpace(labelMap[constdef.YASDB_DATA]),
+		YasdbUser:     trimSpace(labelMap[constdef.YASDB_USER]),
+		YasdbPassword: trimSpace(labelMap[constdef.YASDB_PASSWORD]),
 	}, nil
 }
 
@@ -82,7 +70,7 @@ func validatePath(label, value string) (bool, string) {
 	return true, ""
 }
 
-func saveFunc(c *terminalutil.CollectFrom) {
+func saveFunc(c *terminalutil.CollectForm) {
 	log.Controller.Debugf("exec internal")
 	if err := c.Validate(); err != nil {
 		c.ShowTips(err.Error())
@@ -104,7 +92,7 @@ func saveFunc(c *terminalutil.CollectFrom) {
 	c.Stop(terminalutil.FormExitContinue)
 }
 
-func quitFunc(c *terminalutil.CollectFrom) {
+func quitFunc(c *terminalutil.CollectForm) {
 	c.Stop(terminalutil.FormExitNotContinue)
 }
 

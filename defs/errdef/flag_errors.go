@@ -28,9 +28,13 @@ func (e ErrYtcFlag) Error() string {
 	for _, e := range e.Examples {
 		wrapExamples = append(wrapExamples, fmt.Sprintf("'%s'", e))
 	}
-	message := fmt.Sprintf("The value of %s: %s is invalid, the available input formats are as follows: [%s]", e.Flag, e.Value, strings.Join(wrapExamples, stringutil.STR_COMMA))
-	if len(e.Help) != 0 {
-		message += stringutil.STR_COMMA + e.Help
+	var message strings.Builder
+	message.WriteString(fmt.Sprintf("The value of %s: %s is invalid", e.Flag, e.Value))
+	if len(wrapExamples) != 0 {
+		message.WriteString(fmt.Sprintf(", the available input formats are as follows: [%s]", strings.Join(wrapExamples, stringutil.STR_COMMA)))
 	}
-	return message
+	if len(e.Help) != 0 {
+		message.WriteString(fmt.Sprintf(", %s", e.Help))
+	}
+	return message.String()
 }
