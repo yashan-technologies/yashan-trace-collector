@@ -8,6 +8,7 @@ from builder.utils import log
 
 _REQUIRES: List[str] = [
     'golangci-lint',
+    'goimports-reviser',
     'mypy',
     'yapf',
     'shellcheck',
@@ -28,21 +29,22 @@ _SHELL_FILES: List[str] = [
 
 class Checker(reporter.Reporter):
 
-    def __init__(self):
+    def __init__(self, format_goimports: bool):
         super(Checker, self).__init__()
         self._requires = _REQUIRES
+        self._format_goimports = format_goimports
 
     def check(self) -> bool:
         if not self._prepare():
             return False
         log.logger.info('checking code starting...')
-        is_code_format_valid = CodeFormatChecker().check()
+        is_code_format_valid = CodeFormatChecker(self._format_goimports).check()
         is_code_lint_valid = CodeLintChecker().check()
         passed = is_code_format_valid and is_code_lint_valid
         if not passed:
             self._write_report('Abort building...\n')
         log.logger.info('checking code finished.')
-        log.logger.info('result has been saved to: {}'.format(self._report_file))
+        log.logger.info('check results has been saved to: {}'.format(self._report_file))
         return passed
 
     def _prepare(self) -> bool:
@@ -60,16 +62,41 @@ class Checker(reporter.Reporter):
 
 class CodeFormatChecker(reporter.Reporter):
 
-    def __init__(self, ):
+    def __init__(self, format_goimports: bool):
         super(CodeFormatChecker, self).__init__()
+        self._format_goimports = format_goimports
 
     def check(self):
         self._write_report('Check code format starting...\n')
+        go_import_format_passed = True
+        if self._format_goimports:
+            go_import_format_passed = self._check_go_imports()
         python_format_passed = self._check_python_format()
-        passed = python_format_passed
+        passed = go_import_format_passed and python_format_passed
         if passed:
             self._write_report('Check code format passed.\n')
         return passed
+
+    # goimports-reviser
+    def _check_go_imports(self) -> bool:
+        script = os.path.join(base.PROJECT_PATH, '.resolve-goimports.sh')
+        cmd = f'{script} -q'
+        self._write_report(cmd + '\n')
+        ret, _, err = execer.exec(cmd)
+        if ret != 0:
+            log.logger.error(f'resolve go imports failed: {err}')
+            return False
+        cmd = 'git status'
+        ret, out, err = execer.exec(cmd)
+        if ret != 0:
+            log.logger.error(f'show git status failed: {err}')
+            return False
+        if not 'nothing to commit' in out:
+            self._write_report('Fail to pass go import check.\n')
+            self._write_report(out)
+            return False
+        self._write_report('Succeed to pass go import check.\n')
+        return True
 
     # yapf
     def _check_python_format(self):

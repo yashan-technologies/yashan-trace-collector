@@ -36,9 +36,13 @@ func initExecuteable() (err error) {
 	if err != nil {
 		return
 	}
-	owner, err := fileutil.GetOwner(executeable)
-	if err != nil {
-		return
+	var owner fileutil.Owner
+	owner, e := fileutil.GetOwner(executeable)
+	if e != nil {
+		// if failed to get user name, just fill user id and group id
+		userId, groupId, _ := fileutil.GetOwnerID(executeable)
+		owner.Uid = int(userId)
+		owner.Gid = int(groupId)
 	}
 	setOwner(owner)
 	return

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+
 	"ytc/defs/runtimedef"
 	"ytc/utils/fileutil"
 	"ytc/utils/userutil"
@@ -26,6 +27,8 @@ const (
 	_LOG_MODULE_CONTROLLER = "controller"
 	_LOG_MODULE_HANDLER    = "handler"
 	_LOG_MODULE_MODULE     = "module"
+	_LOG_MODULE_YASQL      = "yasql"
+	_LOG_MODULE_EXECER     = "execer"
 )
 
 // default option values
@@ -41,6 +44,8 @@ var (
 	Controller yaslog.YasLog
 	Handler    yaslog.YasLog
 	Module     yaslog.YasLog
+	Yasql      yaslog.YasLog
+	Execer     yaslog.YasLog
 	// TODO: more loggers
 )
 
@@ -107,6 +112,8 @@ func InitLogger(servername string, opt *Option) error {
 	Controller = logger.NewModule(_LOG_MODULE_CONTROLLER)
 	Handler = logger.NewModule(_LOG_MODULE_HANDLER)
 	Module = logger.NewModule(_LOG_MODULE_MODULE)
+	Yasql = logger.NewModule(_LOG_MODULE_YASQL)
+	Execer = logger.NewModule(_LOG_MODULE_EXECER)
 	return nil
 }
 
@@ -128,7 +135,7 @@ func prepare(logPath, fname string) error {
 			return err
 		}
 	}
-	if userutil.IsCurrentUserRoot() {
+	if userutil.IsCurrentUserRoot() && (owner.Uid != 0 || owner.Gid != 0) {
 		_ = os.Chown(logPath, owner.Uid, owner.Gid)
 		_ = os.Chown(fname, owner.Uid, owner.Gid)
 	}

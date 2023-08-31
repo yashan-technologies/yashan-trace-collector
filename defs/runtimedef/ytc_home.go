@@ -14,7 +14,8 @@ const (
 )
 
 const (
-	_DIR_NAME_LOG = "log"
+	_DIR_NAME_LOG    = "log"
+	_DIR_NAME_STATIC = "static"
 )
 
 var _ytcHome string
@@ -25,6 +26,10 @@ func GetYTCHome() string {
 
 func GetLogPath() string {
 	return path.Join(_ytcHome, _DIR_NAME_LOG)
+}
+
+func GetStaticPath() string {
+	return path.Join(_ytcHome, _DIR_NAME_STATIC)
 }
 
 func setYTCHome(v string) {

@@ -15,29 +15,35 @@ def clean(args):
 def build(args):
     _update_submodules()
     targets = _gen_targets(args)
-    if not 'skip_check' in targets:
-        if not check(args):
-            return False
-    if not 'skip_test' in targets:
-        if not test(args):
-            return False
     if 'force' in targets:
-        ret = builder.YTCBuilder().force_build()
-    else:
-        ret = builder.YTCBuilder().build()
-    if ret != 0:
+        return True if builder.YTCBuilder().force_build() == 0 else False
+    if not 'skip_check' in targets and not check(args):
         return False
+    if not 'skip_test' in targets and not test(args):
+        return False
+    if 'clean' in targets and builder.YTCBuilder().clean() != 0:
+        return False
+    return True if builder.YTCBuilder().build() == 0 else False
 
 
 def check(args):
-    passed = checker.Checker().check()
+    _format_goimports = False
+    targets = _gen_targets(args)
+    if "format_goimports" in targets:
+        _format_goimports = True
+    passed = checker.Checker(_format_goimports).check()
     if not passed:
         log.logger.error('check code failed, please check "code_check.txt" for reason.')
     return passed
 
 
 def test(args):
-    return tester.code_test()
+    t = tester.Tester()
+    result = True
+    if not t.test():
+        result = False
+    log.logger.info('unit test results has been saved to: {}'.format(os.path.join(base.PROJECT_PATH, "unittest")))
+    return result
 
 
 def _update_submodules():
