@@ -3,12 +3,17 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+
 	"ytc/commons/flags"
+	"ytc/commons/std"
 	"ytc/defs/compiledef"
 	"ytc/defs/confdef"
 	"ytc/defs/runtimedef"
 	"ytc/log"
 
+	"git.yasdb.com/go/yaserr"
 	"github.com/alecthomas/kong"
 )
 
@@ -24,8 +29,11 @@ func main() {
 	if err := initApp(app); err != nil {
 		ctx.FatalIfErrorf(err)
 	}
+	finalize := std.GetRedirecter().RedirectStd()
+	defer finalize()
+	std.WriteToFile(fmt.Sprintf("execute: %s %s\n", _APP_NAME, strings.Join(ctx.Args, " ")))
 	if err := ctx.Run(); err != nil {
-		ctx.FatalIfErrorf(err)
+		fmt.Println(yaserr.Unwrap(err))
 	}
 }
 
@@ -45,6 +53,9 @@ func initApp(app App) error {
 		return err
 	}
 	if err := initLogger(runtimedef.GetLogPath(), confdef.GetYTCConf().LogLevel); err != nil {
+		return err
+	}
+	if err := std.InitRedirecter(); err != nil {
 		return err
 	}
 	return nil

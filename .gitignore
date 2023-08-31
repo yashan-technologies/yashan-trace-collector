@@ -4,6 +4,7 @@ __pycache__
 build
 results
 *.log
+console.out
 code_check.txt
+unittest
 go.work*
-

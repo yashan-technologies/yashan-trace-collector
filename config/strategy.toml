@@ -1,8 +1,13 @@
 [collect]
+max_duration = "30d"
+min_duration = "1m"
+network_io_discard = "^lo$,^veth.*,^virbr.*,^br.*,^tap.*,^tun.*,^docker.*,^flannel.*"
 output = "./results"
 range = "24h"
+scrape_interval = 1
+scrape_times = 10
+awr_timeout = "10m"
 
 [report]
+output = "./reports"
 type = "txt"
-output="./reports"
-
