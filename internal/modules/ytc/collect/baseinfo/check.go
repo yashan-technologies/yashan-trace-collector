@@ -27,8 +27,7 @@ var (
 func (b *BaseCollecter) CheckSarAccess() error {
 	cmd := []string{
 		"-c",
-		bashdef.CMD_SAR,
-		"-V",
+		fmt.Sprintf("%s -V", bashdef.CMD_SAR),
 	}
 	exe := execerutil.NewExecer(log.Module)
 	ret, _, _ := exe.Exec(bashdef.CMD_BASH, cmd...)
