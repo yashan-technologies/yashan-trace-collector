@@ -13,24 +13,15 @@ func PrintLogDesensitize(args string) string {
 	rmap := make(map[string]container)
 	// yasql command
 	rmap["yasql command"] = container{
-		expr: `(yasql)(.+/)(.+@)`,
-		repl: "${1}${2}******@",
-	}
-	// yasql command
-	rmap["yasql local command"] = container{
-		expr: `(yasql)(.+/)(\S+)\s(.+)`,
-		repl: "${1}${2}****** ${4}",
+		expr: `(yasql\s+\S+/)"(.+?)"(\s+)`,
+		repl: "${1}******${3}",
 	}
 	// create user command
 	rmap["create user command"] = container{
 		expr: `(?i)(user)(.+)(identified by )(.+)`,
 		repl: "${1}${2}${3}******;",
 	}
-	// yasctl command
-	rmap["yasctl command"] = container{
-		expr: `(yasctl sql)(.+)(-u)(.+)(-p)(.+)(--node-id)`,
-		repl: "${1}${2}${3}${4}${5} ****** ${7}",
-	}
+
 	// yasboot command
 	rmap["yasboot command"] = container{
 		expr: `(yasboot sql)(.+)(--password)(.+)(--sql)`,
