@@ -43,7 +43,7 @@ func (c *CollectCmd) Run() error {
 		return err
 	}
 	yasdbEnv, code := c.openYasdbCollectForm()
-	if code == terminalutil.FormExitNotContinue {
+	if code != terminalutil.FORM_EXIT_CONTINUE {
 		c.Quit()
 		return nil
 	}

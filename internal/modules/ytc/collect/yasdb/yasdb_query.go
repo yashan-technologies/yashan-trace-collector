@@ -50,7 +50,7 @@ var (
 		},
 	}
 
-	_wrmSnapsotSelecter = &yasqlutil.Select{
+	_wrmSnapshotSelecter = &yasqlutil.Select{
 		Table:   "sys.wrm$_snapshot",
 		Columns: []string{"SNAP_ID", "DBID", "BEGIN_INTERVAL_TIME"},
 		ColTypes: map[string]string{
@@ -100,11 +100,13 @@ type VDatabase struct {
 	OpenMode string `json:"openMode"`
 }
 
+// sys.wrm$_database_instance
 type WrmDatabaseInstance struct {
 	DBID           int64 `json:"DBID"`
 	InstanceNumber int64 `json:"INSTANCE_NUMBER"`
 }
 
+// sys.wrm$_snapshot
 type WrmSnapshot struct {
 	SnapID            int64  `json:"SNAP_ID"`
 	DBID              int64  `json:"DBID"`
@@ -188,7 +190,7 @@ func QueryWrmDatabaseInstance(tx *yasqlutil.Yasql) (*WrmDatabaseInstance, error)
 // return all snapshot between start end end
 func QueryWrmSnapsot(tx *yasqlutil.Yasql, start string, end string) ([]*WrmSnapshot, error) {
 	snaps := make([]*WrmSnapshot, 0)
-	err := tx.Select(_wrmSnapsotSelecter).
+	err := tx.Select(_wrmSnapshotSelecter).
 		Where(fmt.Sprintf("BEGIN_INTERVAL_TIME >= TIMESTAMP('%s') and BEGIN_INTERVAL_TIME <= TIMESTAMP('%s')", start, end)).
 		Find(&snaps).Error()
 	if err != nil {

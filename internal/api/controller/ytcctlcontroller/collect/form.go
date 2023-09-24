@@ -42,7 +42,7 @@ func (c *CollectCmd) openYasdbCollectForm() (*yasdb.YasdbEnv, int) {
 	form.Start()
 	yasdbEnv, err := getYasdbEnvFromForm(form)
 	if err != nil {
-		return nil, terminalutil.FormExitNotContinue
+		return nil, terminalutil.FORM_EXIT_NOT_CONTINUE
 	}
 	return yasdbEnv, form.ExitCode
 }
@@ -84,16 +84,16 @@ func saveFunc(c *terminalutil.CollectForm) {
 	if err := yasdbEnv.ValidYasdbUserAndPwd(); err != nil {
 		log.Controller.Errorf("validate yasdb err: %s", err.Error())
 		YasdbValidate = err
-		desc, _ := ytccollectcommons.YasErrDescAndtips(err)
+		desc, _ := ytccollectcommons.YasErrDescAndTips(err)
 		desc = strings.Join([]string{desc, yasdb_internal_data_not_collect}, ", ")
 		c.ConfrimExit(desc)
 		return
 	}
-	c.Stop(terminalutil.FormExitContinue)
+	c.Stop(terminalutil.FORM_EXIT_CONTINUE)
 }
 
 func quitFunc(c *terminalutil.CollectForm) {
-	c.Stop(terminalutil.FormExitNotContinue)
+	c.Stop(terminalutil.FORM_EXIT_NOT_CONTINUE)
 }
 
 func trimSpace(s string) string {
