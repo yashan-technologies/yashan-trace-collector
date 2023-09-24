@@ -1,7 +1,6 @@
 package extra
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -59,10 +58,10 @@ func (b *ExtraCollecter) collectExtraFile() (err error) {
 func (b *ExtraCollecter) genDetails(dirs map[string]string, files map[string]string) (res map[string]string) {
 	res = make(map[string]string)
 	for k, v := range dirs {
-		res[fmt.Sprintf("./%s", path.Join(EXTRA_DIR_NAME, k))] = v
+		res[b.GenPackageRelativePath(path.Join(EXTRA_DIR_NAME, k))] = v
 	}
 	for k, v := range files {
-		res[fmt.Sprintf("./%s", path.Join(EXTRA_DIR_NAME, k))] = v
+		res[b.GenPackageRelativePath(path.Join(EXTRA_DIR_NAME, k))] = v
 	}
 	return
 }

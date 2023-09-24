@@ -1,7 +1,6 @@
 package diagnosis
 
 import (
-	"fmt"
 	"path"
 
 	"ytc/defs/errdef"
@@ -43,6 +42,7 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 		yasdbADRItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	yasdbADRItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, ADR_DIR_NAME))
+
+	yasdbADRItem.Details = b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, ADR_DIR_NAME))
 	return
 }

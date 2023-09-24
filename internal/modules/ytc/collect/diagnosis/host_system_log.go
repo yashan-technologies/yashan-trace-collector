@@ -25,7 +25,7 @@ func (b *DiagCollecter) collectHostSystemLog() (err error) {
 			log.Error(err)
 			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 		} else {
-			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
+			logPath := b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
 			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Details: logPath}
 		}
 		// syslog.log
@@ -34,7 +34,7 @@ func (b *DiagCollecter) collectHostSystemLog() (err error) {
 			log.Error(err)
 			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 		} else {
-			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
+			logPath := b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
 			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Details: logPath}
 		}
 	} else {

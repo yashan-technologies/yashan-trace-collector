@@ -3,6 +3,7 @@ package collecttypedef
 import (
 	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"ytc/defs/timedef"
@@ -80,4 +81,8 @@ func (c *CollectParam) GetPackageTimestamp() string {
 
 func (c *CollectParam) GetPackageName() string {
 	return fmt.Sprintf("%s-%s", PACKAGE_NAME_PREFIX, c.GetPackageTimestamp())
+}
+
+func (c *CollectParam) GenPackageRelativePath(p string) string {
+	return path.Join(c.GetPackageName(), p)
 }

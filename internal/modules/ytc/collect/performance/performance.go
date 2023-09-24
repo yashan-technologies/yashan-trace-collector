@@ -232,7 +232,7 @@ func (p *PerfCollecter) collectAWR() error {
 		awr.Description = datadef.GenDefaultDesc()
 		return err
 	}
-	awr.Details = fmt.Sprintf("./%s", relative)
+	awr.Details = p.GenPackageRelativePath(relative)
 	return nil
 }
 
@@ -424,7 +424,7 @@ func (p *PerfCollecter) collectCutSlowLogFile(log yaslog.YasLog) (cutSlowLog *da
 		cutSlowLog.Description = datadef.GenDefaultDesc()
 		return
 	}
-	cutSlowLog.Details = fmt.Sprintf("./%s", relative)
+	cutSlowLog.Details = p.GenPackageRelativePath(relative)
 	return
 }
 

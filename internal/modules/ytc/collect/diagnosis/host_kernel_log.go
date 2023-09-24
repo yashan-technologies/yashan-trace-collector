@@ -36,6 +36,6 @@ func (b *DiagCollecter) collectHostKernelLog() (err error) {
 		hostKernelLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	hostKernelLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, dmesgFile))
+	hostKernelLogItem.Details = b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, dmesgFile))
 	return
 }
