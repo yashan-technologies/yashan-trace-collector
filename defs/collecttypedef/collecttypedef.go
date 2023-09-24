@@ -2,7 +2,10 @@ package collecttypedef
 
 import (
 	"errors"
+	"fmt"
 	"time"
+
+	"ytc/defs/timedef"
 )
 
 const (
@@ -18,6 +21,8 @@ const (
 	WT_MEMORY  WorkloadType = "memory"
 	WT_DISK    WorkloadType = "disk"
 )
+
+const PACKAGE_NAME_PREFIX = "ytc"
 
 var (
 	ErrKnownType = errors.New("unknow collect type")
@@ -41,15 +46,17 @@ var (
 )
 
 type CollectParam struct {
-	StartTime     time.Time `json:"startTime"`
-	EndTime       time.Time `json:"endTime"`
-	Output        string    `json:"output"`
-	YasdbHome     string    `json:"yasdbHome"`
-	YasdbData     string    `json:"yasdbData"`
-	YasdbUser     string    `json:"yasdbUser"`
-	YasdbPassword string    `json:"yasdbPassword"`
-	Include       []string  `json:"include"`
-	Exclude       []string  `json:"exclude"`
+	StartTime       time.Time `json:"startTime"`
+	EndTime         time.Time `json:"endTime"`
+	Output          string    `json:"output"`
+	YasdbHome       string    `json:"yasdbHome"`
+	YasdbData       string    `json:"yasdbData"`
+	YasdbUser       string    `json:"yasdbUser"`
+	YasdbPassword   string    `json:"yasdbPassword"`
+	Include         []string  `json:"include"`
+	Exclude         []string  `json:"exclude"`
+	BeginTime       time.Time `json:"-"`
+	YasdbHomeOSUser string    `json:"-"`
 }
 
 type WorkloadItem map[string]interface{}
@@ -64,4 +71,13 @@ func GetTypeFullName(s string) string {
 		full = s
 	}
 	return full
+}
+
+func (c *CollectParam) GetPackageTimestamp() string {
+	// use begin time as timestamp
+	return c.BeginTime.Format(timedef.TIME_FORMAT_IN_FILE)
+}
+
+func (c *CollectParam) GetPackageName() string {
+	return fmt.Sprintf("%s-%s", PACKAGE_NAME_PREFIX, c.GetPackageTimestamp())
 }

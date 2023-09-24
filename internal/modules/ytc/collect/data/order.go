@@ -42,6 +42,7 @@ var (
 		datadef.DIAG_YASDB_ADR,
 		datadef.DIAG_HOST_SYSTEMLOG,
 		datadef.DIAG_HOST_KERNELLOG,
+		datadef.DIAG_HOST_BASH_HISTORY,
 	}
 
 	// TODO: add items to perf item order
