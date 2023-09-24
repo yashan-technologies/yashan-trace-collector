@@ -13,10 +13,13 @@ import (
 	ytcctlhandler "ytc/internal/api/handler/ytcctlhandler/collect"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
+	"ytc/utils/fileutil"
 	"ytc/utils/jsonutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/terminalutil"
 	"ytc/utils/timeutil"
+
+	"git.yasdb.com/go/yaserr"
 )
 
 type CollectGlobal struct {
@@ -77,16 +80,22 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 	if err != nil {
 		return nil, err
 	}
+	owner, err := fileutil.GetOwner(env.YasdbHome)
+	if err != nil {
+		return nil, yaserr.Wrapf(err, "get os owner of yasdb home %s", env.YasdbHome)
+	}
 	return &collecttypedef.CollectParam{
-		StartTime:     start,
-		EndTime:       end,
-		Output:        c.Output,
-		YasdbHome:     env.YasdbHome,
-		YasdbData:     env.YasdbData,
-		YasdbUser:     env.YasdbUser,
-		YasdbPassword: env.YasdbPassword,
-		Include:       c.getExtraPath(c.Include),
-		Exclude:       c.getExtraPath(c.Exclude),
+		StartTime:       start,
+		EndTime:         end,
+		Output:          c.Output,
+		YasdbHome:       env.YasdbHome,
+		YasdbData:       env.YasdbData,
+		YasdbUser:       env.YasdbUser,
+		YasdbPassword:   env.YasdbPassword,
+		Include:         c.getExtraPath(c.Include),
+		Exclude:         c.getExtraPath(c.Exclude),
+		BeginTime:       time.Now(),
+		YasdbHomeOSUser: owner.Username,
 	}, nil
 }
 

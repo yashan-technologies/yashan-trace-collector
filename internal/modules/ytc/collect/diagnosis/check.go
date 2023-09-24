@@ -322,6 +322,56 @@ func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
 	return nil
 }
 
+func (d *DiagCollecter) checkBashHistory() *ytccollectcommons.NoAccessRes {
+	const default_description = "The data source of bash history is the $HISTFILE file, " +
+		"if you need to keep the history of the current terminal, please execute 'history -a' first."
+	logger := log.Module.M(datadef.DIAG_HOST_BASH_HISTORY)
+	resp := &ytccollectcommons.NoAccessRes{
+		ModuleItem:   datadef.DIAG_HOST_BASH_HISTORY,
+		Description:  default_description,
+		ForceCollect: true,
+	}
+
+	if userutil.IsCurrentUserRoot() {
+		_currentBashHistoryPermission = bhp_has_root_permission
+		return resp
+	}
+
+	switch err := userutil.CheckSudovn(logger); err {
+	case nil:
+		_currentBashHistoryPermission = bhp_has_sudo_permission
+		return resp
+	case userutil.ErrSudoNeedPwd:
+		resp.Description = err.Error()
+		resp.Tips = ytccollectcommons.PLEASE_RUN_WITH_SUDO_TIPS
+	default:
+		resp.Description = err.Error()
+		resp.Tips = ytccollectcommons.PLEASE_RUN_WITH_ROOT_TIPS
+	}
+
+	if userutil.CanSuToTargetUserWithoutPassword(runtimedef.GetRootUsername(), logger) {
+		_currentBashHistoryPermission = bhp_can_su_to_root_without_password_permission
+		resp.Description = default_description
+		resp.Tips = ""
+		return resp
+	}
+	resp.Description = "has no permission to collect bash history of root"
+
+	canSuToYasdbUserWithoutPassword := false
+	if d.CollectParam.YasdbHomeOSUser == userutil.CurrentUser {
+		canSuToYasdbUserWithoutPassword = true
+	} else {
+		canSuToYasdbUserWithoutPassword = userutil.CanSuToTargetUserWithoutPassword(d.CollectParam.YasdbHomeOSUser, logger)
+	}
+	if canSuToYasdbUserWithoutPassword {
+		_currentBashHistoryPermission = bhp_can_su_to_yasdb_user_without_password_permission
+		return resp
+	}
+	resp.Description += fmt.Sprintf(" and %s", d.CollectParam.YasdbHomeOSUser)
+	resp.ForceCollect = false
+	return resp
+}
+
 func (d *DiagCollecter) CheckFunc() map[string]checkFunc {
 	return map[string]checkFunc{
 		datadef.DIAG_YASDB_PROCESS_STATUS:  d.checkYasdbProcess,
@@ -333,5 +383,6 @@ func (d *DiagCollecter) CheckFunc() map[string]checkFunc {
 		datadef.DIAG_YASDB_COREDUMP:        d.checkYasdbCoredump,
 		datadef.DIAG_HOST_SYSTEMLOG:        d.checkSyslog,
 		datadef.DIAG_HOST_KERNELLOG:        d.checkDmesg,
+		datadef.DIAG_HOST_BASH_HISTORY:     d.checkBashHistory,
 	}
 }

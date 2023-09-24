@@ -19,9 +19,8 @@ import (
 )
 
 const (
-	_PACKAGE_NAME_FORMATTER = "ytc-%s"
-	_REPORT_NAME_FORMATTER  = "report-%s.%s"
-	_DATA_NAME_FORMATTER    = "data-%s.json"
+	_REPORT_NAME_FORMATTER = "report-%s.%s"
+	_DATA_NAME_FORMATTER   = "data-%s.json"
 
 	_DIR_DATA          = "data"
 	_DIR_BASE          = "base"
@@ -37,6 +36,7 @@ type BaseResultGenner struct {
 	Datas        interface{}
 	CollectTypes map[string]struct{}
 	OutputDir    string
+	PackageName  string
 	Timestamp    string
 	Genner       Genner
 }
@@ -67,16 +67,12 @@ func (g *BaseResultGenner) GetPackageDir() string {
 	return g.genPackageDir()
 }
 
-func (g *BaseResultGenner) genPackageName() string {
-	return fmt.Sprintf(_PACKAGE_NAME_FORMATTER, g.Timestamp)
-}
-
 func (g *BaseResultGenner) genPackageDir() string {
-	return path.Join(g.OutputDir, g.genPackageName())
+	return path.Join(g.OutputDir, g.PackageName)
 }
 
 func (g *BaseResultGenner) genPackageTarName() string {
-	return fmt.Sprint(g.genPackageName(), ".tar.gz")
+	return fmt.Sprint(g.PackageName, ".tar.gz")
 }
 
 func (g *BaseResultGenner) genPackageTarPath() string {
@@ -144,7 +140,7 @@ func (g *BaseResultGenner) writeReport() error {
 }
 
 func (g *BaseResultGenner) tarResult() error {
-	command := fmt.Sprintf("cd %s;%s czvf %s %s;rm -rf %s", g.OutputDir, bashdef.CMD_TAR, g.genPackageTarName(), g.genPackageName(), g.genPackageName())
+	command := fmt.Sprintf("cd %s;%s czvf %s %s;rm -rf %s", g.OutputDir, bashdef.CMD_TAR, g.genPackageTarName(), g.PackageName, g.PackageName)
 	executer := execerutil.NewExecer(log.Logger)
 	ret, _, stderr := executer.Exec(bashdef.CMD_BASH, "-c", command)
 	if ret != 0 {

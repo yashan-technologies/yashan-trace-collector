@@ -18,6 +18,8 @@ const (
 	CMD_DMESG         = "dmesg"
 	CMD_COMMAND       = "command"
 	CMD_CP            = "cp"
+	CMD_SU            = "su"
+	CMD_WHOAMI        = "whoami"
 )
 
 const (

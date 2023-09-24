@@ -13,5 +13,6 @@ func InitRuntime() error {
 	if err := initExecuter(); err != nil {
 		return err
 	}
+	initRootUsername()
 	return nil
 }
