@@ -112,7 +112,7 @@ func (d *DiagCollecter) genTargetUsers() map[string]struct{} {
 }
 
 func (d *DiagCollecter) genBashHistoryFileName(destPath, user string) string {
-	return fmt.Sprintf("%s/%s.bashhistory", destPath, user)
+	return fmt.Sprintf("%s/%s-bashhistory.txt", destPath, user)
 }
 
 func (d *DiagCollecter) genBashHistoryTmpFileName(user string) string {
@@ -173,7 +173,7 @@ func (d *DiagCollecter) collectHostBashHistory() (err error) {
 	script := path.Join(runtimedef.GetScriptsPath(), bash_history_ctl)
 	resp := datadef.YTCItem{
 		Name:    datadef.DIAG_HOST_BASH_HISTORY,
-		Details: destPath,
+		Details: d.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, BASH_HISTORY_DIR_NAME)),
 	}
 	defer d.fillResult(&resp)
 	logger := log.Module.M(datadef.DIAG_HOST_BASH_HISTORY)
