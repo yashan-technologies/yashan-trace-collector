@@ -188,7 +188,7 @@ func (b *PerfCollecter) setPackageDir(packageDir string) {
 
 func (p *PerfCollecter) checkFunc() map[string]func() *ytccollectcommons.NoAccessRes {
 	return map[string]func() *ytccollectcommons.NoAccessRes{
-		datadef.PERF_YASDB_AWR:      p.checkAwr,
+		datadef.PERF_YASDB_AWR:      p.checkAWR,
 		datadef.PERF_YASDB_SLOW_SQL: p.checkSlowSql,
 	}
 }
@@ -232,7 +232,7 @@ func (p *PerfCollecter) collectAWR() error {
 		awr.Description = datadef.GenDefaultDesc()
 		return err
 	}
-	awr.Details = fmt.Sprintf("./%s", relative)
+	awr.Details = p.GenPackageRelativePath(relative)
 	return nil
 }
 
@@ -424,7 +424,7 @@ func (p *PerfCollecter) collectCutSlowLogFile(log yaslog.YasLog) (cutSlowLog *da
 		cutSlowLog.Description = datadef.GenDefaultDesc()
 		return
 	}
-	cutSlowLog.Details = fmt.Sprintf("./%s", relative)
+	cutSlowLog.Details = p.GenPackageRelativePath(relative)
 	return
 }
 

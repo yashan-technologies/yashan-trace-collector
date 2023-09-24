@@ -1,7 +1,6 @@
 package diagnosis
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -104,7 +103,7 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 			return
 		}
 	}
-	yasdbCoreDumpItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, CORE_DUMP_DIR_NAME))
+	yasdbCoreDumpItem.Details = b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, CORE_DUMP_DIR_NAME))
 	return
 }
 

@@ -70,6 +70,7 @@ const (
 	DEFAULT_SLOWSQL_TIPS = "default collect slow.log from %s"
 	AWR_TIMEOUT_DESC     = "it may take a long time to generate an AWR report."
 	AWR_TIMEOUT_TIPS     = "we have defined the timeout period: %s for collecting AWR report, you can modify strategy.toml 'awr_timeout' to customize the timeout period"
+	AWR_SKIP_TIPS        = "the databse is not in readwrite mode, skip to generate AWR report"
 
 	NO_SATISFIED_SNAP_DESC = "no satisfied snapshot id"
 	NO_SATISFIED_TIPS      = "you can increase the collection interval appropriately"

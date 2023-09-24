@@ -46,7 +46,7 @@ func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 		yasdbRunLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	yasdbRunLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, runLogFile))
+	yasdbRunLogItem.Details = b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, runLogFile))
 	return
 }
 

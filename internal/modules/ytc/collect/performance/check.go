@@ -11,13 +11,26 @@ import (
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 	"ytc/utils/fileutil"
+	"ytc/utils/yasqlutil"
+
+	"git.yasdb.com/go/yaslog"
 )
 
 const (
 	USER_SYS = "SYS"
 )
 
-func (p *PerfCollecter) checkAwr() *ytccollectcommons.NoAccessRes {
+func (p *PerfCollecter) checkDatabaseOpenMode(logger yaslog.YasLog) (bool, error) {
+	tx := yasqlutil.GetLocalInstance(p.YasdbUser, p.YasdbPassword, p.YasdbHome, p.YasdbData)
+	database, err := yasdb.QueryDatabase(tx)
+	if err != nil {
+		logger.Errorf("query v$database failed: %s", err)
+		return false, err
+	}
+	return database.IsDatabaseInReadWwiteMode(), nil
+}
+
+func (p *PerfCollecter) checkAWR() *ytccollectcommons.NoAccessRes {
 	noAccess := &ytccollectcommons.NoAccessRes{ModuleItem: datadef.PERF_YASDB_AWR}
 	if strings.ToUpper(p.YasdbUser) != USER_SYS {
 		ytccollectcommons.FillDescTips(noAccess, fmt.Sprintf(ytccollectcommons.USER_NOT_SYS_DESC, p.YasdbUser), ytccollectcommons.USER_NOT_SYS_TIPS)
@@ -28,8 +41,21 @@ func (p *PerfCollecter) checkAwr() *ytccollectcommons.NoAccessRes {
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-	_, _, err := p.genStartEndSnapId(log.Module.M("check awr"))
+
+	logger := log.Module.M(datadef.PERF_YASDB_AWR)
+	inReadWwiteMode, err := p.checkDatabaseOpenMode(logger)
 	if err != nil {
+		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		return noAccess
+	}
+	if !inReadWwiteMode {
+		desc, tips := ytccollectcommons.AWR_SKIP_TIPS, ytccollectcommons.AWR_SKIP_TIPS
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		return noAccess
+	}
+
+	if _, _, err := p.genStartEndSnapId(logger); err != nil {
 		if err == yasdb.ErrNoSatisfiedSnapshot {
 			desc := ytccollectcommons.NO_SATISFIED_SNAP_DESC
 			tips := ytccollectcommons.NO_SATISFIED_TIPS

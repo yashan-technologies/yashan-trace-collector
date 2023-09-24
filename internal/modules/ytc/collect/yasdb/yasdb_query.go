@@ -27,6 +27,12 @@ const (
 	QUERY_YASDB_PARAMETER_BY_NAME = "select name,value from v$parameter where name='%s'"
 )
 
+const (
+	OPEN_MODE_READ_WRITE OpenMode = "READ_WRITE"
+	OPEN_MODE_READ_ONLY  OpenMode = "READ_ONLY"
+	OPEN_MODE_MOUNTED    OpenMode = "MOUNTED"
+)
+
 var (
 	_databaseSelecter = &yasqlutil.SelectRaw{
 		RawSql: QUERY_YASDB_DATABASE_STATUS,
@@ -116,6 +122,8 @@ type SlowLog struct {
 	SQLText        string  `json:"sqlText"`   // sql语句
 	StartTimestamp int64   `json:"-"`         // 日志记录时的时间，时间戳形式
 }
+
+type OpenMode string
 
 func QueryParameter(tx *yasqlutil.Yasql, item ParameterName) (string, error) {
 	tmp := &yasqlutil.SelectRaw{
@@ -221,4 +229,8 @@ func (s *SlowLog) afterFind(tx *yasqlutil.Yasql) error {
 	}
 	s.SQLText = strings.Join(texts, "\n")
 	return nil
+}
+
+func (d *VDatabase) IsDatabaseInReadWwiteMode() bool {
+	return d.OpenMode == string(OPEN_MODE_READ_WRITE)
 }
