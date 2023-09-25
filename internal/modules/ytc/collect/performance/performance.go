@@ -256,7 +256,24 @@ func (p *PerfCollecter) createAWRSqlFile(log yaslog.YasLog) (string, error) {
 
 func (p *PerfCollecter) genStartEndSnapId(log yaslog.YasLog) (int64, int64, error) {
 	tx := yasqlutil.GetLocalInstance(p.YasdbUser, p.YasdbPassword, p.YasdbHome, p.YasdbData)
+
+	instance, err := yasdb.QueryInstance(tx)
+	if err != nil {
+		log.Errorf("query instance failed: %s", err.Error())
+		return 0, 0, err
+	}
+	tx.ResetError()
+
+	instanceStartupTime, err := time.Parse(timedef.TIME_FORMAT, instance.StartupTime)
+	if err != nil {
+		log.Errorf("parse instance startup time %s failed: %s", instance.StartupTime, err.Error())
+		return 0, 0, err
+	}
 	start := p.StartTime.Format(timedef.TIME_FORMAT)
+	if p.StartTime.Before(instanceStartupTime) {
+		start = instanceStartupTime.Format(timedef.TIME_FORMAT)
+	}
+
 	end := p.EndTime.Format(timedef.TIME_FORMAT)
 	snaps, err := yasdb.QueryWrmSnapsot(tx, start, end)
 	if err != nil {
@@ -272,7 +289,7 @@ func (p *PerfCollecter) genStartEndSnapId(log yaslog.YasLog) (int64, int64, erro
 			min = snap.SnapID
 		}
 	}
-	return min, max, err
+	return min, max, nil
 }
 
 func (p *PerfCollecter) queryDatabaseInstance(log yaslog.YasLog) (*yasdb.WrmDatabaseInstance, error) {
