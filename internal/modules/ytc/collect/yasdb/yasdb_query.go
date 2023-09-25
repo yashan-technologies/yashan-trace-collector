@@ -22,7 +22,7 @@ const (
 
 const (
 	QUERY_YASDB_ALL_PARAMETER     = "select name,value from v$parameter where value is not null"
-	QUERY_YASDB_INSTANCE_STATUS   = "select status from v$instance;"
+	QUERY_YASDB_INSTANCE_STATUS   = "select status,startup_time as startupTime from v$instance;"
 	QUERY_YASDB_DATABASE_STATUS   = "select status,open_mode as openMode from v$database"
 	QUERY_YASDB_PARAMETER_BY_NAME = "select name,value from v$parameter where name='%s'"
 )
@@ -92,7 +92,8 @@ type VParameter struct {
 }
 
 type VInstance struct {
-	Status string `json:"status"`
+	Status      string `json:"status"`
+	StartupTime string `json:"startupTime"`
 }
 
 type VDatabase struct {
