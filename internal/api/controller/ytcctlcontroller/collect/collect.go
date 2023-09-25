@@ -84,6 +84,9 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 	if err != nil {
 		return nil, yaserr.Wrapf(err, "get os owner of yasdb home %s", env.YasdbHome)
 	}
+	log.Controller.Infof("YASDB_HOME: %s", env.YasdbHome)
+	log.Controller.Infof("YASDB_DATA: %s", env.YasdbData)
+	log.Controller.Infof("YASDB_USER: %s", env.YasdbUser)
 	return &collecttypedef.CollectParam{
 		StartTime:       start,
 		EndTime:         end,
