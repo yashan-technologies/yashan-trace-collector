@@ -37,24 +37,24 @@ func (p *PerfCollecter) checkAWR() *ytccollectcommons.NoAccessRes {
 		return noAccess
 	}
 	if p.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(p.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(p.yasdbValidateErr)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
 
 	logger := log.Module.M(datadef.PERF_YASDB_AWR)
-	inReadWwiteMode, err := p.checkDatabaseOpenMode(logger)
+	inReadWriteMode, err := p.checkDatabaseOpenMode(logger)
 	if err != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-	if !inReadWwiteMode {
+	if !inReadWriteMode {
 		desc, tips := ytccollectcommons.AWR_SKIP_TIPS, ytccollectcommons.AWR_SKIP_TIPS
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-
+	// TODO: check v$instance boot time
 	if _, _, err := p.genStartEndSnapId(logger); err != nil {
 		if err == yasdb.ErrNoSatisfiedSnapshot {
 			desc := ytccollectcommons.NO_SATISFIED_SNAP_DESC
@@ -62,7 +62,7 @@ func (p *PerfCollecter) checkAWR() *ytccollectcommons.NoAccessRes {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -80,7 +80,7 @@ func (p *PerfCollecter) checkSlowSql() *ytccollectcommons.NoAccessRes {
 	defaultSlowLog := path.Join(p.YasdbData, ytccollectcommons.LOG, ytccollectcommons.SLOW, ytccollectcommons.SLOW_LOG)
 	defaultSlowLogTips := fmt.Sprintf(ytccollectcommons.DEFAULT_SLOWSQL_TIPS, defaultSlowLog)
 	if p.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(p.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(p.yasdbValidateErr)
 		if err := fileutil.CheckAccess(defaultSlowLog); err != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
@@ -89,10 +89,10 @@ func (p *PerfCollecter) checkSlowSql() *ytccollectcommons.NoAccessRes {
 		noAccess.ForceCollect = true
 		return noAccess
 	}
-	slowLogPath, err := p.getFileSlowLogPath()
+	slowLogPath, err := p.getSlowLogPath()
 	slowLog := path.Join(slowLogPath, ytccollectcommons.SLOW_LOG)
 	if err != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		if err := fileutil.CheckAccess(defaultSlowLog); err != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess

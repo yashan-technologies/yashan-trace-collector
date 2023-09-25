@@ -82,7 +82,7 @@ func (b *BaseCollecter) checkYasdbParameter() (noAccess *ytccollectcommons.NoAcc
 	}
 	if b.yasdbValidateErr != nil {
 		b.notConnectDB = true
-		desc, tips := ytccollectcommons.YasErrDescAndtips(b.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(b.yasdbValidateErr)
 		if iniErr == nil {
 			noAccess.ForceCollect = true
 			ytccollectcommons.FillDescTips(noAccess, desc, fmt.Sprintf(ytccollectcommons.DEFAULT_PARAMETER_TIPS, ini))

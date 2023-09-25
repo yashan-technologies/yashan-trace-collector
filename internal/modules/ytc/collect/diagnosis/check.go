@@ -119,7 +119,7 @@ func (d *DiagCollecter) checkYasdbInstanceStatus() *ytccollectcommons.NoAccessRe
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(d.yasdbValidateErr)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -137,7 +137,7 @@ func (d *DiagCollecter) checkYasdbDatabaseStatus() *ytccollectcommons.NoAccessRe
 		return noAccess
 	}
 	if d.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(d.yasdbValidateErr)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -162,7 +162,7 @@ func (d *DiagCollecter) checkYasdbAdr() *ytccollectcommons.NoAccessRes {
 	}
 	if d.yasdbValidateErr != nil {
 		d.notConnectDB = true
-		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(diag); dErr != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
@@ -174,7 +174,7 @@ func (d *DiagCollecter) checkYasdbAdr() *ytccollectcommons.NoAccessRes {
 	adrPath, err := GetAdrPath(d.CollectParam)
 	if err != nil {
 		d.notConnectDB = true
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -211,7 +211,7 @@ func (d *DiagCollecter) checkYasdbRunLog() *ytccollectcommons.NoAccessRes {
 	}
 	if d.yasdbValidateErr != nil {
 		d.notConnectDB = true
-		desc, tips := ytccollectcommons.YasErrDescAndtips(d.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(d.yasdbValidateErr)
 		if dErr := fileutil.CheckAccess(defaultRunLog); dErr != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
@@ -224,7 +224,7 @@ func (d *DiagCollecter) checkYasdbRunLog() *ytccollectcommons.NoAccessRes {
 	runLogPath, err := GetYasdbRunLogPath(d.CollectParam)
 	if err != nil {
 		d.notConnectDB = true
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -323,12 +323,13 @@ func (d *DiagCollecter) checkDmesg() *ytccollectcommons.NoAccessRes {
 }
 
 func (d *DiagCollecter) checkBashHistory() *ytccollectcommons.NoAccessRes {
-	const default_description = "The data source of bash history is the $HISTFILE file, " +
-		"if you need to keep the history of the current terminal, please execute 'history -a' first."
+	const default_description = "The data source of bash history is the $HISTFILE file."
+	const default_tips = "if you need to keep the history of the current terminal, please execute 'history -a' first."
 	logger := log.Module.M(datadef.DIAG_HOST_BASH_HISTORY)
 	resp := &ytccollectcommons.NoAccessRes{
 		ModuleItem:   datadef.DIAG_HOST_BASH_HISTORY,
 		Description:  default_description,
+		Tips:         default_tips,
 		ForceCollect: true,
 	}
 
@@ -352,7 +353,7 @@ func (d *DiagCollecter) checkBashHistory() *ytccollectcommons.NoAccessRes {
 	if userutil.CanSuToTargetUserWithoutPassword(runtimedef.GetRootUsername(), logger) {
 		_currentBashHistoryPermission = bhp_can_su_to_root_without_password_permission
 		resp.Description = default_description
-		resp.Tips = ""
+		resp.Tips = default_tips
 		return resp
 	}
 	resp.Description = "has no permission to collect bash history of root"

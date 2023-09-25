@@ -129,6 +129,7 @@ func PathErrDescAndTips(path string, e error) (desc, tips string) {
 			tips = PLEASE_RUN_WITH_ROOT_TIPS
 			return
 		}
+		tips = PLEASE_RUN_WITH_SUDO_TIPS
 		return
 	}
 	desc = e.Error()
@@ -154,7 +155,7 @@ func CheckSudoTips(err error) string {
 	return PLEASE_RUN_WITH_ROOT_TIPS
 }
 
-func YasErrDescAndtips(err error) (desc string, tips string) {
+func YasErrDescAndTips(err error) (desc string, tips string) {
 	if err == nil {
 		return
 	}
@@ -185,7 +186,7 @@ func YasErrDescAndtips(err error) (desc string, tips string) {
 	return
 }
 
-func NotAccessItem2Set(noAccess []NoAccessRes) (res map[string]struct{}) {
+func NotAccessItemToMap(noAccess []NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
 	for _, noAccessRes := range noAccess {
 		if noAccessRes.ForceCollect {
