@@ -19,17 +19,16 @@ import (
 )
 
 const (
-	_REPORT_NAME_FORMATTER = "report-%s.%s"
-	_DATA_NAME_FORMATTER   = "data-%s.json"
+	_REPORT_NAME_FORMATTER = "ytc-report-%s.%s"
+	_DATA_NAME_FORMATTER   = "ytc-%s.json"
 
-	_DIR_DATA          = "data"
 	_DIR_BASE          = "base"
 	_DIR_DIAG          = "diag"
 	_DIR_PERF          = "perf"
 	_DIR_LOG           = "log"
 	_DIR_YASDB         = "yasdb"
 	_DIR_SYSTEM        = "system"
-	_DIR_REPORT_STATIC = "report_static"
+	_DIR_REPORT_STATIC = "ytc_report_static"
 )
 
 type BaseResultGenner struct {
@@ -81,7 +80,7 @@ func (g *BaseResultGenner) genPackageTarPath() string {
 
 func (g *BaseResultGenner) genDataPath() string {
 	name := fmt.Sprintf(_DATA_NAME_FORMATTER, g.Timestamp)
-	return path.Join(g.genPackageDir(), _DIR_DATA, name)
+	return path.Join(g.genPackageDir(), name)
 }
 
 func (g *BaseResultGenner) genReportStaticDir() string {

@@ -11,9 +11,9 @@ const _html_template = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YTC Report</title>
-    <link rel='stylesheet' href='./report_static/css/morris.css'>
-    <script src='./report_static/js/raphael.min.js'></script>
-    <script src='./report_static/js/morris.js'></script>
+    <link rel='stylesheet' href='./ytc_report_static/css/morris.css'>
+    <script src='./ytc_report_static/js/raphael.min.js'></script>
+    <script src='./ytc_report_static/js/morris.js'></script>
     %s
 </head>
 <body>

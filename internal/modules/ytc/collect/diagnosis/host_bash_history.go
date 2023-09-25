@@ -12,6 +12,7 @@ import (
 	"ytc/defs/bashdef"
 	"ytc/defs/runtimedef"
 	"ytc/defs/timedef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/fileutil"
@@ -169,11 +170,11 @@ func (d *DiagCollecter) collectHostBashHistoryByPermission(logger yaslog.YasLog,
 }
 
 func (d *DiagCollecter) collectHostBashHistory() (err error) {
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME, BASH_HISTORY_DIR_NAME)
+	destPath := path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, BASH_HISTORY_DIR_NAME)
 	script := path.Join(runtimedef.GetScriptsPath(), bash_history_ctl)
 	resp := datadef.YTCItem{
 		Name:    datadef.DIAG_HOST_BASH_HISTORY,
-		Details: d.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, BASH_HISTORY_DIR_NAME)),
+		Details: d.GenPackageRelativePath(path.Join(ytccollectcommons.HOST_DIR_NAME, BASH_HISTORY_DIR_NAME)),
 	}
 	defer d.fillResult(&resp)
 	logger := log.Module.M(datadef.DIAG_HOST_BASH_HISTORY)

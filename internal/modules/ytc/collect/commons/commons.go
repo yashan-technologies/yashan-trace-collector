@@ -101,6 +101,11 @@ const (
 	YASDB_INI = "yasdb.ini"
 )
 
+const (
+	HOST_DIR_NAME  = "host"
+	YASDB_DIR_NAME = "yasdb"
+)
+
 type NoAccessRes struct {
 	ModuleItem   string
 	Description  string

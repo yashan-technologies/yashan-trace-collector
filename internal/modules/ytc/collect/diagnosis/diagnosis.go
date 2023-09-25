@@ -38,10 +38,6 @@ const (
 	BASH_HISTORY_DIR_NAME = "bashhistory"
 
 	CORE_DUMP_DIR_NAME = "coredump"
-	ADR_DIR_NAME       = "adr"
-
-	YASDB_DIR_NAME  = "yasdb"
-	SYSTEM_DIR_NAME = "system"
 
 	YASDB_ALERT_LOG = "alert"
 	YASDB_RUN_LOG   = "run"
@@ -166,19 +162,19 @@ func (b *DiagCollecter) getNotAccessItem(noAccess []ytccollectcommons.NoAccessRe
 // [Interface Func]
 func (b *DiagCollecter) PreCollect(packageDir string) (err error) {
 	b.setPackageDir(packageDir)
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, ADR_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, DIAG_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, LOG_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, BASH_HISTORY_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, BASH_HISTORY_DIR_NAME)); err != nil {
 		return
 	}
 	return
