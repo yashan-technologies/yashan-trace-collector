@@ -39,13 +39,13 @@ func (r SlowSqlReporter) Report(item datadef.YTCItem, titlePrefix string) (conte
 		return
 	}
 	// report slow sql
-	titleContent := r.genTitleRepoterCentent(title, fontSize)
+	titleContent := r.genTitleReporterContent(title, fontSize)
 	content.Txt += titleContent.Txt + stringutil.STR_NEWLINE
 	content.Markdown += titleContent.Markdown + stringutil.STR_NEWLINE
 	content.HTML += titleContent.HTML + stringutil.STR_NEWLINE
 
-	childs, childFunc := r.genChildrenReportFunc(item)
-	for i, c := range childs {
+	children, childFunc := r.genChildrenReportFunc(item)
+	for i, c := range children {
 		var childContent reporter.ReportContent
 		childContent, err = childFunc[c](titlePrefix, i+1, item)
 		if err != nil {
@@ -58,46 +58,45 @@ func (r SlowSqlReporter) Report(item datadef.YTCItem, titlePrefix string) (conte
 	return
 }
 
-func (r SlowSqlReporter) genTitleRepoterCentent(title string, font reporter.FontSize) (content reporter.ReportContent) {
+func (r SlowSqlReporter) genTitleReporterContent(title string, font reporter.FontSize) (content reporter.ReportContent) {
 	content = reporter.GenReportContentByTitle(title, font)
 	return
 }
 
 func (r SlowSqlReporter) genExistChildren(slowSQL datadef.YTCItem) (res []string) {
-	defer sort.Strings(res)
-	chrids := []string{
+	children := []string{
 		performance.KEY_SLOW_SQL_PARAMETER,
-		performance.KEY_SLOW_SQL_LOGS,
-		performance.KEY_SLOW_SQL_CUT_FILE,
+		performance.KEY_SLOW_SQL_LOGS_IN_TABLE,
+		performance.KEY_SLOW_SQL_LOGS_IN_FILE,
 	}
-	for _, c := range chrids {
-		_, ok := slowSQL.Children[c]
-		if ok {
+	for _, c := range children {
+		if _, ok := slowSQL.Children[c]; ok {
 			res = append(res, c)
 		}
 	}
+	sort.Strings(res)
 	return
 }
 
-func (r SlowSqlReporter) genChildrenReportFunc(slowSQL datadef.YTCItem) (exists []string, indexFunMap map[string]genReportFunc) {
-	indexFunMap = make(map[string]genReportFunc)
+func (r SlowSqlReporter) genChildrenReportFunc(slowSQL datadef.YTCItem) (exists []string, funcMap map[string]genReportFunc) {
+	funcMap = make(map[string]genReportFunc)
 	exists = r.genExistChildren(slowSQL)
 	allFuncs := r.allChildrenReportFunc()
 	for _, exist := range exists {
-		indexFunMap[exist] = allFuncs[exist]
+		funcMap[exist] = allFuncs[exist]
 	}
 	return
 }
 
 func (r SlowSqlReporter) allChildrenReportFunc() (funMap map[string]genReportFunc) {
 	return map[string]genReportFunc{
-		performance.KEY_SLOW_SQL_PARAMETER: r.genSlowParamReportCentent,
-		performance.KEY_SLOW_SQL_LOGS:      r.genSlowLogsContent,
-		performance.KEY_SLOW_SQL_CUT_FILE:  r.genCutSlowFileReportCentent,
+		performance.KEY_SLOW_SQL_PARAMETER:     r.genSlowParamContent,
+		performance.KEY_SLOW_SQL_LOGS_IN_TABLE: r.genSlowLogsInTableContent,
+		performance.KEY_SLOW_SQL_LOGS_IN_FILE:  r.genSlowLogsInFileContent,
 	}
 }
 
-func (r SlowSqlReporter) genSlowParamReportCentent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
+func (r SlowSqlReporter) genSlowParamContent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
 	title := fmt.Sprintf("%s.%d %s", titlePrefix, index, performance.PerformanceChildChineseName[performance.KEY_SLOW_SQL_PARAMETER])
 	fontSize := reporter.FONT_SIZE_H3
 	slowParameter, ok := slowSQL.Children[performance.KEY_SLOW_SQL_PARAMETER]
@@ -127,10 +126,10 @@ func (r SlowSqlReporter) genSlowSQLParameterContentWriter(parameters []*yasdb.VP
 	return tw
 }
 
-func (r SlowSqlReporter) genCutSlowFileReportCentent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
-	title := fmt.Sprintf("%s.%d %s", titlePrefix, index, performance.PerformanceChildChineseName[performance.KEY_SLOW_SQL_CUT_FILE])
+func (r SlowSqlReporter) genSlowLogsInFileContent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
+	title := fmt.Sprintf("%s.%d %s", titlePrefix, index, performance.PerformanceChildChineseName[performance.KEY_SLOW_SQL_LOGS_IN_FILE])
 	fontSize := reporter.FONT_SIZE_H3
-	curFileItem, ok := slowSQL.Children[performance.KEY_SLOW_SQL_CUT_FILE]
+	curFileItem, ok := slowSQL.Children[performance.KEY_SLOW_SQL_LOGS_IN_FILE]
 	if !ok {
 		return
 	}
@@ -148,10 +147,10 @@ func (r SlowSqlReporter) genCutSlowFileReportCentent(titlePrefix string, index i
 	return
 }
 
-func (r SlowSqlReporter) genSlowLogsContent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
-	title := fmt.Sprintf("%s.%d %s", titlePrefix, index, performance.PerformanceChildChineseName[performance.KEY_SLOW_SQL_LOGS])
+func (r SlowSqlReporter) genSlowLogsInTableContent(titlePrefix string, index int, slowSQL datadef.YTCItem) (content reporter.ReportContent, err error) {
+	title := fmt.Sprintf("%s.%d %s", titlePrefix, index, performance.PerformanceChildChineseName[performance.KEY_SLOW_SQL_LOGS_IN_TABLE])
 	fontSize := reporter.FONT_SIZE_H3
-	slowLogItem, ok := slowSQL.Children[performance.KEY_SLOW_SQL_LOGS]
+	slowLogItem, ok := slowSQL.Children[performance.KEY_SLOW_SQL_LOGS_IN_TABLE]
 	if !ok {
 		return
 	}
@@ -208,7 +207,7 @@ func (r SlowSqlReporter) parseSlowParameter(slowParameter datadef.YTCItem) (para
 }
 
 func (r SlowSqlReporter) parseCutSlowFile(cutFileItem datadef.YTCItem) (curFile string, err error) {
-	curFile, err = commons.ParseString(performance.KEY_SLOW_SQL_CUT_FILE, cutFileItem.Details, "parse slow log cut file")
+	curFile, err = commons.ParseString(performance.KEY_SLOW_SQL_LOGS_IN_FILE, cutFileItem.Details, "parse slow log cut file")
 	return
 }
 
@@ -218,7 +217,7 @@ func (r SlowSqlReporter) parseSlowLogs(slowLogsItem datadef.YTCItem) (logs []*ya
 		tmp, ok := slowLogsItem.Details.([]interface{})
 		if !ok {
 			err = &commons.ErrInterfaceTypeNotMatch{
-				Key: performance.KEY_SLOW_SQL_LOGS,
+				Key: performance.KEY_SLOW_SQL_LOGS_IN_TABLE,
 				Targets: []interface{}{
 					[]interface{}{},
 					[]*yasdb.SlowLog{},

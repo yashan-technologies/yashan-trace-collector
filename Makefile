@@ -62,6 +62,7 @@ build: go_build
 	@cp ./ytc.pdf $(DOCS_PATH)
 	@mv $(BIN_FILES) $(BIN_PATH)
 	@> $(LOG_PATH)/ytcctl.log
+	@> $(LOG_PATH)/console.out
 	@cd $(PKG_PATH);ln -s ./bin/ytcctl ./ytcctl
 	@cd $(BUILD_PATH);tar -cvzf $(PKG) $(PKG_PERFIX)/
 

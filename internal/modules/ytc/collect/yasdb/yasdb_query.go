@@ -22,9 +22,15 @@ const (
 
 const (
 	QUERY_YASDB_ALL_PARAMETER     = "select name,value from v$parameter where value is not null"
-	QUERY_YASDB_INSTANCE_STATUS   = "select status from v$instance;"
+	QUERY_YASDB_INSTANCE_STATUS   = "select status,startup_time as startupTime from v$instance;"
 	QUERY_YASDB_DATABASE_STATUS   = "select status,open_mode as openMode from v$database"
 	QUERY_YASDB_PARAMETER_BY_NAME = "select name,value from v$parameter where name='%s'"
+)
+
+const (
+	OPEN_MODE_READ_WRITE OpenMode = "READ_WRITE"
+	OPEN_MODE_READ_ONLY  OpenMode = "READ_ONLY"
+	OPEN_MODE_MOUNTED    OpenMode = "MOUNTED"
 )
 
 var (
@@ -44,7 +50,7 @@ var (
 		},
 	}
 
-	_wrmSnapsotSelecter = &yasqlutil.Select{
+	_wrmSnapshotSelecter = &yasqlutil.Select{
 		Table:   "sys.wrm$_snapshot",
 		Columns: []string{"SNAP_ID", "DBID", "BEGIN_INTERVAL_TIME"},
 		ColTypes: map[string]string{
@@ -86,7 +92,8 @@ type VParameter struct {
 }
 
 type VInstance struct {
-	Status string `json:"status"`
+	Status      string `json:"status"`
+	StartupTime string `json:"startupTime"`
 }
 
 type VDatabase struct {
@@ -94,11 +101,13 @@ type VDatabase struct {
 	OpenMode string `json:"openMode"`
 }
 
+// sys.wrm$_database_instance
 type WrmDatabaseInstance struct {
 	DBID           int64 `json:"DBID"`
 	InstanceNumber int64 `json:"INSTANCE_NUMBER"`
 }
 
+// sys.wrm$_snapshot
 type WrmSnapshot struct {
 	SnapID            int64  `json:"SNAP_ID"`
 	DBID              int64  `json:"DBID"`
@@ -116,6 +125,8 @@ type SlowLog struct {
 	SQLText        string  `json:"sqlText"`   // sql语句
 	StartTimestamp int64   `json:"-"`         // 日志记录时的时间，时间戳形式
 }
+
+type OpenMode string
 
 func QueryParameter(tx *yasqlutil.Yasql, item ParameterName) (string, error) {
 	tmp := &yasqlutil.SelectRaw{
@@ -180,7 +191,7 @@ func QueryWrmDatabaseInstance(tx *yasqlutil.Yasql) (*WrmDatabaseInstance, error)
 // return all snapshot between start end end
 func QueryWrmSnapsot(tx *yasqlutil.Yasql, start string, end string) ([]*WrmSnapshot, error) {
 	snaps := make([]*WrmSnapshot, 0)
-	err := tx.Select(_wrmSnapsotSelecter).
+	err := tx.Select(_wrmSnapshotSelecter).
 		Where(fmt.Sprintf("BEGIN_INTERVAL_TIME >= TIMESTAMP('%s') and BEGIN_INTERVAL_TIME <= TIMESTAMP('%s')", start, end)).
 		Find(&snaps).Error()
 	if err != nil {
@@ -221,4 +232,8 @@ func (s *SlowLog) afterFind(tx *yasqlutil.Yasql) error {
 	}
 	s.SQLText = strings.Join(texts, "\n")
 	return nil
+}
+
+func (d *VDatabase) IsDatabaseInReadWwiteMode() bool {
+	return d.OpenMode == string(OPEN_MODE_READ_WRITE)
 }

@@ -90,13 +90,23 @@ func CheckSudovn(logger yaslog.YasLog) error {
 	return errors.New(err)
 }
 
+func GetRootUser() (*user.User, error) {
+	return user.LookupId(fmt.Sprint(ROOT_USER_UID))
+}
+
 func GetRealUser() (*user.User, error) {
 	if IsCurrentUserRoot() {
 		username := os.Getenv(ENV_SUDO_USER)
 		if len(username) == 0 {
-			return user.LookupId(fmt.Sprint(ROOT_USER_UID))
+			return GetRootUser()
 		}
 		return user.Lookup(username)
 	}
 	return user.LookupId(fmt.Sprint(os.Getuid()))
+}
+
+func CanSuToTargetUserWithoutPassword(targetUser string, logger yaslog.YasLog) bool {
+	exec := execerutil.NewExecer(logger)
+	ret, _, _ := exec.Exec(bashdef.CMD_SU, targetUser, "-c", bashdef.CMD_WHOAMI)
+	return ret == 0
 }

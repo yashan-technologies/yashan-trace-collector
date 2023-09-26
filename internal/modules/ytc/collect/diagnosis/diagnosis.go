@@ -32,15 +32,12 @@ const (
 	SYSTEM_LOG_MESSAGES = "/var/log/messages"
 	SYSTEM_LOG_SYSLOG   = "/var/log/syslog"
 
-	DIAG_DIR_NAME  = "diag"
-	LOG_DIR_NAME   = "log"
-	EXTRA_DIR_NAME = "extra"
+	DIAG_DIR_NAME         = "diag"
+	LOG_DIR_NAME          = "log"
+	EXTRA_DIR_NAME        = "extra"
+	BASH_HISTORY_DIR_NAME = "bashhistory"
 
 	CORE_DUMP_DIR_NAME = "coredump"
-	ADR_DIR_NAME       = "adr"
-
-	YASDB_DIR_NAME  = "yasdb"
-	SYSTEM_DIR_NAME = "system"
 
 	YASDB_ALERT_LOG = "alert"
 	YASDB_RUN_LOG   = "run"
@@ -66,6 +63,7 @@ var (
 		datadef.DIAG_HOST_SYSTEMLOG:        "操作系统日志",
 		datadef.DIAG_HOST_KERNELLOG:        "操作系统内核日志",
 		datadef.DIAG_YASDB_COREDUMP:        "CoreDump",
+		datadef.DIAG_HOST_BASH_HISTORY:     "操作系统Bash历史记录",
 	}
 )
 
@@ -100,6 +98,7 @@ func (b *DiagCollecter) itemFunc() map[string]func() error {
 		datadef.DIAG_YASDB_COREDUMP:        b.yasdbCoreDumpFile,
 		datadef.DIAG_HOST_SYSTEMLOG:        b.collectHostSystemLog,
 		datadef.DIAG_HOST_KERNELLOG:        b.collectHostKernelLog,
+		datadef.DIAG_HOST_BASH_HISTORY:     b.collectHostBashHistory,
 	}
 }
 
@@ -163,16 +162,19 @@ func (b *DiagCollecter) getNotAccessItem(noAccess []ytccollectcommons.NoAccessRe
 // [Interface Func]
 func (b *DiagCollecter) PreCollect(packageDir string) (err error) {
 	b.setPackageDir(packageDir)
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, CORE_DUMP_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, ADR_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, DIAG_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, LOG_DIR_NAME)); err != nil {
 		return
 	}
-	if err = fs.Mkdir(path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)); err != nil {
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME)); err != nil {
+		return
+	}
+	if err = fs.Mkdir(path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, BASH_HISTORY_DIR_NAME)); err != nil {
 		return
 	}
 	return

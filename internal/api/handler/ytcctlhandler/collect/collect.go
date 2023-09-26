@@ -189,7 +189,7 @@ func (c *CollecterHandler) collect(moduleItems map[string][]string) error {
 }
 
 func (c *CollecterHandler) PreCollect() error {
-	c.CollectResult.CollectBeginTime = time.Now()
+	c.CollectResult.CollectBeginTime = c.CollectResult.CollectParam.BeginTime
 	packageDir := c.CollectResult.GetPackageDir()
 	for _, collecter := range c.Collecters {
 		if err := collecter.PreCollect(packageDir); err != nil {

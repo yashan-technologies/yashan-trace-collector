@@ -15,6 +15,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const (
+	_default_awr_timeout_minute = 10
+)
+
 var _strategyConf Strategy
 
 type Collect struct {
@@ -126,7 +130,7 @@ func (c Collect) GetAWRTimeout() (t time.Duration) {
 	var err error
 	t, err = timeutil.GetDuration(c.AWRTimeout)
 	if err != nil {
-		t = time.Minute * 24
+		t = time.Minute * _default_awr_timeout_minute
 		return
 	}
 	return

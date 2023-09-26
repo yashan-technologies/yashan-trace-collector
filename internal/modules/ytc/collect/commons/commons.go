@@ -70,6 +70,7 @@ const (
 	DEFAULT_SLOWSQL_TIPS = "default collect slow.log from %s"
 	AWR_TIMEOUT_DESC     = "it may take a long time to generate an AWR report."
 	AWR_TIMEOUT_TIPS     = "we have defined the timeout period: %s for collecting AWR report, you can modify strategy.toml 'awr_timeout' to customize the timeout period"
+	AWR_SKIP_TIPS        = "the databse is not in readwrite mode, skip to generate AWR report"
 
 	NO_SATISFIED_SNAP_DESC = "no satisfied snapshot id"
 	NO_SATISFIED_TIPS      = "you can increase the collection interval appropriately"
@@ -100,6 +101,11 @@ const (
 	YASDB_INI = "yasdb.ini"
 )
 
+const (
+	HOST_DIR_NAME  = "host"
+	YASDB_DIR_NAME = "yasdb"
+)
+
 type NoAccessRes struct {
 	ModuleItem   string
 	Description  string
@@ -128,6 +134,7 @@ func PathErrDescAndTips(path string, e error) (desc, tips string) {
 			tips = PLEASE_RUN_WITH_ROOT_TIPS
 			return
 		}
+		tips = PLEASE_RUN_WITH_SUDO_TIPS
 		return
 	}
 	desc = e.Error()
@@ -153,7 +160,7 @@ func CheckSudoTips(err error) string {
 	return PLEASE_RUN_WITH_ROOT_TIPS
 }
 
-func YasErrDescAndtips(err error) (desc string, tips string) {
+func YasErrDescAndTips(err error) (desc string, tips string) {
 	if err == nil {
 		return
 	}
@@ -184,7 +191,7 @@ func YasErrDescAndtips(err error) (desc string, tips string) {
 	return
 }
 
-func NotAccessItem2Set(noAccess []NoAccessRes) (res map[string]struct{}) {
+func NotAccessItemToMap(noAccess []NoAccessRes) (res map[string]struct{}) {
 	res = make(map[string]struct{})
 	for _, noAccessRes := range noAccess {
 		if noAccessRes.ForceCollect {

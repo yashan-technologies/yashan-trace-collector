@@ -11,32 +11,58 @@ import (
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
 	"ytc/utils/fileutil"
+	"ytc/utils/yasqlutil"
+
+	"git.yasdb.com/go/yaslog"
 )
 
 const (
 	USER_SYS = "SYS"
 )
 
-func (p *PerfCollecter) checkAwr() *ytccollectcommons.NoAccessRes {
+func (p *PerfCollecter) checkDatabaseOpenMode(logger yaslog.YasLog) (bool, error) {
+	tx := yasqlutil.GetLocalInstance(p.YasdbUser, p.YasdbPassword, p.YasdbHome, p.YasdbData)
+	database, err := yasdb.QueryDatabase(tx)
+	if err != nil {
+		logger.Errorf("query v$database failed: %s", err)
+		return false, err
+	}
+	return database.IsDatabaseInReadWwiteMode(), nil
+}
+
+func (p *PerfCollecter) checkAWR() *ytccollectcommons.NoAccessRes {
 	noAccess := &ytccollectcommons.NoAccessRes{ModuleItem: datadef.PERF_YASDB_AWR}
 	if strings.ToUpper(p.YasdbUser) != USER_SYS {
 		ytccollectcommons.FillDescTips(noAccess, fmt.Sprintf(ytccollectcommons.USER_NOT_SYS_DESC, p.YasdbUser), ytccollectcommons.USER_NOT_SYS_TIPS)
 		return noAccess
 	}
 	if p.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(p.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(p.yasdbValidateErr)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
-	_, _, err := p.genStartEndSnapId(log.Module.M("check awr"))
+
+	logger := log.Module.M(datadef.PERF_YASDB_AWR)
+	inReadWriteMode, err := p.checkDatabaseOpenMode(logger)
 	if err != nil {
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		return noAccess
+	}
+	if !inReadWriteMode {
+		desc, tips := ytccollectcommons.AWR_SKIP_TIPS, ytccollectcommons.AWR_SKIP_TIPS
+		ytccollectcommons.FillDescTips(noAccess, desc, tips)
+		return noAccess
+	}
+	// TODO: check v$instance boot time
+	if _, _, err := p.genStartEndSnapId(logger); err != nil {
 		if err == yasdb.ErrNoSatisfiedSnapshot {
 			desc := ytccollectcommons.NO_SATISFIED_SNAP_DESC
 			tips := ytccollectcommons.NO_SATISFIED_TIPS
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
 		}
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		ytccollectcommons.FillDescTips(noAccess, desc, tips)
 		return noAccess
 	}
@@ -54,7 +80,7 @@ func (p *PerfCollecter) checkSlowSql() *ytccollectcommons.NoAccessRes {
 	defaultSlowLog := path.Join(p.YasdbData, ytccollectcommons.LOG, ytccollectcommons.SLOW, ytccollectcommons.SLOW_LOG)
 	defaultSlowLogTips := fmt.Sprintf(ytccollectcommons.DEFAULT_SLOWSQL_TIPS, defaultSlowLog)
 	if p.yasdbValidateErr != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(p.yasdbValidateErr)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(p.yasdbValidateErr)
 		if err := fileutil.CheckAccess(defaultSlowLog); err != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess
@@ -63,10 +89,10 @@ func (p *PerfCollecter) checkSlowSql() *ytccollectcommons.NoAccessRes {
 		noAccess.ForceCollect = true
 		return noAccess
 	}
-	slowLogPath, err := p.getFileSlowLogPath()
+	slowLogPath, err := p.getSlowLogPath()
 	slowLog := path.Join(slowLogPath, ytccollectcommons.SLOW_LOG)
 	if err != nil {
-		desc, tips := ytccollectcommons.YasErrDescAndtips(err)
+		desc, tips := ytccollectcommons.YasErrDescAndTips(err)
 		if err := fileutil.CheckAccess(defaultSlowLog); err != nil {
 			ytccollectcommons.FillDescTips(noAccess, desc, tips)
 			return noAccess

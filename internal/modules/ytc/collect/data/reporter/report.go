@@ -34,6 +34,7 @@ var REPORTERS = map[string]commons.Reporter{
 	datadef.DIAG_YASDB_COREDUMP:        diagreporter.NewYashanDBCoreDumpReporter(),
 	datadef.DIAG_HOST_SYSTEMLOG:        diagreporter.NewHostSystemLogReporter(),
 	datadef.DIAG_HOST_KERNELLOG:        diagreporter.NewHostKernelLogReporter(),
+	datadef.DIAG_HOST_BASH_HISTORY:     diagreporter.NewHostBashHistoryReporter(),
 
 	// PERF
 	datadef.PERF_YASDB_AWR:      performancereporter.NewAWRReporter(),

@@ -20,7 +20,7 @@ func GetLocalInstance(user string, password string, yasqlHome string, yasdbData 
 	return &Yasql{
 		Mutex:        &sync.Mutex{},
 		User:         user,
-		Password:     password,
+		Password:     Quote(password),
 		YasdbData:    yasdbData,
 		YasqlHome:    yasqlHome,
 		ConnectLocal: true,
@@ -37,7 +37,7 @@ func GetInstance(user string, password string, ip string, port uint, yasqlHome s
 	return &Yasql{
 		Mutex:        &sync.Mutex{},
 		User:         user,
-		Password:     password,
+		Password:     Quote(password),
 		Ip:           ip,
 		Port:         port,
 		YasqlHome:    yasqlHome,

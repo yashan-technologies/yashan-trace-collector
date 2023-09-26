@@ -11,6 +11,20 @@ const _html_css = `
         display: none;
     }
 
+    #back-to-top {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        line-height: 50px;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0 !important;
+    }
+
     .graph {
         height: 300px;
     }
