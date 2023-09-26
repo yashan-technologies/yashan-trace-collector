@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"ytc/defs/timedef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
@@ -30,7 +31,7 @@ func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 			return
 		}
 	}
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME)
+	destPath := path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, LOG_DIR_NAME)
 	// get run log files
 	runLogFiles, err := b.getLogFiles(log, runLogPath, YASDB_RUN_LOG)
 	if err != nil {
@@ -46,7 +47,7 @@ func (b *DiagCollecter) collectYasdbRunLog() (err error) {
 		yasdbRunLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	yasdbRunLogItem.Details = b.GenPackageRelativePath(path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, YASDB_DIR_NAME, runLogFile))
+	yasdbRunLogItem.Details = b.GenPackageRelativePath(path.Join(ytccollectcommons.YASDB_DIR_NAME, LOG_DIR_NAME, runLogFile))
 	return
 }
 

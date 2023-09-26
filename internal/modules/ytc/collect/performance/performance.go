@@ -107,9 +107,6 @@ func NewPerfCollecter(collectParam *collecttypedef.CollectParam) *PerfCollecter 
 // [Interface Func]
 func (p *PerfCollecter) PreCollect(packageDir string) error {
 	p.setPackageDir(packageDir)
-	if err := fs.Mkdir(path.Join(packageDir, collecttypedef.TYPE_PERF)); err != nil {
-		return err
-	}
 	if err := fs.Mkdir(p.getAWRPath()); err != nil {
 		return err
 	}
@@ -304,12 +301,12 @@ func (p *PerfCollecter) queryDatabaseInstance(log yaslog.YasLog) (*yasdb.WrmData
 
 // locally saved awr path
 func (p *PerfCollecter) getAWRPath() string {
-	return path.Join(_packageDir, p.Type(), AWR)
+	return path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, AWR)
 }
 
 // locally saved slow path
 func (p *PerfCollecter) getSlowPath() string {
-	return path.Join(_packageDir, p.Type(), SLOW)
+	return path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, SLOW)
 }
 
 func (p *PerfCollecter) deleteSqlFile(sqlPath string) {
