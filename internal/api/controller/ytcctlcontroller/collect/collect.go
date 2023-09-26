@@ -13,14 +13,17 @@ import (
 	ytcctlhandler "ytc/internal/api/handler/ytcctlhandler/collect"
 	"ytc/internal/modules/ytc/collect/yasdb"
 	"ytc/log"
+	"ytc/utils/fileutil"
 	"ytc/utils/jsonutil"
 	"ytc/utils/stringutil"
 	"ytc/utils/terminalutil"
 	"ytc/utils/timeutil"
+
+	"git.yasdb.com/go/yaserr"
 )
 
 type CollectGlobal struct {
-	Type    string `name:"type"   short:"t" default:"base,diag" help:"The type of collection, choose one or more of (base|diag|perf) and split with ','."`
+	Type    string `name:"type"   short:"t" default:"base,diag,perf" help:"The type of collection, choose one or more of (base|diag|perf) and split with ','."`
 	Range   string `name:"range"  short:"r" help:"The time range of the collection, such as '1M', '1d', '1h', '1m'. If <range> is given, <start> and <end> will be discard."`
 	Start   string `name:"start"  short:"s" help:"The start datetime of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm'"`
 	End     string `name:"end"    short:"e" help:"The end timestamp of the collection, such as 'yyyy-MM-dd', 'yyyy-MM-dd-hh', 'yyyy-MM-dd-hh-mm',, default value is current datetime."`
@@ -40,7 +43,7 @@ func (c *CollectCmd) Run() error {
 		return err
 	}
 	yasdbEnv, code := c.openYasdbCollectForm()
-	if code == terminalutil.FormExitNotContinue {
+	if code != terminalutil.FORM_EXIT_CONTINUE {
 		c.Quit()
 		return nil
 	}
@@ -77,16 +80,25 @@ func (c *CollectCmd) genCollcterParam(env *yasdb.YasdbEnv) (*collecttypedef.Coll
 	if err != nil {
 		return nil, err
 	}
+	owner, err := fileutil.GetOwner(env.YasdbHome)
+	if err != nil {
+		return nil, yaserr.Wrapf(err, "get os owner of yasdb home %s", env.YasdbHome)
+	}
+	log.Controller.Infof("YASDB_HOME: %s", env.YasdbHome)
+	log.Controller.Infof("YASDB_DATA: %s", env.YasdbData)
+	log.Controller.Infof("YASDB_USER: %s", env.YasdbUser)
 	return &collecttypedef.CollectParam{
-		StartTime:     start,
-		EndTime:       end,
-		Output:        c.Output,
-		YasdbHome:     env.YasdbHome,
-		YasdbData:     env.YasdbData,
-		YasdbUser:     env.YasdbUser,
-		YasdbPassword: env.YasdbPassword,
-		Include:       c.getExtraPath(c.Include),
-		Exclude:       c.getExtraPath(c.Exclude),
+		StartTime:       start,
+		EndTime:         end,
+		Output:          c.Output,
+		YasdbHome:       env.YasdbHome,
+		YasdbData:       env.YasdbData,
+		YasdbUser:       env.YasdbUser,
+		YasdbPassword:   env.YasdbPassword,
+		Include:         c.getExtraPath(c.Include),
+		Exclude:         c.getExtraPath(c.Exclude),
+		BeginTime:       time.Now(),
+		YasdbHomeOSUser: owner.Username,
 	}, nil
 }
 

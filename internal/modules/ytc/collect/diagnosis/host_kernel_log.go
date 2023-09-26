@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"ytc/defs/bashdef"
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/execerutil"
@@ -16,7 +17,7 @@ func (b *DiagCollecter) collectHostKernelLog() (err error) {
 	defer b.fillResult(&hostKernelLogItem)
 
 	log := log.Module.M(datadef.DIAG_HOST_KERNELLOG)
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
+	destPath := path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME)
 	// dmesg.log
 	execer := execerutil.NewExecer(log)
 	dmesgFile := fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_DMESG_LOG)
@@ -36,6 +37,6 @@ func (b *DiagCollecter) collectHostKernelLog() (err error) {
 		hostKernelLogItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	hostKernelLogItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, dmesgFile))
+	hostKernelLogItem.Details = b.GenPackageRelativePath(path.Join(ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME, dmesgFile))
 	return
 }

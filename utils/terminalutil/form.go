@@ -10,9 +10,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-var (
-	FormExitNotContinue = 1
-	FormExitContinue    = 2
+const (
+	FORM_EXIT_CONTINUE     = 0
+	FORM_EXIT_NOT_CONTINUE = 1
+	FORM_EXIT_CTRLC        = 2
 
 	CONTINUE = "Continue"
 	BACK     = "Back"
@@ -144,7 +145,7 @@ func (f *CollectForm) ConfrimExit(errMsg string) {
 		AddButtons([]string{CONTINUE, BACK}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == CONTINUE {
-				f.Stop(FormExitContinue)
+				f.Stop(FORM_EXIT_CONTINUE)
 				return
 			}
 			if buttonLabel == BACK {
@@ -172,6 +173,12 @@ func (f *CollectForm) Start() {
 			b.click(f)
 		})
 	}
+	f.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlC {
+			f.ExitCode = FORM_EXIT_CTRLC
+		}
+		return event
+	})
 	f.form.SetBorder(true).SetTitle(f.header).SetTitleAlign(tview.AlignLeft)
 	if err := f.app.SetRoot(f.form, true).EnableMouse(true).Run(); err != nil {
 		log.Controller.Errorf("start yasdb collect form err :%s", err.Error())

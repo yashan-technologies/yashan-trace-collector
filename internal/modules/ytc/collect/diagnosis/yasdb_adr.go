@@ -1,7 +1,6 @@
 package diagnosis
 
 import (
-	"fmt"
 	"path"
 
 	"ytc/defs/errdef"
@@ -36,13 +35,14 @@ func (b *DiagCollecter) collectYasdbADR() (err error) {
 		return
 	}
 	// package adr to dest
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME, ADR_DIR_NAME)
+	destPath := path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, DIAG_DIR_NAME)
 	if err = ytccollectcommons.CopyDir(log, adrPath, destPath, nil); err != nil {
 		log.Error(err)
 		yasdbADRItem.Error = err.Error()
 		yasdbADRItem.Description = datadef.GenDefaultDesc()
 		return
 	}
-	yasdbADRItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, ADR_DIR_NAME))
+
+	yasdbADRItem.Details = b.GenPackageRelativePath(path.Join(ytccollectcommons.YASDB_DIR_NAME, DIAG_DIR_NAME))
 	return
 }

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"ytc/defs/runtimedef"
+	"ytc/utils/userutil"
 )
 
 const (
@@ -12,6 +15,7 @@ const (
 
 type Redirecter struct {
 	fileWriter *os.File
+	fname      string
 }
 
 func NewRedirecter(fn string) (*Redirecter, error) {
@@ -21,6 +25,7 @@ func NewRedirecter(fn string) (*Redirecter, error) {
 	}
 	return &Redirecter{
 		fileWriter: f,
+		fname:      fn,
 	}, nil
 }
 
@@ -52,6 +57,11 @@ func (r *Redirecter) RedirectStd() (finalize func()) {
 		_ = r.fileWriter.Sync()
 		// close file
 		_ = r.fileWriter.Close()
+		// change owner
+		owner := runtimedef.GetExecuteableOwner()
+		if userutil.IsCurrentUserRoot() && (owner.Uid != 0 || owner.Gid != 0) {
+			_ = os.Chown(r.fname, owner.Uid, owner.Gid)
+		}
 	}
 	return
 }

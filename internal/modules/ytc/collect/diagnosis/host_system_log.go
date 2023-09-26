@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 
+	ytccollectcommons "ytc/internal/modules/ytc/collect/commons"
 	"ytc/internal/modules/ytc/collect/commons/datadef"
 	"ytc/log"
 	"ytc/utils/userutil"
@@ -17,7 +18,7 @@ func (b *DiagCollecter) collectHostSystemLog() (err error) {
 	defer b.fillResult(&hostSystemLogItem)
 
 	log := log.Module.M(datadef.DIAG_HOST_SYSTEMLOG)
-	destPath := path.Join(_packageDir, DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME)
+	destPath := path.Join(_packageDir, ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME)
 	if userutil.IsCurrentUserRoot() {
 		// message.log
 		destMessageLogFile := path.Join(destPath, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG))
@@ -25,7 +26,7 @@ func (b *DiagCollecter) collectHostSystemLog() (err error) {
 			log.Error(err)
 			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 		} else {
-			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
+			logPath := b.GenPackageRelativePath(path.Join(ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_MESSAGES_LOG)))
 			hostSystemLogItem.Children[SYSTEM_MESSAGES_LOG] = datadef.YTCItem{Details: logPath}
 		}
 		// syslog.log
@@ -34,7 +35,7 @@ func (b *DiagCollecter) collectHostSystemLog() (err error) {
 			log.Error(err)
 			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Error: err.Error(), Description: datadef.GenDefaultDesc()}
 		} else {
-			logPath := fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, LOG_DIR_NAME, SYSTEM_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
+			logPath := b.GenPackageRelativePath(path.Join(ytccollectcommons.HOST_DIR_NAME, LOG_DIR_NAME, fmt.Sprintf(LOG_FILE_SUFFIX, SYSTEM_SYS_LOG)))
 			hostSystemLogItem.Children[SYSTEM_SYS_LOG] = datadef.YTCItem{Details: logPath}
 		}
 	} else {

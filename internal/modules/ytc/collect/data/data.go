@@ -111,6 +111,7 @@ func (r *YTCReport) GenResult(outputDir string, types map[string]struct{}) (stri
 		CollectTypes: types,
 		OutputDir:    outputDir,
 		Timestamp:    r.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
+		PackageName:  r.CollectParam.GetPackageName(),
 		Genner:       r,
 	}
 	return genner.GenResult()
@@ -118,8 +119,9 @@ func (r *YTCReport) GenResult(outputDir string, types map[string]struct{}) (stri
 
 func (r *YTCReport) GetPackageDir() string {
 	genner := resultgenner.BaseResultGenner{
-		OutputDir: r.CollectParam.Output,
-		Timestamp: r.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
+		OutputDir:   r.CollectParam.Output,
+		Timestamp:   r.CollectBeginTime.Format(timedef.TIME_FORMAT_IN_FILE),
+		PackageName: r.CollectParam.GetPackageName(),
 	}
 	return genner.GetPackageDir()
 }

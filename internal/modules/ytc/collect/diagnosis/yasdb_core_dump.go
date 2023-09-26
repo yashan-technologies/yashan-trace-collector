@@ -1,7 +1,6 @@
 package diagnosis
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -96,7 +95,7 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 			log.Infof("the modify time of %s is %s, skip", file.Name(), createAt)
 			continue
 		}
-		src, dest := path.Join(coreDumpPath, file.Name()), path.Join(_packageDir, DIAG_DIR_NAME, CORE_DUMP_DIR_NAME, file.Name())
+		src, dest := path.Join(coreDumpPath, file.Name()), path.Join(_packageDir, ytccollectcommons.YASDB_DIR_NAME, CORE_DUMP_DIR_NAME, file.Name())
 		if err = fs.CopyFile(src, dest); err != nil {
 			log.Errorf("failed to copy file %s to %s", src, dest, err)
 			yasdbCoreDumpItem.Error = err.Error()
@@ -104,7 +103,7 @@ func (b *DiagCollecter) yasdbCoreDumpFile() (err error) {
 			return
 		}
 	}
-	yasdbCoreDumpItem.Details = fmt.Sprintf("./%s", path.Join(DIAG_DIR_NAME, CORE_DUMP_DIR_NAME))
+	yasdbCoreDumpItem.Details = b.GenPackageRelativePath(path.Join(ytccollectcommons.YASDB_DIR_NAME, CORE_DUMP_DIR_NAME))
 	return
 }
 
