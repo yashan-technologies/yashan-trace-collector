@@ -49,7 +49,6 @@ const _html_template = `
     <script>
         function toggleToc () {
             var toc = document.getElementById("catalogs")
-            console.log(toc.style.display)
             if (toc.style.display === "none" || (toc.style.display === "")) {
                 toc.style.display = "block"
             } else {
@@ -57,6 +56,24 @@ const _html_template = `
             }
         }
     </script>
+    <button id="back-to-top" class="ytc_button">Top</button>
+
+    <script>
+        window.addEventListener('scroll', function () {
+            var button = document.querySelector('#back-to-top')
+            if (window.pageYOffset > 100) {
+                button.style.display = 'block'
+            } else {
+                button.style.display = 'none'
+            }
+        })
+
+        var button = document.querySelector('#back-to-top')
+        button.addEventListener('click', function () {
+            window.scrollTo(0, 0)
+        });
+    </script>
+    <button id="back-to-top">Top</button>
     %s
 </body>
 </html>
